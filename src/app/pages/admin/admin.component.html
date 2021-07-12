@@ -1,0 +1,74 @@
+<div id="wrapper">
+  <div
+    id="main-container"
+    class="container-fluid p-4 d-lg-flex flex-lg-column h-100"
+    style="max-height: calc(100%-70px)"
+  >
+    <div class="d-flex align-items-center">
+      <h5 class="display-5">Users</h5>
+      <div class="flex-fill"></div>
+      <div>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="openNewUserModal()"
+        >
+          Add New User
+        </button>
+      </div>
+    </div>
+    <div class="datatable mt-4">
+      <table
+        class="table datatable-table align-middle table-hover table-striped"
+        mdbTable
+        mdbTableSort
+        #table="mdbTable"
+        #sort="mdbTableSort"
+        [dataSource]="(users$ | async) || []"
+        [pagination]="pagination"
+        [sort]="sort"
+      >
+        <thead class="datatable-header">
+          <tr class="table-primary">
+            <th
+              *ngFor="let header of headers"
+              [mdbTableSortHeader]="header"
+              scope="col"
+            >
+              {{ header | titlecase }}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="datatable-body">
+          <tr *ngFor="let user of table.data" scope="row">
+            <td>{{ user.admin ? "Yes" : "No" }}</td>
+            <td>
+              {{ user.username }}
+            </td>
+
+            <td>
+              {{ user.createdAt?.toDate() | date }}
+            </td>
+            <td>
+              <button
+                class="btn btn-outline-primary btn-floating btn-sm"
+                (click)="openEditUserModal(user)"
+                disabled
+              >
+                <i class="fa fa-edit"></i>
+              </button>
+              <button
+                class="btn ms-2 btn-danger btn-floating btn-sm"
+                (click)="deleteUser(user.uid)"
+                [disabled]="(authServ.auth.authState | async)?.uid == user.uid"
+              >
+                <i class="fa fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <mdb-table-pagination #pagination></mdb-table-pagination>
+    </div>
+  </div>
+</div>

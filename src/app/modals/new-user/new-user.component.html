@@ -1,0 +1,113 @@
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">New User</h5>
+  <button type="button" class="btn-close" (click)="modalRef.close()"></button>
+</div>
+<div class="modal-body">
+  <div class="row justify-content-center align-items-center" *ngIf="isLoading">
+    <div class="spinner-border m-auto" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div [formGroup]="newUserFormGroup" *ngIf="!isLoading">
+    <mdb-form-control class="mb-3">
+      <input
+        mdbInput
+        type="text"
+        id="username"
+        class="form-control"
+        formControlName="username"
+        required
+      />
+      <label mdbLabel class="form-label" for="username">Username</label>
+    </mdb-form-control>
+    <div
+      class="note note-danger mb-3"
+      *ngIf="
+        newUserFormGroup.get('username')?.invalid &&
+        newUserFormGroup.get('username')?.dirty
+      "
+    >
+      <ng-container
+        *ngIf="newUserFormGroup.get('username')?.hasError('required')"
+      >
+        Username is <b>required</b>.
+      </ng-container>
+      <ng-container
+        *ngIf="newUserFormGroup.get('username')?.hasError('minlength')"
+      >
+        Username should <b>not</b> be less than <b>6</b> characters.
+      </ng-container>
+      <ng-container
+        *ngIf="
+          newUserFormGroup.get('username')?.hasError('usernameAlreadyExists')
+        "
+      >
+        An account with the username
+        <b> {{ newUserFormGroup.get("username")?.value }}</b> already exists.
+      </ng-container>
+
+      <ng-container
+        *ngIf="newUserFormGroup.get('username')?.hasError('notUsername')"
+      >
+        Username should only be alphanumeric (no special characters allowed).
+      </ng-container>
+    </div>
+    <mdb-form-control class="mb-3">
+      <input
+        mdbInput
+        type="text"
+        id="password"
+        class="form-control"
+        formControlName="password"
+        required
+      />
+      <label mdbLabel class="form-label" for="password">Password</label>
+    </mdb-form-control>
+
+    <div
+      class="note note-danger mb-3"
+      *ngIf="
+        newUserFormGroup.get('password')?.invalid &&
+        newUserFormGroup.get('password')?.dirty
+      "
+    >
+      <ng-container
+        *ngIf="newUserFormGroup.get('password')?.hasError('required')"
+      >
+        Password is <b>required</b>.
+      </ng-container>
+      <ng-container
+        *ngIf="newUserFormGroup.get('password')?.hasError('minlength')"
+      >
+        Password should <b>not</b> be less than <b>6</b> characters.
+      </ng-container>
+    </div>
+
+    <div class="form-check">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        value=""
+        id="isAdmin"
+        #isBirthDateKnown
+        formControlName="admin"
+      />
+      <label class="form-check-label" for="isAdmin"> Admin </label>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-danger" (click)="modalRef.close()">
+    Discard
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    [disabled]="newUserFormGroup.invalid"
+    (click)="addUser()"
+  >
+    Add New User
+  </button>
+</div>

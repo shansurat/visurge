@@ -6,8 +6,8 @@ admin.initializeApp({
   credential: admin.credential.cert(<admin.ServiceAccount>serviceAccount),
 });
 
-export const createUser = functions.https.onCall(async (data, context) => {
-  let uid = (
+export const createUser = functions.https.onCall(async (data, context?) => {
+  const uid = (
     await admin.auth().createUser({
       email: `${data.user.username}@visurge.com`,
       password: data.user.password,
@@ -29,7 +29,7 @@ export const createUser = functions.https.onCall(async (data, context) => {
 });
 
 export const deleteUser = functions.https.onCall(async (data, context) => {
-  let uid = data.uid;
+  const uid = data.uid;
   await admin.auth().deleteUser(uid);
   await admin.firestore().collection('users').doc(uid).delete();
 });

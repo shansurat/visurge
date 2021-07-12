@@ -1,0 +1,42 @@
+#wrapper {
+  height: 100%;
+  overflow: hidden;
+}
+
+thead th {
+  vertical-align: middle;
+}
+
+.option-text {
+  width: 100% !important;
+}
+
+#main-container {
+  overflow-y: auto;
+  // height: calc(100% - 70px);
+}
+
+#actions-container {
+  min-height: 100px;
+  box-shadow: 0 2px 20px 0 rgba(0, 0, 0, 0.25), 0 3px 20px 3px rgba(0, 0, 0, 0) !important;
+}
+
+.form-group {
+  background-color: #f4e3ff;
+}
+
+th,
+td {
+  white-space: nowrap;
+}
+
+.form-outline .form-control:disabled,
+.form-outline .form-control.disabled,
+.form-outline .form-control[readonly] {
+  background-color: rgb(214 200 222);
+}
+
+small.form-label {
+  font-weight: 600;
+  white-space: nowrap;
+}

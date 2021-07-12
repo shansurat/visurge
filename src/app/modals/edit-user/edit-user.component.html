@@ -1,0 +1,70 @@
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">Edit User</h5>
+  <button type="button" class="btn-close" (click)="modalRef.close()"></button>
+</div>
+<div class="modal-body">
+  <div [formGroup]="editUserFormGroup">
+    <mdb-form-control class="mb-3">
+      <input
+        mdbInput
+        type="text"
+        id="username"
+        class="form-control"
+        formControlName="username"
+        required
+      />
+      <label mdbLabel class="form-label" for="username">Username</label>
+    </mdb-form-control>
+    <div
+      class="note note-danger mb-3"
+      *ngIf="
+        editUserFormGroup.get('username')?.hasError('usernameAlreadyExists')
+      "
+    >
+      An account with the username
+      <b> {{ editUserFormGroup.get("username")?.value }}</b> already exists.
+    </div>
+    <mdb-form-control class="mb-3">
+      <input
+        mdbInput
+        type="text"
+        id="password"
+        class="form-control"
+        formControlName="password"
+        required
+      />
+      <label mdbLabel class="form-label" for="password">Password</label>
+    </mdb-form-control>
+
+    <div class="form-check">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        value=""
+        id="isAdmin"
+        #isBirthDateKnown
+        formControlName="admin"
+      />
+      <label class="form-check-label" for="isAdmin"> Admin </label>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button
+    type="button"
+    class="btn btn-danger"
+    data-mdb-dismiss="modal"
+    (click)="modalRef.close()"
+  >
+    Discard
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    [disabled]="editUserFormGroup.invalid"
+    (click)="editUser()"
+  >
+    Add New User
+  </button>
+</div>

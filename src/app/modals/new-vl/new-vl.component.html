@@ -1,0 +1,59 @@
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">New Viral Load Entry</h5>
+  <button type="button" class="btn-close" (click)="modalRef.close()"></button>
+</div>
+<div class="modal-body">
+  <div [formGroup]="newVLFormGroup">
+    <div class="mb-3">
+      <small mdbLabel class="form-label" for="value">Viral Load Value</small>
+
+      <mdb-form-control>
+        <input
+          mdbInput
+          type="number"
+          id="value"
+          class="form-control"
+          formControlName="value"
+        />
+      </mdb-form-control>
+
+      <div class="form-text" *ngIf="newVLFormGroup.get('value')?.value">
+        {{ (newVLFormGroup.get("value")?.value || 0) < 1000 ? "Low" : "High" }}
+        Viral Load
+      </div>
+    </div>
+    <div>
+      <small mdbLabel for="dateSampleCollectedInput" class="form-label"
+        >Date Sample Collected</small
+      >
+      <mdb-form-control tabindex="1">
+        <input
+          mdbInput
+          [mdbDatepicker]="dateSampleCollectedDatePicker"
+          type="text"
+          class="form-control"
+          id="dateSampleCollectedInput"
+          formControlName="dateSampleCollected"
+        />
+
+        <mdb-datepicker-toggle
+          [mdbDatepicker]="dateSampleCollectedDatePicker"
+        ></mdb-datepicker-toggle>
+        <mdb-datepicker #dateSampleCollectedDatePicker></mdb-datepicker>
+      </mdb-form-control>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-danger" (click)="modalRef.close()">
+    Discard
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    [disabled]="newVLFormGroup.invalid"
+    (click)="addVL()"
+  >
+    Add
+  </button>
+</div>
