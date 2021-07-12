@@ -6,6 +6,7 @@ import {
   OnInit,
   ViewEncapsulation,
 } from '@angular/core';
+import { AngularFirestore } from '@angular/fire/firestore';
 import {
   FormArray,
   FormBuilder,
@@ -14,10 +15,20 @@ import {
   Validators,
 } from '@angular/forms';
 import { MdbModalService } from 'mdb-angular-ui-kit/modal';
+import { MdbNotificationService } from 'mdb-angular-ui-kit/notification';
 import { MdbStepperOrientation } from 'mdb-angular-ui-kit/stepper';
 import { Subscription, timer } from 'rxjs';
-import { fromEvent, Observable } from 'rxjs';
-import { map, share } from 'rxjs/operators';
+import { fromEvent, Observable, combineLatest } from 'rxjs';
+import {
+  combineAll,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  mergeMap,
+  share,
+} from 'rxjs/operators';
+import { UserLoadedAlertComponent } from 'src/app/alerts/user-loaded-alert/user-loaded-alert.component';
+import { UserEntry } from 'src/app/interfaces/user-entry';
 import { ViralLoadEntry } from 'src/app/interfaces/viral-load-entry';
 import { EditVlComponent } from 'src/app/modals/edit-vl/edit-vl.component';
 import { NewVlComponent } from 'src/app/modals/new-vl/new-vl.component';
@@ -80,7 +91,9 @@ export class EntryFormComponent
   constructor(
     private cdref: ChangeDetectorRef,
     private fb: FormBuilder,
-    private modalServ: MdbModalService
+    private modalServ: MdbModalService,
+    private afs: AngularFirestore,
+    private notifServ: MdbNotificationService
   ) {
     this.ageCategories.forEach((ageCategory) => {
       this.regimensByGroup.push({
@@ -137,6 +150,57 @@ export class EntryFormComponent
         }
       }
     );
+
+    this.uniqueARTNumberFormControl.valueChanges
+      .pipe(
+        debounceTime(1000),
+        distinctUntilChanged(),
+        mergeMap((uniqueARTNumber) => {
+          return this.afs.collection('entries').doc(uniqueARTNumber).get();
+        }),
+        map((entry) => {
+          return entry.exists ? entry.data() : null;
+        })
+      )
+      .subscribe((res: UserEntry | any) => {
+        if (res) {
+          console.log();
+          let { vlh, uniqueARTNumber } = res;
+
+          delete res.uniqueARTNumber;
+          delete res.vlh;
+
+          res.ARTStartDate = res.ARTStartDate.toDate();
+          res.birthdate = res.birthdate.toDate();
+          res.regimenStartTransDate = res.regimenStartTransDate.toDate();
+          res.eac3CompletionDate = res.eac3CompletionDate.toDate();
+          res.lastClinicVisitDate = res.lastClinicVisitDate.toDate();
+          res.nextAppointmentDate = res.nextAppointmentDate.toDate();
+
+          this.entryFormGroup.setValue(res);
+          this.notifServ.open(UserLoadedAlertComponent, {
+            autohide: true,
+            data: { uniqueARTNumber },
+          });
+
+          this.entryFormGroup.get('regimen')?.setValue(res.regimen);
+        } else {
+          this.entryFormGroup.reset();
+          this.vlh = [];
+        }
+      });
+
+    // this.entryFormGroup.valueChanges.subscribe((val) => {
+    //   setEligibilityStatus({
+    //     ...val,
+    //     vlh: this.vlh,
+    //   });
+
+    //   this.iit = getIITStatus({
+    //     ...val,
+    //     vlh: this.vlh,
+    //   });
+    // });
 
     this.entryFormGroup.get('pmtct')?.valueChanges.subscribe((val) => {
       if (!val) this.entryFormGroup.get('pmtctEnrollStartDate')?.setValue('');
@@ -195,15 +259,16 @@ export class EntryFormComponent
   }
 
   saveEntryForm() {
-    this.eligibility = getEligibilityStatus({
-      ...this.entryFormGroup.value,
-      vlh: this.vlh,
-    });
-
-    this.iit = getIITStatus({
-      ...this.entryFormGroup.value,
-      vlh: this.vlh,
-    });
+    let uniqueARTNumber = this.uniqueARTNumberFormControl.value;
+    console.log('Saving information!');
+    console.log(this.entryFormGroup.value);
+    this.afs
+      .collection('entries')
+      .doc(uniqueARTNumber)
+      .set(
+        { ...this.entryFormGroup.value, vlh: this.vlh, uniqueARTNumber },
+        { merge: true }
+      );
   }
 
   openNewVLModal() {
@@ -249,7 +314,7 @@ function diffDate(date1: Date, date2: Date) {
   return (date1.getTime() - date2.getTime()) / (1000 * 3600 * 24);
 }
 
-function getEligibilityStatus(formVal: any): string {
+function setEligibilityStatus(formVal: any): string {
   let {
     sex,
     birthdate,

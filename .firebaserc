@@ -2,8 +2,11 @@
   "targets": {
     "vl-surge-assumption": {
       "hosting": {
-        "vl-surge-assumption": [
+        "visurge": [
           "visurge"
+        ],
+        "vl-surge-assumption": [
+          "vl-surge-assumption"
         ]
       }
     }

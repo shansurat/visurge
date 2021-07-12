@@ -24,7 +24,17 @@
         <div class="col-12 col-md-6 col-lg-4 col-xl-4">
           <h6 class="mb-1 text-secondary">ART Information</h6>
 
-          <div class="form-group card shadow-0 d-flex flex-column p-3">
+          <div
+            class="
+              form-group
+              card
+              shadow-0
+              d-flex
+              flex-column
+              p-3
+              border border-secondary
+            "
+          >
             <!-- Unique ART Number -->
             <div class="mb-3">
               <small mdbLabel class="form-label" for="uniqueARTNumberInput"
@@ -57,6 +67,10 @@
                   formControlName="ARTStartDate"
                   placeholder="dd, mmm, yyyy"
                   (click)="ARTStartDatePicker.open()"
+                  [disabled]="
+                    uniqueARTNumberFormControl.invalid &&
+                    uniqueARTNumberFormControl.dirty
+                  "
                 />
 
                 <mdb-datepicker
@@ -99,6 +113,10 @@
                   formControlName="birthdate"
                   placeholder="dd, mmm, yyyy"
                   (click)="birthdateDatepicker.open()"
+                  [disabled]="
+                    uniqueARTNumberFormControl.invalid &&
+                    uniqueARTNumberFormControl.dirty
+                  "
                 />
 
                 <mdb-datepicker
@@ -208,6 +226,10 @@
                   formControlName="regimenStartTransDate"
                   placeholder="dd, mmm, yyyy"
                   (click)="regimenStartTransDatePicker.open()"
+                  [disabled]="
+                    uniqueARTNumberFormControl.invalid &&
+                    uniqueARTNumberFormControl.dirty
+                  "
                 />
 
                 <mdb-datepicker
@@ -333,7 +355,15 @@
             <h6 class="text-secondary mb-0">CLINIC VISIT</h6>
             <div class="flex-fill"></div>
 
-            <button class="btn btn-sm btn-primary">Add New</button>
+            <button
+              class="btn btn-sm btn-primary"
+              [disabled]="
+                uniqueARTNumberFormControl.invalid ||
+                uniqueARTNumberFormControl.dirty
+              "
+            >
+              Add New
+            </button>
           </div>
 
           <div class="form-group card shadow-0 d-flex flex-column p-3">
@@ -352,6 +382,10 @@
                   id="lastClinicVisicDateInput"
                   placeholder="dd, mmm, yyyy"
                   (click)="lastClinicVisitDatePicker.open()"
+                  [disabled]="
+                    uniqueARTNumberFormControl.invalid &&
+                    uniqueARTNumberFormControl.dirty
+                  "
                 />
 
                 <mdb-datepicker
@@ -375,6 +409,10 @@
                   id="nextAppointmentDateInput"
                   placeholder="dd, mmm, yyyy"
                   (click)="nextAppointmentDatePicker.open()"
+                  [disabled]="
+                    uniqueARTNumberFormControl.invalid &&
+                    uniqueARTNumberFormControl.dirty
+                  "
                 />
                 <mdb-datepicker
                   #nextAppointmentDatePicker
@@ -417,7 +455,7 @@
                 value=""
                 id="noViralLoadHasBeenDone"
                 #noViralLoadHasBeenDone
-                [disabled]="!!vlh.length"
+                [disabled]="!!vlh.length || uniqueARTNumberFormControl.invalid"
               />
               <label class="form-check-label" for="noViralLoadHasBeenDone">
                 Nil
@@ -425,7 +463,10 @@
             </div>
             <button
               class="btn btn-sm btn-primary"
-              [disabled]="noViralLoadHasBeenDone.checked"
+              [disabled]="
+                noViralLoadHasBeenDone.checked ||
+                uniqueARTNumberFormControl.invalid
+              "
               (click)="openNewVLModal()"
             >
               Add New

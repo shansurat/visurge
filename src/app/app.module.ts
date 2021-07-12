@@ -57,6 +57,7 @@ import { LoadingComponent } from './modals/loading/loading.component';
 import { LogoComponent } from './components/logo/logo.component';
 import { NewVlComponent } from './modals/new-vl/new-vl.component';
 import { EditVlComponent } from './modals/edit-vl/edit-vl.component';
+import { UserLoadedAlertComponent } from './alerts/user-loaded-alert/user-loaded-alert.component';
 
 @NgModule({
   declarations: [
@@ -76,6 +77,7 @@ import { EditVlComponent } from './modals/edit-vl/edit-vl.component';
     LogoComponent,
     NewVlComponent,
     EditVlComponent,
+    UserLoadedAlertComponent,
   ],
   imports: [
     BrowserModule,
