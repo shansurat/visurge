@@ -1,8 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
+import { MdbModalService } from 'mdb-angular-ui-kit/modal';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { getRegimenByCode } from 'src/app/functions/getRegimenByCode';
+import { ImportEntriesComponent } from 'src/app/modals/import-entries/import-entries.component';
 
 @Component({
   selector: 'app-database',
@@ -28,8 +31,11 @@ export class DatabaseComponent implements OnInit {
   entries!: Observable<any[]>;
   eligible$!: Observable<any[]>;
 
+  getRegimenByCode = getRegimenByCode;
+
   headers = [
     'Entry Date',
+    'Facility',
     'Unique ART Number',
     'ART Start Date',
     'Sex',
@@ -44,7 +50,11 @@ export class DatabaseComponent implements OnInit {
     'Eligibility',
     'Actions',
   ];
-  constructor(private afs: AngularFirestore, private router: Router) {
+  constructor(
+    private afs: AngularFirestore,
+    private router: Router,
+    private modalServ: MdbModalService
+  ) {
     this.entries = afs
       .collection('entries')
       .valueChanges()
@@ -60,6 +70,12 @@ export class DatabaseComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  openImportEntriesModal() {
+    this.modalServ.open(ImportEntriesComponent, {
+      modalClass: 'modal-dialog-centered',
+    });
+  }
 
   getAge(birthdate: Date) {
     let today = new Date();

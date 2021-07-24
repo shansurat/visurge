@@ -1,0 +1,32 @@
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">
+    Import Entries
+    <div class="badge badge-danger ms-3">Under Development</div>
+  </h5>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modalRef.close()"
+  ></button>
+</div>
+<div class="modal-body">
+  <label class="form-label" for="entriesFile">Please upload a file</label>
+  <input
+    type="file"
+    class="form-control form-control-lg"
+    id="entriesFile"
+    [formControl]="entriesFormControl"
+  />
+
+  <div class="note note-info mt-3" *ngIf="entriesFormControl.value">
+    This will contain info about the file for the user before importing; such as
+    the number of entries, number of errors in the entries file, overlapping
+    entries on the existing database, etc.
+  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" disabled>
+    Import Entries
+  </button>
+</div>

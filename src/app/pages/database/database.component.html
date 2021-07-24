@@ -3,8 +3,29 @@
     class="d-flex flex-column position-relative flex-fill"
     style="max-width: 100%"
   >
-    <div id="main-container" class="p-4 flex-fill">
-      <div class="container-fluid h-100" [ngStyle]="{ overflow: 'hidden' }">
+    <div id="main-container" class="p-4 flex-fill d-flex flex-column">
+      <div class="container-fluid mb-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center">
+            <mdb-form-control>
+              <input mdbInput type="text" id="form1" class="form-control" />
+              <label mdbLabel class="form-label" for="form1">Filter</label>
+            </mdb-form-control>
+          </div>
+          <div>
+            <button
+              class="btn btn-secondary me-3"
+              (click)="openImportEntriesModal()"
+            >
+              Import Entries
+            </button>
+            <button class="btn btn-primary" routerLink="/entry-form">
+              Add New Entry
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="container-fluid flex-fill" [ngStyle]="{ overflow: 'hidden' }">
         <div class="card h-100">
           <div class="card-header">
             <div class="d-flex align-items-center justify-content-between">
@@ -16,12 +37,7 @@
                   {{ (eligible$ | async)?.length || 0 }} ELIGIBLE
                 </div>
               </div>
-              <div>
-                <mdb-form-control>
-                  <input mdbInput type="text" id="form1" class="form-control" />
-                  <label mdbLabel class="form-label" for="form1">Filter</label>
-                </mdb-form-control>
-              </div>
+              <div></div>
             </div>
           </div>
           <div
@@ -69,6 +85,9 @@
                     <tr *ngFor="let data of table.data" scope="row">
                       <td>
                         {{ data.entryDate?.toDate() | date: "longDate" }}
+                      </td>
+                      <td>
+                        {{ data.facilityName }}
                       </td>
                       <td>
                         <div class="badge badge-info">
@@ -139,7 +158,20 @@
                       <td>{{ data.phoneNumber }}</td>
 
                       <td>
-                        {{ data.regimen }}
+                        <div
+                          class="badge me-3"
+                          [ngClass]="{
+                            'badge-primary':
+                              getRegimenByCode(data.regimen).category == 'TLD',
+                            'badge-warning':
+                              getRegimenByCode(data.regimen).category == 'TLE'
+                          }"
+                        >
+                          {{ data.regimen }}
+                        </div>
+                        <span>
+                          {{ getRegimenByCode(data.regimen).regimen }}
+                        </span>
                       </td>
                       <td>{{ data.pmtct | titlecase }}</td>
                       <td>
@@ -198,7 +230,14 @@
           </div>
 
           <div class="card-footer">
-            <mdb-table-pagination #pagination></mdb-table-pagination>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <button class="btn btn-success">Export Entries</button>
+              </div>
+              <div>
+                <mdb-table-pagination #pagination></mdb-table-pagination>
+              </div>
+            </div>
           </div>
         </div>
       </div>

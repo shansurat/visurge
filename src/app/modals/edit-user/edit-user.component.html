@@ -3,39 +3,88 @@
   <button type="button" class="btn-close" (click)="modalRef.close()"></button>
 </div>
 <div class="modal-body">
-  <div [formGroup]="editUserFormGroup">
+  <div class="row justify-content-center align-items-center" *ngIf="isLoading">
+    <div class="spinner-border m-auto" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  <div [formGroup]="editUserFormGroup" *ngIf="!isLoading">
     <mdb-form-control class="mb-3">
       <input
         mdbInput
+        [mdbValidate]="true"
         type="text"
         id="username"
         class="form-control"
         formControlName="username"
         required
+        autocomplete="off"
       />
       <label mdbLabel class="form-label" for="username">Username</label>
     </mdb-form-control>
     <div
       class="note note-danger mb-3"
       *ngIf="
-        editUserFormGroup.get('username')?.hasError('usernameAlreadyExists')
+        editUserFormGroup.get('username')?.invalid &&
+        editUserFormGroup.get('username')?.dirty
       "
     >
-      An account with the username
-      <b> {{ editUserFormGroup.get("username")?.value }}</b> already exists.
+      <ng-container
+        *ngIf="editUserFormGroup.get('username')?.hasError('required')"
+      >
+        Username is <b>required</b>.
+      </ng-container>
+      <ng-container
+        *ngIf="editUserFormGroup.get('username')?.hasError('minlength')"
+      >
+        Username should <b>not</b> be less than <b>6</b> characters.
+      </ng-container>
+      <ng-container
+        *ngIf="
+          editUserFormGroup.get('username')?.hasError('usernameAlreadyExists')
+        "
+      >
+        An account with the username
+        <b> {{ editUserFormGroup.get("username")?.value }}</b> already exists.
+      </ng-container>
+
+      <ng-container
+        *ngIf="editUserFormGroup.get('username')?.hasError('notUsername')"
+      >
+        Username should only be alphanumeric (no special characters allowed).
+      </ng-container>
     </div>
     <mdb-form-control class="mb-3">
       <input
         mdbInput
+        [mdbValidate]="true"
         type="text"
         id="password"
         class="form-control"
         formControlName="password"
         required
+        autocomplete="off"
       />
       <label mdbLabel class="form-label" for="password">Password</label>
     </mdb-form-control>
-
+    <div
+      class="note note-danger mb-3"
+      *ngIf="
+        editUserFormGroup.get('password')?.invalid &&
+        editUserFormGroup.get('password')?.dirty
+      "
+    >
+      <ng-container
+        *ngIf="editUserFormGroup.get('password')?.hasError('required')"
+      >
+        Password is <b>required</b>.
+      </ng-container>
+      <ng-container
+        *ngIf="editUserFormGroup.get('password')?.hasError('minlength')"
+      >
+        Password should <b>not</b> be less than <b>6</b> characters.
+      </ng-container>
+    </div>
     <div class="form-check">
       <input
         mdbCheckbox
@@ -62,9 +111,14 @@
   <button
     type="button"
     class="btn btn-primary"
-    [disabled]="editUserFormGroup.invalid"
+    [disabled]="
+      editUserFormGroup.invalid ||
+      (user.username == editUserFormGroup.value.username &&
+        user.password == editUserFormGroup.value.password &&
+        user.admin == editUserFormGroup.value.admin)
+    "
     (click)="editUser()"
   >
-    Add New User
+    Update User
   </button>
 </div>

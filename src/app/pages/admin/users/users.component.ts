@@ -17,6 +17,8 @@ import { AuthService } from 'src/app/services/auth.service';
   styleUrls: ['./users.component.scss'],
 })
 export class UsersComponent implements OnInit {
+  isLoading = false;
+
   config = {
     handlers: ['click-rail', 'drag-thumb', 'keyboard', 'wheel', 'touch'],
     wheelSpeed: 1,
@@ -69,11 +71,14 @@ export class UsersComponent implements OnInit {
   }
 
   deleteUser(uid: string) {
+    this.isLoading = true;
+
     this.fns
       .httpsCallable('deleteUser')({
         uid,
       })
       .subscribe((uid) => {
+        this.isLoading = false;
         this.notifServ.open(UserDeletedAlertComponent, { autohide: true });
         console.log('deleted');
       });

@@ -5,6 +5,7 @@ import { AuthComponentGuard } from './guards/auth-component.guard';
 import { AuthGuard } from './guards/auth.guard';
 import { UserGuard } from './guards/user.guard';
 import { AdminComponent } from './pages/admin/admin.component';
+import { ImportAndExportComponent } from './pages/admin/import-and-export/import-and-export.component';
 import { UsersComponent } from './pages/admin/users/users.component';
 import { AuthComponent } from './pages/auth/auth.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
@@ -20,7 +21,10 @@ const routes: Routes = [
     path: 'admin',
     component: AdminComponent,
     canActivate: [AuthGuard, AdminGuard],
-    children: [{ path: 'users', component: UsersComponent }],
+    children: [
+      { path: 'users', component: UsersComponent },
+      { path: 'import-and-export', component: ImportAndExportComponent },
+    ],
   },
 
   {

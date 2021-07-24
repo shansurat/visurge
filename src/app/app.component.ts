@@ -37,7 +37,10 @@ export class AppComponent {
     { route: 'report', icon: 'fas fa-book' },
   ];
 
-  adminLinks = [{ route: 'users', icon: 'fas fa-user' }];
+  adminLinks = [
+    { route: 'users', icon: 'fas fa-user' },
+    // { route: 'import-and-export', icon: 'fas fa-cloud-download-alt' },
+  ];
 
   constructor(
     private router: Router,

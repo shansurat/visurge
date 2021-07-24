@@ -14,6 +14,7 @@ import { MdbCollapseModule } from 'mdb-angular-ui-kit/collapse';
 import { MdbDatepickerModule } from 'mdb-angular-ui-kit/datepicker';
 import { MdbDropdownModule } from 'mdb-angular-ui-kit/dropdown';
 import { MdbFormsModule } from 'mdb-angular-ui-kit/forms';
+import { MdbLoadingModule } from 'mdb-angular-ui-kit/loading';
 import { MdbModalModule } from 'mdb-angular-ui-kit/modal';
 import { MdbNotificationModule } from 'mdb-angular-ui-kit/notification';
 import { MdbPopoverModule } from 'mdb-angular-ui-kit/popover';
@@ -78,6 +79,9 @@ import { PieChartsComponent } from './charts/pie-charts/pie-charts.component';
 
 import 'chartjs-plugin-datalabels';
 import { UsersComponent } from './pages/admin/users/users.component';
+import { UserEditedALertComponent } from './alerts/user-edited-alert/user-edited-alert.component';
+import { ImportAndExportComponent } from './pages/admin/import-and-export/import-and-export.component';
+import { ImportEntriesComponent } from './modals/import-entries/import-entries.component';
 
 @NgModule({
   declarations: [
@@ -114,6 +118,9 @@ import { UsersComponent } from './pages/admin/users/users.component';
     EligibleByPMTCTComponent,
     PieChartsComponent,
     UsersComponent,
+    UserEditedALertComponent,
+    ImportAndExportComponent,
+    ImportEntriesComponent,
   ],
   imports: [
     BrowserModule,
@@ -129,6 +136,7 @@ import { UsersComponent } from './pages/admin/users/users.component';
     MdbDatepickerModule,
     MdbDropdownModule,
     MdbFormsModule,
+    MdbLoadingModule,
     MdbModalModule,
     MdbNotificationModule,
     MdbPopoverModule,
@@ -155,7 +163,7 @@ import { UsersComponent } from './pages/admin/users/users.component';
     AngularFireFunctionsModule,
     NgxChartsModule,
   ],
-  // providers: [{ provide: USE_EMULATOR, useValue: ['localhost', 5001] }],
+  providers: [{ provide: USE_EMULATOR, useValue: ['localhost', 5001] }],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

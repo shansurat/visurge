@@ -28,6 +28,22 @@ export const createUser = functions.https.onCall(async (data, context?) => {
   return uid;
 });
 
+export const updateUser = functions.https.onCall(async (data, context?) => {
+  const uid = data.user.uid;
+
+  await admin
+    .firestore()
+    .collection('users')
+    .doc(uid)
+    .set(
+      {
+        ...data.user,
+        lastModifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+});
+
 export const deleteUser = functions.https.onCall(async (data, context) => {
   const uid = data.uid;
   await admin.auth().deleteUser(uid);
