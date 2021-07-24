@@ -29,7 +29,10 @@
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.scss"],
 
-            "scripts": ["node_modules/chart.js/dist/chart.js"]
+            "scripts": [
+              "node_modules/chart.js/dist/chart.js",
+              "node_modules/chartjs-plugin-datalabels/dist/chartjs-plugin-datalabels.js"
+            ]
           },
           "configurations": {
             "production": {

@@ -6,8 +6,6 @@ import { MdbChartDirective } from 'mdb-angular-ui-kit/charts';
 import { combineLatest, interval, Observable } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import 'chartjs-plugin-datalabels';
-
 @Component({
   selector: 'eligible-by-sex',
   templateUrl: './eligible-by-sex.component.html',
@@ -38,6 +36,7 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
 
   eligibilityChartOptions = {
     plugins: {
+      ChartDataLabels,
       legend: {
         display: false,
       },
@@ -52,8 +51,6 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
   showAllFormControl: FormControl = new FormControl();
 
   constructor(private afs: AngularFirestore) {
-    Chart.register(ChartDataLabels);
-
     this.entries$ = afs.collection('entries').valueChanges();
     this.sex$ = afs
       .collection('entries')
@@ -98,7 +95,9 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
     });
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void {
+    Chart.register(ChartDataLabels);
+  }
 
   updateData(data: any) {
     this.eligibilityChartDatasets[0].data = data;

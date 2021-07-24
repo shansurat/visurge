@@ -1,5 +1,53 @@
 <div id="wrapper" class="d-flex">
   <div class="d-flex flex-column position-relative flex-fill">
+    <div
+      class="py-1 bg-primary text-light small px-4 shadow-5"
+      *ngIf="uniqueARTNumberFormControl.valid"
+    >
+      <div class="container-lg">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <span class="fw-bold me-3"> Unique ART Number: </span
+            >{{ uniqueARTNumberFormControl.value }}
+          </div>
+          <div class="d-flex align-items-center">
+            <span
+              class="badge text-uppercase me-3"
+              [ngClass]="{
+                'badge-success': eligibilityStatus?.eligible,
+                'badge-warning':
+                  eligibilityStatus &&
+                  !eligibilityStatus?.eligible &&
+                  eligibilityStatus?.note == 'incomplete-eac',
+                'badge-danger':
+                  eligibilityStatus && !eligibilityStatus?.eligible,
+                'badge-dark': !eligibilityStatus
+              }"
+            >
+              {{
+                eligibilityStatus
+                  ? eligibilityStatus?.eligible
+                    ? "eligible"
+                    : "ineligible"
+                  : "pending"
+              }}
+            </span>
+            <span
+              class="badge text-uppercase"
+              [ngClass]="{
+                'badge-success': iit == 'active',
+                'badge-primary': iit == 'iit <= 1',
+                'badge-warning': iit == 'iit <= 3',
+                'badge-danger': iit == 'iit > 3',
+                'badge-dark': iit == 'pending' || !iit
+              }"
+            >
+              {{ (iit || "pending").replace("<=", "≤").replace("> 3", "3⁺") }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="main-container" class="p-4 flex-fill">
       <form class="container-lg" [formGroup]="entryFormGroup">
         <div class="row mb-3">
@@ -45,7 +93,7 @@
           </div>
         </div>
 
-        <div class="row g-3">
+        <div class="row g-3 mb-3">
           <!-- ART Information -->
           <div class="col-12 col-md-6 col-lg-4 col-xl-4">
             <div class="form-group card shadow-2 d-flex flex-column">
@@ -362,7 +410,7 @@
 
             <div class="form-group card shadow-2 d-flex flex-column">
               <div class="card-header">
-                <h6 class="text-primary mb-0">Pregnant/Breastfeeding</h6>
+                <h6 class="text-primary mb-0">Pregnant/ Breastfeeding</h6>
               </div>
 
               <div class="card-body">
@@ -674,7 +722,6 @@
           </div>
 
           <!-- Viral Load History -->
-
           <div class="col-12 col-lg-8">
             <div class="card">
               <div class="card-header">
@@ -713,49 +760,110 @@
                 </div>
               </div>
               <div class="card-body">
-                <div class="d-flex mb-3 align-items-center">
-                  <div class="form-check me-3">
-                    <input
-                      autocomplete="off"
-                      mdbCheckbox
-                      class="form-check-input"
-                      type="checkbox"
-                      id="pendingStatus"
-                      [formControl]="pendingStatusFormControl"
-                      #pendingStatus
-                    />
-                    <label class="form-check-label" for="pendingStatus">
-                      Pending Status
-                    </label>
+                <div
+                  class="d-flex align-items-center justify-content-between mb-3"
+                >
+                  <div class="d-flex flex-column justify-content-center">
+                    <small class="mb-1">Pending Status</small>
+
+                    <div class="input-group input-group-sm">
+                      <div class="input-group-text">
+                        <input
+                          class="form-check-input mt-0"
+                          type="checkbox"
+                          value=""
+                          id="pendingStatus"
+                          [formControl]="pendingStatusFormControl"
+                          #pendingStatus
+                        />
+                      </div>
+                      <mdb-form-control>
+                        <input
+                          autocomplete="off"
+                          formControlName="nextAppointmentDate"
+                          mdbInput
+                          [mdbDatepicker]="pendingSampleDatepicker"
+                          type="text"
+                          class="form-control form-control-sm"
+                          id="pendingSampleDateInput"
+                          placeholder="dd, mmm, yyyy"
+                          (click)="pendingSampleDatepicker.open()"
+                          formControlName="pendingStatusDate"
+                          [disabled]="!pendingStatus.checked"
+                        />
+                        <label
+                          mdbLabel
+                          for="pendingSampleDateInput"
+                          class="form-label"
+                          >Date Sample Collected</label
+                        >
+                        <mdb-datepicker
+                          #pendingSampleDatepicker
+                          [maxDate]="maxDate"
+                          format="dd, mmm, yyyy"
+                        ></mdb-datepicker>
+                      </mdb-form-control>
+                    </div>
+
+                    <!-- <div class="form-check me-3">
+                      <input
+                        autocomplete="off"
+                        mdbCheckbox
+                        class="form-check-input"
+                        type="checkbox"
+                        id="pendingStatus"
+                        [formControl]="pendingStatusFormControl"
+                        #pendingStatus
+                      />
+                      <label class="form-check-label" for="pendingStatus">
+                        Pending Status
+                      </label>
+                    </div>
+                    <mdb-form-control *ngIf="pendingStatus.checked">
+                      <input
+                        autocomplete="off"
+                        formControlName="nextAppointmentDate"
+                        mdbInput
+                        [mdbDatepicker]="pendingSampleDatepicker"
+                        type="text"
+                        class="form-control"
+                        id="pendingSampleDateInput"
+                        placeholder="dd, mmm, yyyy"
+                        (click)="pendingSampleDatepicker.open()"
+                        formControlName="pendingStatusDate"
+                      />
+                      <label
+                        mdbLabel
+                        for="pendingSampleDateInput"
+                        class="form-label"
+                        >Date Sample Collected</label
+                      >
+                      <mdb-datepicker
+                        #pendingSampleDatepicker
+                        [maxDate]="maxDate"
+                        format="dd, mmm, yyyy"
+                      ></mdb-datepicker>
+                    </mdb-form-control> -->
                   </div>
-                  <mdb-form-control class="me-3" *ngIf="pendingStatus.checked">
-                    <input
-                      autocomplete="off"
-                      formControlName="nextAppointmentDate"
-                      mdbInput
-                      [mdbDatepicker]="pendingSampleDatepicker"
-                      type="text"
-                      class="form-control"
-                      id="pendingSampleDateInput"
-                      placeholder="dd, mmm, yyyy"
-                      (click)="pendingSampleDatepicker.open()"
-                      formControlName="pendingStatusDate"
-                    />
-                    <label
-                      mdbLabel
-                      for="pendingSampleDateInput"
-                      class="form-label"
-                      >Date Sample Collected</label
+                  <div
+                    class="
+                      flex-end
+                      d-flex
+                      flex-column
+                      align-items-end
+                      justify-content-between
+                    "
+                  >
+                    <small class="mb-1"
+                      >Next Viral Load Sample Collection Date</small
                     >
-                    <mdb-datepicker
-                      #pendingSampleDatepicker
-                      [maxDate]="maxDate"
-                      format="dd, mmm, yyyy"
-                    ></mdb-datepicker>
-                  </mdb-form-control>
+                    <div class="badge badge-primary">
+                      DEC 3 2021 | 6M 3D LEFT
+                    </div>
+                  </div>
                 </div>
-                <div class="table-responsive" *ngIf="vlh.length">
-                  <table class="table table-sm align-middle">
+                <div class="table-responsive rounded" *ngIf="vlh.length">
+                  <table class="table table-sm align-middle table-bordered">
                     <thead>
                       <tr>
                         <th scope="col">#</th>
@@ -769,7 +877,10 @@
                       <tr
                         *ngFor="let vl of vlh; index as i"
                         [ngClass]="{
-                          'bg-dark text-white': i == 0,
+                          'bg-primary text-light':
+                            (!vl.value || vl.value < 1000) && i == 0,
+                          'bg-danger text-light':
+                            (vl?.value || 0) >= 1000 && i == 0,
                           'table-danger': (vl?.value || 0) >= 1000 && i != 0,
                           'table-primary':
                             (!vl.value || vl.value < 1000) && i != 0
@@ -824,10 +935,97 @@
             </div>
           </div>
         </div>
+
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="row g-3">
+              <div class="col-12 col-md-10">
+                <div class="card">
+                  <div class="card-body">
+                    <div
+                      class="row align-items-center justify-content-between g-3"
+                    >
+                      <h6 class="mb-0 col-12 col-lg-6">
+                        <span class="me-3">Viral Load Eligibility Status</span>
+                        <span
+                          class="badge text-uppercase"
+                          [ngClass]="{
+                            'badge-success': eligibilityStatus?.eligible,
+                            'badge-warning':
+                              eligibilityStatus &&
+                              !eligibilityStatus?.eligible &&
+                              eligibilityStatus?.note == 'incomplete-eac',
+                            'badge-danger':
+                              eligibilityStatus && !eligibilityStatus?.eligible,
+                            'badge-dark': !eligibilityStatus
+                          }"
+                        >
+                          {{
+                            eligibilityStatus
+                              ? eligibilityStatus?.eligible
+                                ? "eligible"
+                                : "ineligible"
+                              : "pending"
+                          }}
+                        </span>
+                      </h6>
+                      <h6 class="mb-0 col-12 col-lg-6">
+                        <span class="me-3">Clinic Status (IIT)</span>
+                        <span
+                          class="badge text-uppercase"
+                          [ngClass]="{
+                            'badge-success': iit == 'active',
+                            'badge-primary': iit == 'iit <= 1',
+                            'badge-warning': iit == 'iit <= 3',
+                            'badge-danger': iit == 'iit > 3',
+                            'badge-dark': iit == 'pending' || !iit
+                          }"
+                        >
+                          {{
+                            (iit || "pending")
+                              .replace("<=", "≤")
+                              .replace("> 3", "3⁺")
+                          }}
+                        </span>
+                      </h6>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-2 d-flex align-items-center">
+                <button
+                  class="
+                    btn btn-lg btn-success
+                    ms-auto
+                    w-100
+                    h-100
+                    shadow-hover
+                  "
+                  [ngStyle]="{
+                    'border-radius': '0.5rem',
+                    cursor:
+                      uniqueARTNumberFormControl.invalid ||
+                      clinicVisitFormGroup.invalid
+                        ? 'not-allowed'
+                        : 'pointer'
+                  }"
+                  (click)="saveEntryForm()"
+                  [disabled]="
+                    uniqueARTNumberFormControl.invalid ||
+                    clinicVisitFormGroup.invalid
+                  "
+                  mdbRipple
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </form>
     </div>
 
-    <div id="actions-container" class="p-4 bg-light">
+    <div id="actions-container" class="p-4 bg-light" *ngIf="false">
       <div class="container-lg">
         <div class="row">
           <div class="col-12">
@@ -859,7 +1057,7 @@
                               'badge-warning':
                                 eligibilityStatus &&
                                 !eligibilityStatus?.eligible &&
-                                eligibilityStatus.note == 'incomplete-eac',
+                                eligibilityStatus?.note == 'incomplete-eac',
                               'badge-danger':
                                 eligibilityStatus &&
                                 !eligibilityStatus?.eligible,
@@ -869,7 +1067,7 @@
                           >
                             {{
                               eligibilityStatus
-                                ? eligibilityStatus.eligible
+                                ? eligibilityStatus?.eligible
                                   ? "eligible"
                                   : "ineligible"
                                 : "pending"
@@ -936,6 +1134,130 @@
     class="bg-light p-3 shadow-7"
     *ngIf="miniDashboardShown"
   >
-    Mini-Dashboard Placeholder
+    <div class="d-flex flex-column">
+      <!-- Eligible -->
+      <div>
+        <div class="d-flex align-items-center mb-3">
+          <button
+            type="button"
+            class="btn btn-success btn-sm btn-floating me-3 flex-shrink-0"
+          >
+            {{ (entriesServ.eligible$ | async)?.length || 0 }}
+          </button>
+          <div class="d-flex flex-column flex-fill">
+            <small> Eligible </small>
+            <div class="progress rounded show_box_progress">
+              <div
+                class="progress-bar bg-success"
+                role="progressbar"
+                [ngStyle]="{
+                  width:
+                    (((entriesServ.eligible$ | async)?.length || 0) /
+                      ((entriesServ.all$ | async)?.length || 1)) *
+                      100 +
+                    '%'
+                }"
+                aria-valuenow="25"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pregnant/Breastfeeding -->
+      <div>
+        <div class="d-flex align-items-center mb-3">
+          <button
+            type="button"
+            class="btn btn-primary btn-sm btn-floating me-3 flex-shrink-0"
+          >
+            {{ (entriesServ.pregnant$ | async)?.length || 0 }}
+          </button>
+          <div class="d-flex flex-column flex-fill">
+            <small> Pregnant/Breastfeeding </small>
+            <div class="progress rounded show_box_progress">
+              <div
+                class="progress-bar bg-success"
+                role="progressbar"
+                [ngStyle]="{
+                  width:
+                    (((entriesServ.pregnant$ | async)?.length || 0) /
+                      ((entriesServ.all$ | async)?.length || 1)) *
+                      100 +
+                    '%'
+                }"
+                aria-valuenow="25"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HVL With EAC-3 Completed -->
+      <div>
+        <div class="d-flex align-items-center mb-3">
+          <button
+            type="button"
+            class="btn btn-danger btn-sm btn-floating me-3 flex-shrink-0"
+          >
+            {{ (entriesServ.hvl_eac3_completed$ | async)?.length || 0 }}
+          </button>
+          <div class="d-flex flex-column flex-fill">
+            <small> HVL W/ EAC-3 Completed </small>
+            <div class="progress rounded show_box_progress">
+              <div
+                class="progress-bar bg-success"
+                role="progressbar"
+                [ngStyle]="{
+                  width:
+                    (((entriesServ.hvl_eac3_completed$ | async)?.length || 0) /
+                      ((entriesServ.all$ | async)?.length || 1)) *
+                      100 +
+                    '%'
+                }"
+                aria-valuenow="25"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Results -->
+      <div>
+        <div class="d-flex align-items-center mb-3">
+          <button
+            type="button"
+            class="btn btn-warning btn-sm btn-floating me-3 flex-shrink-0"
+          >
+            {{ (entriesServ.pending$ | async)?.length || 0 }}
+          </button>
+          <div class="d-flex flex-column flex-fill">
+            <small> Pending Results </small>
+            <div class="progress rounded show_box_progress">
+              <div
+                class="progress-bar bg-success"
+                role="progressbar"
+                [ngStyle]="{
+                  width:
+                    (((entriesServ.pending$ | async)?.length || 0) /
+                      ((entriesServ.all$ | async)?.length || 1)) *
+                      100 +
+                    '%'
+                }"
+                aria-valuenow="25"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

@@ -63,6 +63,7 @@ import { forkJoin } from 'rxjs';
 import { PushNotificationService } from 'src/app/services/push-notification.service';
 import { firestore } from 'firebase-admin';
 import { ActivatedRoute, Router } from '@angular/router';
+import { EntriesService } from 'src/app/services/entries.service';
 
 @Component({
   selector: 'app-entry-form',
@@ -122,7 +123,8 @@ export class EntryFormComponent
     private afs: AngularFirestore,
     private notifServ: MdbNotificationService,
     private authServ: AuthService,
-    private pushNotifServ: PushNotificationService
+    private pushNotifServ: PushNotificationService,
+    public entriesServ: EntriesService
   ) {
     let today = new Date();
     this.maxDate.setDate(today.getDate() + 1);
