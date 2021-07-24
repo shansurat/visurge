@@ -1,0 +1,153 @@
+<div id="wrapper" class="d-flex">
+  <div
+    class="d-flex flex-column position-relative flex-fill"
+    style="max-width: 100%"
+  >
+    <div id="main-container" class="p-4 flex-fill">
+      <div class="container-fluid h-100" [ngStyle]="{ overflow: 'hidden' }">
+        <div class="row g-3" [ngStyle]="{ 'max-height': '100%' }">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-body">
+                <div class="d-flex align-items-center">
+                  <mdb-form-control>
+                    <input
+                      mdbInput
+                      type="text"
+                      id="filter"
+                      class="form-control"
+                    />
+                    <label mdbLabel class="form-label" for="filter"
+                      >Filter</label
+                    >
+                  </mdb-form-control>
+                  <div class="flex-fill"></div>
+                  <div>
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      (click)="openNewUserModal()"
+                    >
+                      Add New User
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="card" [ngStyle]="{ 'max-height': '100%' }">
+              <div class="card-header">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center">
+                    <h4 class="mb-0 me-3">
+                      {{ (users$ | async)?.length || 0 }} Users
+                    </h4>
+                  </div>
+                  <div></div>
+                </div>
+              </div>
+              <div
+                class="card-body flex-fill p-0"
+                [ngStyle]="{ 'max-height': ' 100%', overflow: 'auto' }"
+              >
+                <div
+                  class="datatable"
+                  [ngStyle]="{
+                    overflow: 'auto',
+                    'max-height': '100%',
+                    height: '100%'
+                  }"
+                >
+                  <div
+                    class="datatable-inner"
+                    mdbScrollbar
+                    [config]="config"
+                    style="position: relative; width: 100%; height: 100%"
+                  >
+                    <table
+                      class="
+                        table table-sm
+                        datatable-table
+                        align-middle
+                        table-striped
+                      "
+                      mdbTable
+                      [fixedHeader]="true"
+                      mdbTableSort
+                      #table="mdbTable"
+                      #sort="mdbTableSort"
+                      [dataSource]="(users$ | async) || []"
+                      [pagination]="pagination"
+                      [sort]="sort"
+                    >
+                      <thead class="datatable-header">
+                        <tr>
+                          <th
+                            *ngFor="let header of headers"
+                            [mdbTableSortHeader]="header"
+                            scope="col"
+                          >
+                            {{ header | titlecase }}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="datatable-body">
+                        <tr
+                          *ngFor="let user of table.data"
+                          scope="row"
+                          [ngClass]="{
+                            'table-success':
+                              (authServ.auth.authState | async)?.uid == user.uid
+                          }"
+                        >
+                          <td>{{ user.admin ? "Yes" : "No" }}</td>
+                          <td>
+                            {{ user.username }}
+                          </td>
+                          <td>
+                            {{ user.password }}
+                          </td>
+                          <td>
+                            {{ user.createdAt?.toDate() | date }}
+                          </td>
+                          <td>
+                            <button
+                              class="btn btn-primary btn-floating btn-sm"
+                              (click)="openEditUserModal(user)"
+                              [disabled]="
+                                (authServ.auth.authState | async)?.uid ==
+                                user.uid
+                              "
+                            >
+                              <i class="fa fa-edit"></i>
+                            </button>
+                            <button
+                              class="btn ms-2 btn-danger btn-floating btn-sm"
+                              (click)="deleteUser(user.uid)"
+                              [disabled]="
+                                (authServ.auth.authState | async)?.uid ==
+                                user.uid
+                              "
+                            >
+                              <i class="fa fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-footer">
+                <mdb-table-pagination #pagination></mdb-table-pagination>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

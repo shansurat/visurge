@@ -1,0 +1,59 @@
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">Clinic Visit History</h5>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modalRef.close()"
+  ></button>
+</div>
+<div class="modal-body">
+  <div class="table-responsive">
+    <table class="table" *ngIf="cvh?.length; else noCVH">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Last Clinic Visit Date</th>
+          <th scope="col">Next Appointment Date</th>
+          <th scope="col">IIT Status</th>
+          <th scope="col">Comment</th>
+          <th scope="col">Facility</th>
+          <th scope="col">Date Transpired</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cv of cvh; index as i">
+          <td>{{ i + 1 }}</td>
+          <td>{{ toDate(cv.lastClinicVisitDate) | date: "longDate" }}</td>
+          <td>{{ toDate(cv.nextAppointmentDate) | date: "longDate" }}</td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'bg-success': cv?.iitStatus == 'active',
+                'bg-primary': cv?.iitStatus == 'iit-1',
+                'bg-warning': cv?.iitStatus == 'iit-2-3',
+                'bg-danger':
+                  cv?.iitStatus == 'iit-4-6' || cv?.iitStatus == 'iit-6+'
+              }"
+              >{{ cv?.iitStatus | uppercase }}</span
+            >
+          </td>
+          <td>{{ cv.clinicVisitComment }}</td>
+          <td>{{ cv.facility || "N/A" }}</td>
+          <td>
+            {{
+              cv.dateTransferred
+                ? (toDate(cv.dateTransferred) | date: "longDate")
+                : "N/A"
+            }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #noCVH>
+    <div class="note note-warning">Nothing to show.</div>
+  </ng-template>
+</div>

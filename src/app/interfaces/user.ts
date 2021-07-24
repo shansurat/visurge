@@ -3,5 +3,6 @@ export interface User {
   createdAt: firebase.default.firestore.Timestamp;
   email: string;
   username: string;
+  password: string;
   uid: string;
 }

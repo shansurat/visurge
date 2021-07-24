@@ -240,3 +240,23 @@ export const regimens = [
     ageCategory: '2nd Line Children',
   },
 ];
+
+export const ageCategories = [
+  '1st Line Adult',
+  '2nd Line Adult',
+  '1st Line Children',
+  '2nd Line Children',
+];
+
+const _regimensByGroup: any[] = [];
+
+ageCategories.forEach((ageCategory) => {
+  _regimensByGroup.push({
+    name: ageCategory,
+    regimens: regimens
+      .filter((regimen) => regimen.ageCategory == ageCategory)
+      .sort((a, b) => (a.code > b.code ? 1 : -1)),
+  });
+});
+
+export const regimensByGroup = _regimensByGroup;

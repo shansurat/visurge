@@ -1,567 +1,941 @@
-<div id="wrapper" class="d-flex flex-column">
-  <div id="main-container" class="p-4 flex-fill">
-    <form class="container-lg" [formGroup]="entryFormGroup">
-      <div class="row">
-        <div class="col-12">
-          <div class="card bg-light h-100">
-            <div class="d-flex align-content-center h-100 p-3">
-              <div class="d-flex flex-column">
-                <h5>Philippines - Reg IV</h5>
-                <p class="mb-0 small text-muted">FACILITY NAME</p>
-              </div>
-              <div class="flex-fill"></div>
-              <div class="d-flex flex-column text-end">
-                <h5>{{ time | date }}</h5>
-                <p class="mb-0 small text-muted">DATE TODAY</p>
+<div id="wrapper" class="d-flex">
+  <div class="d-flex flex-column position-relative flex-fill">
+    <div id="main-container" class="p-4 flex-fill">
+      <form class="container-lg" [formGroup]="entryFormGroup">
+        <div class="row mb-3">
+          <div class="col">
+            <div class="card bg-light h-100">
+              <div class="d-flex align-content-center h-100 p-3">
+                <div class="d-flex flex-column justify-content-center">
+                  <h5>{{ facilityName }}</h5>
+                  <p class="mb-0 small text-muted">FACILITY NAME</p>
+                </div>
+                <div class="flex-fill"></div>
+                <div class="d-flex flex-column text-end justify-content-center">
+                  <h5>{{ entryDate || time | date: "longDate" }}</h5>
+                  <p class="mb-0 small text-muted">ENTRY DATE</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      <hr />
-
-      <div class="row g-3 mb-3">
-        <div class="col-12 col-md-6 col-lg-4 col-xl-4">
-          <h6 class="mb-1 text-secondary">ART Information</h6>
-
           <div
-            class="
-              form-group
-              card
-              shadow-0
-              d-flex
-              flex-column
-              p-3
-              border border-secondary
+            class="col-4"
+            *ngIf="
+              clinicVisitFormGroup
+                .get('clinicVisitComment')
+                ?.value?.includes('Transfer')
             "
           >
-            <!-- Unique ART Number -->
-            <div class="mb-3">
-              <small mdbLabel class="form-label" for="uniqueARTNumberInput"
-                >Unique ART Number</small
-              >
-              <mdb-form-control>
-                <input
-                  mdbInput
-                  type="text"
-                  id="uniqueARTNumberInput"
-                  class="form-control"
-                  [formControl]="uniqueARTNumberFormControl"
-                  placeholder="xxx_123-yyyy"
-                />
-              </mdb-form-control>
-            </div>
-
-            <!-- ART Start Date -->
-            <div>
-              <small mdbLabel for="ARTStartDateInput" class="form-label"
-                >ART Start Date</small
-              >
-              <mdb-form-control>
-                <input
-                  mdbInput
-                  [mdbDatepicker]="ARTStartDatePicker"
-                  type="text"
-                  class="form-control"
-                  id="ARTStartDateInput"
-                  formControlName="ARTStartDate"
-                  placeholder="dd, mmm, yyyy"
-                  (click)="ARTStartDatePicker.open()"
-                  [disabled]="
-                    uniqueARTNumberFormControl.invalid &&
-                    uniqueARTNumberFormControl.dirty
-                  "
-                />
-
-                <mdb-datepicker
-                  #ARTStartDatePicker
-                  format="dd, mmm, yyyy"
-                ></mdb-datepicker>
-              </mdb-form-control>
+            <div class="card">
+              <div class="card-body">
+                <div class="d-flex flex-column">
+                  <h6>
+                    {{ clinicVisitFormGroup.get("clinicVisitComment")?.value }}
+                    {{ clinicVisitFormGroup.get("facility")?.value }}
+                  </h6>
+                  <p class="mb-0 small text-muted">
+                    {{
+                      clinicVisitFormGroup.get("dateTransferred")?.value
+                        | date: "longDate"
+                    }}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="col-12 col-md-6 col-lg-4 col-xl-4">
-          <!-- Biodata header -->
-          <h6 class="mb-1 text-secondary">Biodata</h6>
-          <div class="form-group card shadow-0 d-flex flex-column p-3">
-            <!-- Sex -->
-            <div class="mb-3">
-              <small mdbLabel class="form-label">Sex</small>
+        <div class="row g-3">
+          <!-- ART Information -->
+          <div class="col-12 col-md-6 col-lg-4 col-xl-4">
+            <div class="form-group card shadow-2 d-flex flex-column">
+              <div class="card-header">
+                <h6 class="text-primary mb-0">ART INFORMATION</h6>
+              </div>
+              <div class="card-body">
+                <!-- Unique ART Number -->
+                <div class="mb-3">
+                  <mdb-form-control>
+                    <input
+                      autocomplete="off"
+                      #uniqueARTNumber
+                      [mdbValidate]="true"
+                      mdbInput
+                      type="text"
+                      id="uniqueARTNumberInput"
+                      class="form-control text-uppercase"
+                      [formControl]="uniqueARTNumberFormControl"
+                      placeholder="XXX/YYY/12345"
+                      autocomplete="off"
+                      [mdbAutocomplete]="UANautocomplete"
+                      autocapitalize="characters"
+                    />
 
-              <mdb-form-control>
-                <mdb-select formControlName="sex" placeholder="Male or Female">
-                  <mdb-option value="male">Male</mdb-option>
-                  <mdb-option value="female">Female</mdb-option>
-                </mdb-select>
-              </mdb-form-control>
-            </div>
-
-            <!-- Birthdate -->
-            <div>
-              <small mdbLabel for="birthdateInput" class="form-label"
-                >Date of Birth</small
-              >
-              <mdb-form-control>
-                <input
-                  mdbInput
-                  [mdbDatepicker]="birthdateDatepicker"
-                  type="text"
-                  class="form-control"
-                  id="birthdateInput"
-                  formControlName="birthdate"
-                  placeholder="dd, mmm, yyyy"
-                  (click)="birthdateDatepicker.open()"
-                  [disabled]="
-                    uniqueARTNumberFormControl.invalid &&
-                    uniqueARTNumberFormControl.dirty
-                  "
-                />
-
-                <mdb-datepicker
-                  #birthdateDatepicker
-                  [maxDate]="maxBirthdate"
-                  format="dd, mmm, yyyy"
-                ></mdb-datepicker>
-              </mdb-form-control>
-            </div>
-
-            <!-- Calculated Current Age -->
-            <div
-              class="note note-warning mt-3"
-              *ngIf="entryFormGroup.get('birthdate')?.value as bday"
-            >
-              <ng-container
-                *ngIf="
-                  calculateAge(bday).years && calculateAge(bday).months;
-                  else daysOnly
-                "
-              >
-                {{
-                  calculateAge(bday).years
-                    ? calculateAge(bday).years + " year"
-                    : ""
-                }}{{ calculateAge(bday).months > 1 ? "s" : "" }}
-                {{
-                  calculateAge(bday).years && calculateAge(bday).months
-                    ? " and "
-                    : ""
-                }}
-                {{
-                  calculateAge(bday).months
-                    ? calculateAge(bday).months + " month"
-                    : ""
-                }}{{ calculateAge(bday).months > 1 ? "s" : "" }}</ng-container
-              >
-              <ng-template #daysOnly>
-                Approx.
-                {{
-                  calculateAge(bday).days
-                    ? calculateAge(bday).days + " day"
-                    : ""
-                }}{{ calculateAge(bday).days > 1 ? "s" : "" }}
-              </ng-template>
-
-              old
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <hr />
-
-      <div class="row g-3 mb-3">
-        <!-- Regimen -->
-        <div class="col-12 col-md-6 col-lg-4 col-xl-4">
-          <h6 class="mb-1 text-secondary">REGIMEN</h6>
-
-          <div class="form-group card shadow-0 d-flex flex-column p-3">
-            <!-- Regimen -->
-            <div class="mb-3">
-              <small mdbLabel class="form-label">Regimen</small>
-              <mdb-form-control>
-                <mdb-select
-                  [filter]="true"
-                  placeholder="Click to select"
-                  formControlName="regimen"
-                >
-                  <mdb-option-group
-                    *ngFor="let regimenGroup of regimensByGroup"
-                    [label]="regimenGroup.name"
-                  >
-                    <mdb-option
-                      *ngFor="let regimen of regimenGroup.regimens"
-                      [value]="regimen"
-                      label="{{ regimen.regimen }} ({{ regimenGroup.name }})"
+                    <label
+                      mdbLabel
+                      class="form-label"
+                      for="uniqueARTNumberInput"
+                      >Unique ART Number</label
                     >
-                      <div class="d-flex align-items-center w-100 m-auto">
-                        <span class="badge bg-primary me-3">{{
-                          regimen.code
-                        }}</span>
-                        <span>{{ regimen.regimen }}</span>
-                        <div class="flex-fill"></div>
-                      </div>
+                  </mdb-form-control>
+                  <mdb-autocomplete #UANautocomplete="mdbAutocomplete">
+                    <mdb-option
+                      *ngFor="let entry of entriesAutocomplete$ | async"
+                      [value]="entry.data().uniqueARTNumber"
+                    >
+                      {{ entry.data().uniqueARTNumber | uppercase }}
                     </mdb-option>
-                  </mdb-option-group>
-                </mdb-select>
-              </mdb-form-control>
-            </div>
+                  </mdb-autocomplete>
+                </div>
 
-            <!-- Regimen Start / Transition Date -->
-            <div class="">
-              <small
-                mdbLabel
-                for="regimenStartTransDateInput"
-                class="form-label"
-                >Regimen Start / Transition Date</small
-              >
-              <mdb-form-control>
-                <input
-                  mdbInput
-                  [mdbDatepicker]="regimenStartTransDatePicker"
-                  type="text"
-                  class="form-control"
-                  id="regimenStartTransDateInput"
-                  formControlName="regimenStartTransDate"
-                  placeholder="dd, mmm, yyyy"
-                  (click)="regimenStartTransDatePicker.open()"
-                  [disabled]="
-                    uniqueARTNumberFormControl.invalid &&
-                    uniqueARTNumberFormControl.dirty
-                  "
-                />
+                <!-- ART Start Date -->
+                <div>
+                  <mdb-form-control>
+                    <input
+                      autocomplete="off"
+                      mdbInput
+                      [mdbValidate]="true"
+                      [mdbDatepicker]="ARTStartDatePicker"
+                      type="text"
+                      class="form-control"
+                      id="ARTStartDateInput"
+                      formControlName="ARTStartDate"
+                      placeholder="dd, mmm, yyyy"
+                      (click)="ARTStartDatePicker.open()"
+                    />
+                    <label mdbLabel for="ARTStartDateInput" class="form-label"
+                      >ART Start Date</label
+                    >
 
-                <mdb-datepicker
-                  #regimenStartTransDatePicker
-                  format="dd, mmm, yyyy"
-                ></mdb-datepicker>
-              </mdb-form-control>
+                    <mdb-datepicker
+                      #ARTStartDatePicker
+                      [maxDate]="maxDate"
+                      format="dd, mmm, yyyy"
+                    ></mdb-datepicker>
+                  </mdb-form-control>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <!-- PTMCT -->
-        <div class="col-12 col-md-6 col-lg-4 col-xl-4">
-          <!-- PTMCT header -->
-          <h6 class="mb-1 text-secondary">PTMCT</h6>
 
-          <div class="form-group card shadow-0 d-flex flex-column p-3">
-            <!-- PMTCT -->
-            <div class="mb-3">
-              <small mdbLabel class="form-label">Pregnant/Breastfeeding</small>
-              <mdb-form-control>
-                <mdb-select
-                  formControlName="pmtct"
-                  #pmtct
-                  placeholder="Yes or No"
+          <!-- Biodata -->
+          <div class="col-12 col-md-6 col-lg-4 col-xl-4">
+            <div class="form-group card shadow-2 d-flex flex-column">
+              <div class="card-header">
+                <h6 class="text-primary mb-0">BIODATA</h6>
+              </div>
+
+              <div class="card-body">
+                <!-- Sex -->
+                <div class="mb-3">
+                  <mdb-form-control>
+                    <mdb-select formControlName="sex" #sex [mdbValidate]="true">
+                      <mdb-option value="male">Male</mdb-option>
+                      <mdb-option value="female">Female</mdb-option>
+                    </mdb-select>
+                    <label mdbLabel class="form-label">Sex</label>
+                  </mdb-form-control>
+                </div>
+                <div class="mb-3">
+                  <div class="form-check">
+                    <input
+                      autocomplete="off"
+                      mdbCheckbox
+                      class="form-check-input"
+                      type="checkbox"
+                      id="birthdateKnown"
+                      formControlName="birthdateKnown"
+                      #birthdateKnown
+                    />
+                    <label class="form-check-label" for="birthdateKnown">
+                      Birthdate known
+                    </label>
+                  </div>
+                </div>
+
+                <div
+                  class="row g-3 align-items-center mb-3"
+                  [ngClass]="{ 'visually-hidden': !birthdateKnown.checked }"
                 >
-                  <mdb-option [value]="true">Yes</mdb-option>
-                  <mdb-option [value]="false">No</mdb-option>
-                </mdb-select>
-              </mdb-form-control>
-            </div>
-
-            <!-- PMTCT Enrollment Start Date -->
-            <div class="">
-              <small mdbLabel for="pmtctEnrollStartDateInput" class="form-label"
-                >PMTCT Enrollment Start Date</small
-              >
-              <mdb-form-control>
-                <input
-                  mdbInput
-                  [mdbDatepicker]="pmtctEnrollStartDatePicker"
-                  type="text"
-                  class="form-control"
-                  id="pmtctEnrollStartDateInput"
-                  formControlName="pmtctEnrollStartDate"
-                  [disabled]="!pmtct.value"
-                  placeholder="dd, mmm, yyyy"
-                  (click)="pmtctEnrollStartDatePicker.open()"
-                />
-
-                <mdb-datepicker
-                  #pmtctEnrollStartDatePicker
-                  format="dd, mmm, yyyy"
-                ></mdb-datepicker>
-              </mdb-form-control>
-            </div>
-          </div>
-        </div>
-        <!-- HVL -->
-        <div class="col-12 col-md-6 col-lg-4">
-          <!-- HVL header -->
-          <h6 class="mb-1 text-secondary">HVL</h6>
-
-          <div class="form-group card shadow-0 d-flex flex-column p-3">
-            <!-- HVL -->
-            <div class="mb-3">
-              <small mdbLabel class="form-label">High Viral Load</small>
-
-              <mdb-form-control>
-                <mdb-select #hvl formControlName="hvl" placeholder="Yes or no">
-                  <mdb-option [value]="true">Yes</mdb-option>
-                  <mdb-option [value]="false">No</mdb-option>
-                </mdb-select>
-              </mdb-form-control>
-            </div>
-
-            <!-- EAC-3 Completed -->
-            <div class="mb-3">
-              <small mdbLabel class="form-label">EAC-3 Completed</small>
-
-              <mdb-form-control>
-                <mdb-select
-                  #eac3Completed
-                  [disabled]="!hvl.value"
-                  formControlName="eac3Completed"
-                  placeholder="Yes or no"
-                >
-                  <mdb-option [value]="true">Yes</mdb-option>
-                  <mdb-option [value]="false">No</mdb-option>
-                </mdb-select>
-              </mdb-form-control>
-            </div>
-
-            <!-- EAC-3 Completion Date -->
-            <div class="">
-              <small mdbLabel for="eac3CompletionDateInput" class="form-label"
-                >EAC-3 Completion Date</small
-              >
-              <mdb-form-control>
-                <input
-                  [disabled]="!eac3Completed.value"
-                  mdbInput
-                  [mdbDatepicker]="eac3CompletionDatePicker"
-                  type="text"
-                  class="form-control"
-                  id="eac3CompletionDateInput"
-                  formControlName="eac3CompletionDate"
-                  placeholder="dd, mmm, yyyy"
-                  (click)="eac3CompletionDatePicker.open()"
-                />
-
-                <mdb-datepicker
-                  #eac3CompletionDatePicker
-                  format="dd, mmm, yyyy"
-                ></mdb-datepicker>
-              </mdb-form-control>
-            </div>
-          </div>
-        </div>
-
-        <!-- Clinic Visit -->
-        <div class="col-12 col-md-6 col-lg-4">
-          <div class="mb-3 d-flex align-items-center">
-            <h6 class="text-secondary mb-0">CLINIC VISIT</h6>
-            <div class="flex-fill"></div>
-
-            <button
-              class="btn btn-sm btn-primary"
-              [disabled]="
-                uniqueARTNumberFormControl.invalid ||
-                uniqueARTNumberFormControl.dirty
-              "
-            >
-              Add New
-            </button>
-          </div>
-
-          <div class="form-group card shadow-0 d-flex flex-column p-3">
-            <!-- Last Clinic Visit Date -->
-            <div class="mb-3">
-              <small mdbLabel for="lastClinicVisicDateInput" class="form-label"
-                >Last Clinic Visit Date</small
-              >
-              <mdb-form-control>
-                <input
-                  formControlName="lastClinicVisitDate"
-                  mdbInput
-                  [mdbDatepicker]="lastClinicVisitDatePicker"
-                  type="text"
-                  class="form-control"
-                  id="lastClinicVisicDateInput"
-                  placeholder="dd, mmm, yyyy"
-                  (click)="lastClinicVisitDatePicker.open()"
-                  [disabled]="
-                    uniqueARTNumberFormControl.invalid &&
-                    uniqueARTNumberFormControl.dirty
-                  "
-                />
-
-                <mdb-datepicker
-                  #lastClinicVisitDatePicker
-                  format="dd, mmm, yyyy"
-                ></mdb-datepicker>
-              </mdb-form-control>
-            </div>
-            <!-- Next Appointment Date -->
-            <div class="mb-3">
-              <small mdbLabel for="nextAppointmentDateInput" class="form-label"
-                >Next Appointment Date</small
-              >
-              <mdb-form-control>
-                <input
-                  formControlName="nextAppointmentDate"
-                  mdbInput
-                  [mdbDatepicker]="nextAppointmentDatePicker"
-                  type="text"
-                  class="form-control"
-                  id="nextAppointmentDateInput"
-                  placeholder="dd, mmm, yyyy"
-                  (click)="nextAppointmentDatePicker.open()"
-                  [disabled]="
-                    uniqueARTNumberFormControl.invalid &&
-                    uniqueARTNumberFormControl.dirty
-                  "
-                />
-                <mdb-datepicker
-                  #nextAppointmentDatePicker
-                  format="dd, mmm, yyyy"
-                ></mdb-datepicker>
-              </mdb-form-control>
-            </div>
-
-            <!-- Comment -->
-            <div>
-              <small mdbLabel class="form-label">Comment</small>
-
-              <mdb-form-control>
-                <mdb-select
-                  formControlName="clinicVisitComment"
-                  placeholder="Click to select"
-                >
-                  <mdb-option
-                    *ngFor="let opt of commentOptions"
-                    [value]="opt"
-                    >{{ opt }}</mdb-option
-                  >
-                </mdb-select>
-              </mdb-form-control>
-            </div>
-          </div>
-        </div>
-
-        <!-- Viral Load History -->
-
-        <div class="col-12 col-lg-8">
-          <div class="mb-3 d-flex align-items-center">
-            <h6 class="text-secondary mb-0">VIRAL LOAD HISTORY</h6>
-            <div class="flex-fill"></div>
-            <div class="form-check me-3">
-              <input
-                mdbCheckbox
-                class="form-check-input"
-                type="checkbox"
-                value=""
-                id="noViralLoadHasBeenDone"
-                #noViralLoadHasBeenDone
-                [disabled]="!!vlh.length || uniqueARTNumberFormControl.invalid"
-              />
-              <label class="form-check-label" for="noViralLoadHasBeenDone">
-                Nil
-              </label>
-            </div>
-            <button
-              class="btn btn-sm btn-primary"
-              [disabled]="
-                noViralLoadHasBeenDone.checked ||
-                uniqueARTNumberFormControl.invalid
-              "
-              (click)="openNewVLModal()"
-            >
-              Add New
-            </button>
-          </div>
-
-          <div class="table-responsive" *ngIf="vlh.length">
-            <table class="table table-hover table-sm align-middle">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Value</th>
-                  <th scope="col">Date Sample Collected</th>
-                  <th scope="col">Category</th>
-                  <th scope="col"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let vl of vlh; index as i">
-                  <th>{{ !i ? "Most Current VL" : i + 1 }}</th>
-                  <td>{{ vl.value }}</td>
-                  <td>{{ vl.dateSampleCollected | date }}</td>
-                  <td>{{ vl.value < 1000 ? "Low" : "High" }} Viral Load</td>
-                  <td>
-                    <div>
-                      <button
-                        mdbRipple
-                        type="button"
-                        class="btn btn-sm btn-outline-primary btn-floating me-3"
-                        (click)="openEditVLModal(i)"
+                  <div class="col-12 col-sm-6">
+                    <mdb-form-control>
+                      <input
+                        autocomplete="off"
+                        mdbInput
+                        [mdbValidate]="true"
+                        [mdbDatepicker]="birthdateDatepicker"
+                        type="text"
+                        class="form-control"
+                        id="birthdateInput"
+                        formControlName="birthdate"
+                        placeholder="dd, mmm, yyyy"
+                        (click)="birthdateDatepicker.open()"
+                        #birthdateInput
+                      />
+                      <label mdbLabel for="birthdateInput" class="form-label"
+                        >Birthdate</label
                       >
-                        <i class="fas fa-edit"></i>
-                      </button>
-                      <button
-                        mdbRipple
-                        rippleColor="danger"
-                        type="button"
-                        class="btn btn-sm btn-outline-danger btn-floating"
-                        (click)="removeVL(i)"
+                      <mdb-datepicker
+                        #birthdateDatepicker
+                        [maxDate]="maxDate"
+                        format="dd, mmm, yyyy"
+                      ></mdb-datepicker>
+                    </mdb-form-control>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div
+                      class="note note-warning"
+                      *ngIf="entryFormGroup.get('birthdate')?.value as bday"
+                    >
+                      <ng-container
+                        *ngIf="
+                          calculateAge(bday).years || calculateAge(bday).months;
+                          else daysOnly
+                        "
                       >
-                        <i class="fas fa-trash"></i>
-                      </button>
+                        {{
+                          calculateAge(bday).years
+                            ? calculateAge(bday).years + " year"
+                            : ""
+                        }}{{ calculateAge(bday).months > 1 ? "s" : "" }}
+                        {{
+                          calculateAge(bday).years && calculateAge(bday).months
+                            ? " and "
+                            : ""
+                        }}
+                        {{
+                          calculateAge(bday).months
+                            ? calculateAge(bday).months + " month"
+                            : ""
+                        }}{{
+                          calculateAge(bday).months > 1 ? "s" : ""
+                        }}</ng-container
+                      >
+                      <ng-template #daysOnly>
+                        Approx.
+                        {{
+                          calculateAge(bday).days
+                            ? calculateAge(bday).days + " day"
+                            : ""
+                        }}{{ calculateAge(bday).days > 1 ? "s" : "" }}
+                      </ng-template>
+
+                      old
                     </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </div>
+                </div>
+                <div
+                  class="row g-3 mb-3"
+                  [ngClass]="{ 'visually-hidden': birthdateKnown.checked }"
+                >
+                  <div class="col-12 col-sm-6">
+                    <mdb-form-control>
+                      <input
+                        autocomplete="off"
+                        mdbInput
+                        [mdbValidate]="true"
+                        type="number"
+                        class="form-control"
+                        formControlName="age"
+                        id="ageInput"
+                        min="0"
+                        (keypress)="$event.code.includes('Digit')"
+                      />
+                      <label mdbLabel for="ageInput" class="form-label"
+                        >Age</label
+                      >
+                    </mdb-form-control>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <mdb-form-control>
+                      <mdb-select
+                        formControlName="ageUnit"
+                        [mdbValidate]="true"
+                      >
+                        <mdb-option value="years">Year</mdb-option>
+                        <mdb-option value="months">Month</mdb-option>
+                      </mdb-select>
+                      <label mdbLabel class="form-label">Unit</label>
+                    </mdb-form-control>
+                  </div>
+                </div>
+
+                <div>
+                  <mdb-form-control>
+                    <input
+                      autocomplete="off"
+                      mdbInput
+                      [mdbValidate]="true"
+                      type="number"
+                      class="form-control"
+                      formControlName="phoneNumber"
+                      id="phoneNumberInput"
+                      min="0"
+                      (keypress)="$event.code.includes('Digit')"
+                    />
+                    <label mdbLabel for="phoneNumberInput" class="form-label"
+                      >Phone Number</label
+                    >
+                  </mdb-form-control>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="note note-warning" *ngIf="!vlh.length">
-            Nothing to show
+          <!-- Regimen -->
+          <div class="col-12 col-md-6 col-lg-4 col-xl-4">
+            <div class="form-group card shadow-2 d-flex flex-column">
+              <!-- Regimen -->
+
+              <div class="card-header">
+                <h6 class="text-primary mb-0">REGIMEN</h6>
+              </div>
+
+              <div class="card-body">
+                <div class="mb-3">
+                  <mdb-form-control>
+                    <mdb-select
+                      [filter]="true"
+                      formControlName="regimen"
+                      [mdbValidate]="true"
+                    >
+                      <mdb-option-group
+                        *ngFor="let regimenGroup of regimensByGroup"
+                        [label]="regimenGroup.name"
+                      >
+                        <mdb-option
+                          *ngFor="let regimen of regimenGroup.regimens"
+                          [value]="regimen.code"
+                          label="{{ regimen.regimen }} ({{
+                            regimenGroup.name
+                          }})"
+                        >
+                          <div class="d-flex align-items-center w-100 m-auto">
+                            <span class="badge bg-primary me-3">{{
+                              regimen.code
+                            }}</span>
+                            <span>{{ regimen.regimen }}</span>
+                            <div class="flex-fill"></div>
+                          </div>
+                        </mdb-option>
+                      </mdb-option-group>
+                    </mdb-select>
+                    <label mdbLabel class="form-label">Regimen</label>
+                  </mdb-form-control>
+                </div>
+
+                <!-- Regimen Start / Transition Date -->
+                <div>
+                  <mdb-form-control>
+                    <input
+                      autocomplete="off"
+                      mdbInput
+                      [mdbValidate]="true"
+                      [mdbDatepicker]="regimenStartTransDatePicker"
+                      type="text"
+                      class="form-control"
+                      id="regimenStartTransDateInput"
+                      formControlName="regimenStartTransDate"
+                      placeholder="dd, mmm, yyyy"
+                      (click)="regimenStartTransDatePicker.open()"
+                    />
+                    <label
+                      mdbLabel
+                      for="regimenStartTransDateInput"
+                      class="form-label"
+                      >Start / Transition Date</label
+                    >
+                    <mdb-datepicker
+                      #regimenStartTransDatePicker
+                      [maxDate]="maxDate"
+                      format="dd, mmm, yyyy"
+                    ></mdb-datepicker>
+                  </mdb-form-control>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PTMCT -->
+          <div class="col-12 col-md-6 col-lg-4 col-xl-4">
+            <!-- PTMCT header -->
+
+            <div class="form-group card shadow-2 d-flex flex-column">
+              <div class="card-header">
+                <h6 class="text-primary mb-0">Pregnant/Breastfeeding</h6>
+              </div>
+
+              <div class="card-body">
+                <!-- PMTCT -->
+                <div class="mb-3">
+                  <mdb-form-control>
+                    <mdb-select
+                      #pmtct
+                      formControlName="pmtct"
+                      [mdbValidate]="true"
+                    >
+                      <mdb-option value="yes">Yes</mdb-option>
+                      <mdb-option value="no">No</mdb-option>
+                    </mdb-select>
+                    <label mdbLabel class="form-label"
+                      >Pregnant/Breastfeeding</label
+                    >
+                  </mdb-form-control>
+                </div>
+
+                <!-- PMTCT Enrollment Start Date -->
+                <div>
+                  <mdb-form-control>
+                    <input
+                      autocomplete="off"
+                      mdbInput
+                      [mdbValidate]="true"
+                      [mdbDatepicker]="pmtctEnrollStartDatePicker"
+                      type="text"
+                      class="form-control"
+                      id="pmtctEnrollStartDateInput"
+                      formControlName="pmtctEnrollStartDate"
+                      placeholder="dd, mmm, yyyy"
+                      (click)="pmtctEnrollStartDatePicker.open()"
+                      [disabled]="
+                        !entryFormGroup.get('pmtctEnrollStartDate')?.enabled
+                      "
+                    />
+                    <label
+                      mdbLabel
+                      for="pmtctEnrollStartDateInput"
+                      class="form-label"
+                      >Enrollment Start Date</label
+                    >
+                    <mdb-datepicker
+                      #pmtctEnrollStartDatePicker
+                      [maxDate]="maxDate"
+                      format="dd, mmm, yyyy"
+                    ></mdb-datepicker>
+                  </mdb-form-control>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- HVL -->
+          <div class="col-12 col-lg-8">
+            <!-- HVL header -->
+
+            <div class="form-group card shadow-2 d-flex flex-column">
+              <!-- HVL -->
+              <div class="card-header">
+                <h6 class="text-primary mb-0">High Viral Load</h6>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-12 col-md-6">
+                    <mdb-form-control>
+                      <mdb-select
+                        #hvl
+                        formControlName="hvl"
+                        [mdbValidate]="true"
+                      >
+                        <mdb-option value="yes">Yes</mdb-option>
+                        <mdb-option value="no">No</mdb-option>
+                      </mdb-select>
+                      <label mdbLabel class="form-label">High Viral Load</label>
+                    </mdb-form-control>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <!-- EAC-3 Completed -->
+                    <div class="mb-3">
+                      <mdb-form-control>
+                        <mdb-select
+                          #eac3Completed
+                          formControlName="eac3Completed"
+                          [mdbValidate]="true"
+                        >
+                          <mdb-option value="yes">Yes</mdb-option>
+                          <mdb-option value="no">No</mdb-option>
+                        </mdb-select>
+                        <label mdbLabel class="form-label"
+                          >EAC-3 Completed</label
+                        >
+                      </mdb-form-control>
+                    </div>
+
+                    <!-- EAC-3 Completion Date -->
+                    <div>
+                      <mdb-form-control>
+                        <input
+                          autocomplete="off"
+                          mdbInput
+                          [mdbValidate]="true"
+                          [mdbDatepicker]="eac3CompletionDatePicker"
+                          type="text"
+                          class="form-control"
+                          id="eac3CompletionDateInput"
+                          formControlName="eac3CompletionDate"
+                          placeholder="dd, mmm, yyyy"
+                          (click)="eac3CompletionDatePicker.open()"
+                          [disabled]="
+                            !entryFormGroup.get('eac3CompletionDate')
+                              ?.enabled ||
+                            !entryFormGroup.get('eac3Completed')?.enabled
+                          "
+                        />
+                        <label
+                          mdbLabel
+                          for="eac3CompletionDateInput"
+                          class="form-label"
+                          >EAC-3 Completion Date</label
+                        >
+                        <mdb-datepicker
+                          #eac3CompletionDatePicker
+                          [maxDate]="maxDate"
+                          format="dd, mmm, yyyy"
+                        ></mdb-datepicker>
+                      </mdb-form-control>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Clinic Visit -->
+          <div class="col-12 col-lg-4">
+            <div
+              class="form-group card shadow-2 d-flex flex-column"
+              [formGroup]="clinicVisitFormGroup"
+            >
+              <div class="card-header">
+                <div class="d-flex align-items-center">
+                  <h6 class="text-primary mb-0">CLINIC VISIT</h6>
+                  <div class="flex-fill"></div>
+
+                  <a
+                    class="btn btn-primary btn-sm btn-floating"
+                    role="button"
+                    [ngClass]="{
+                      disabled:
+                        uniqueARTNumberFormControl.invalid &&
+                        uniqueARTNumberFormControl.dirty
+                    }"
+                    (click)="viewCVH()"
+                    ><i class="fas fa-eye"></i
+                  ></a>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <!-- Last Clinic Visit Date -->
+                  <div
+                    class="col-12 col-lg-12"
+                    [ngClass]="{
+                      'col-md-4':
+                        !clinicVisitComment.value?.includes('Transfer'),
+                      'col-md-6': clinicVisitComment.value?.includes('Transfer')
+                    }"
+                  >
+                    <mdb-form-control>
+                      <input
+                        autocomplete="off"
+                        formControlName="lastClinicVisitDate"
+                        mdbInput
+                        [mdbValidate]="true"
+                        [mdbDatepicker]="lastClinicVisitDatePicker"
+                        type="text"
+                        class="form-control"
+                        id="lastClinicVisicDateInput"
+                        placeholder="dd, mmm, yyyy"
+                        (click)="lastClinicVisitDatePicker.open()"
+                      />
+                      <label
+                        mdbLabel
+                        for="lastClinicVisicDateInput"
+                        class="form-label"
+                        >Last Clinic Visit Date</label
+                      >
+                      <mdb-datepicker
+                        #lastClinicVisitDatePicker
+                        [maxDate]="maxDate"
+                        format="dd, mmm, yyyy"
+                      ></mdb-datepicker>
+                    </mdb-form-control>
+                  </div>
+                  <!-- Next Appointment Date -->
+                  <div
+                    class="col-12 col-lg-12"
+                    [ngClass]="{
+                      'col-md-4':
+                        !clinicVisitComment.value?.includes('Transfer'),
+
+                      'col-md-6': clinicVisitComment.value?.includes('Transfer')
+                    }"
+                  >
+                    <mdb-form-control>
+                      <input
+                        autocomplete="off"
+                        formControlName="nextAppointmentDate"
+                        mdbInput
+                        [mdbValidate]="true"
+                        [mdbDatepicker]="nextAppointmentDatePicker"
+                        type="text"
+                        class="form-control"
+                        id="nextAppointmentDateInput"
+                        placeholder="dd, mmm, yyyy"
+                        (click)="nextAppointmentDatePicker.open()"
+                      />
+                      <label
+                        mdbLabel
+                        for="nextAppointmentDateInput"
+                        class="form-label"
+                        >Next Appointment Date</label
+                      >
+                      <mdb-datepicker
+                        #nextAppointmentDatePicker
+                        format="dd, mmm, yyyy"
+                      ></mdb-datepicker>
+                    </mdb-form-control>
+                  </div>
+                  <!-- Comment -->
+                  <div class="col-12 col-md-4 col-lg-12">
+                    <mdb-form-control>
+                      <mdb-select
+                        formControlName="clinicVisitComment"
+                        [mdbValidate]="true"
+                        #clinicVisitComment
+                      >
+                        <mdb-option
+                          *ngFor="let clinicComment of clinicComments"
+                          [value]="clinicComment"
+                          >{{ clinicComment }}</mdb-option
+                        >
+                      </mdb-select>
+                      <label mdbLabel class="form-label">Comment</label>
+                    </mdb-form-control>
+                  </div>
+                  <ng-container
+                    *ngIf="clinicVisitComment.value?.includes('Transfer')"
+                  >
+                    <!-- Facility Affiliated -->
+                    <div class="col-12 col-md-4 col-lg-12">
+                      <mdb-form-control>
+                        <mdb-select
+                          formControlName="facility"
+                          [mdbValidate]="true"
+                          [filter]="true"
+                        >
+                          <mdb-option
+                            *ngFor="let facility of facilities"
+                            [value]="facility.site"
+                            [label]="facility.site"
+                          >
+                            <div class="d-flex align-items-center w-100 m-auto">
+                              <span class="badge bg-primary me-3">{{
+                                facility.state
+                              }}</span>
+                              <span>{{ facility.site }}</span>
+                              <div class="flex-fill"></div></div
+                          ></mdb-option>
+                        </mdb-select>
+                        <label mdbLabel class="form-label">Facility</label>
+                      </mdb-form-control>
+                    </div>
+
+                    <!-- Date Transferred -->
+                    <div class="col-12 col-md-4 col-lg-12">
+                      <mdb-form-control>
+                        <input
+                          autocomplete="off"
+                          formControlName="dateTransferred"
+                          mdbInput
+                          [mdbValidate]="true"
+                          [mdbDatepicker]="dateTransferredDatepicker"
+                          type="text"
+                          class="form-control"
+                          id="dateTransferredInput"
+                          placeholder="dd, mmm, yyyy"
+                          (click)="dateTransferredDatepicker.open()"
+                        />
+                        <label
+                          mdbLabel
+                          for="dateTransferredInput"
+                          class="form-label"
+                          >Date Transferred</label
+                        >
+                        <mdb-datepicker
+                          #dateTransferredDatepicker
+                          format="dd, mmm, yyyy"
+                        ></mdb-datepicker>
+                      </mdb-form-control>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Viral Load History -->
+
+          <div class="col-12 col-lg-8">
+            <div class="card">
+              <div class="card-header">
+                <div class="d-flex align-items-center">
+                  <h6 class="text-primary mb-0">VIRAL LOAD HISTORY</h6>
+                  <div class="flex-fill"></div>
+
+                  <div class="form-check me-3">
+                    <input
+                      autocomplete="off"
+                      mdbCheckbox
+                      class="form-check-input"
+                      type="checkbox"
+                      id="noViralLoadHasBeenDone"
+                      [formControl]="noViralLoadHasBeenDoneFormControl"
+                      #noViralLoadHasBeenDone
+                    />
+                    <label
+                      class="form-check-label"
+                      for="noViralLoadHasBeenDone"
+                    >
+                      Nil
+                    </label>
+                  </div>
+                  <button
+                    class="btn btn-sm btn-primary"
+                    [disabled]="
+                      noViralLoadHasBeenDone.checked ||
+                      (uniqueARTNumberFormControl.invalid &&
+                        uniqueARTNumberFormControl.dirty)
+                    "
+                    (click)="openNewVLModal()"
+                  >
+                    Add New
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="d-flex mb-3 align-items-center">
+                  <div class="form-check me-3">
+                    <input
+                      autocomplete="off"
+                      mdbCheckbox
+                      class="form-check-input"
+                      type="checkbox"
+                      id="pendingStatus"
+                      [formControl]="pendingStatusFormControl"
+                      #pendingStatus
+                    />
+                    <label class="form-check-label" for="pendingStatus">
+                      Pending Status
+                    </label>
+                  </div>
+                  <mdb-form-control class="me-3" *ngIf="pendingStatus.checked">
+                    <input
+                      autocomplete="off"
+                      formControlName="nextAppointmentDate"
+                      mdbInput
+                      [mdbDatepicker]="pendingSampleDatepicker"
+                      type="text"
+                      class="form-control"
+                      id="pendingSampleDateInput"
+                      placeholder="dd, mmm, yyyy"
+                      (click)="pendingSampleDatepicker.open()"
+                      formControlName="pendingStatusDate"
+                    />
+                    <label
+                      mdbLabel
+                      for="pendingSampleDateInput"
+                      class="form-label"
+                      >Date Sample Collected</label
+                    >
+                    <mdb-datepicker
+                      #pendingSampleDatepicker
+                      [maxDate]="maxDate"
+                      format="dd, mmm, yyyy"
+                    ></mdb-datepicker>
+                  </mdb-form-control>
+                </div>
+                <div class="table-responsive" *ngIf="vlh.length">
+                  <table class="table table-sm align-middle">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Value</th>
+                        <th scope="col">Date Sample Collected</th>
+                        <th scope="col"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        *ngFor="let vl of vlh; index as i"
+                        [ngClass]="{
+                          'bg-dark text-white': i == 0,
+                          'table-danger': (vl?.value || 0) >= 1000 && i != 0,
+                          'table-primary':
+                            (!vl.value || vl.value < 1000) && i != 0
+                        }"
+                      >
+                        <th>{{ !i ? "Most Current VL" : i + 1 }}</th>
+                        <td>
+                          <span
+                            class="badge"
+                            [ngClass]="{
+                              'bg-danger': (vl?.value || 0) >= 1000,
+                              'bg-primary': !vl.value || vl.value < 1000
+                            }"
+                          >
+                            {{ (vl?.value || 0) >= 1000 ? "High" : "Low" }}
+                            Viral Load</span
+                          >
+                        </td>
+                        <td>{{ vl.value || "Below Detection Level" }}</td>
+                        <td>{{ vl.dateSampleCollected | date: "longDate" }}</td>
+
+                        <td>
+                          <div>
+                            <button
+                              mdbRipple
+                              type="button"
+                              class="btn btn-sm btn-primary btn-floating me-3"
+                              (click)="openEditVLModal(i)"
+                            >
+                              <i class="fas fa-edit"></i>
+                            </button>
+                            <button
+                              mdbRipple
+                              rippleColor="danger"
+                              type="button"
+                              class="btn btn-sm btn-danger btn-floating"
+                              (click)="removeVL(i)"
+                            >
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="note note-warning" *ngIf="!vlh.length">
+                  Nothing to show.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </form>
-  </div>
+      </form>
+    </div>
 
-  <div id="actions-container">
-    <div class="container h-100">
-      <div class="d-flex align-items-center h-100 px-3">
-        <button
-          class="btn btn-success col-4 btn-lg me-3"
-          type="button"
-          (click)="saveEntryForm()"
-        >
-          Save
-        </button>
-        <div class="col-4 lead d-flex flex-column text-center me-3">
-          <h3
-            class="m-0"
-            [ngClass]="{
-              'text-success': eligibility == 'eligible',
-              'text-danger': eligibility == 'ineligible'
-            }"
-          >
-            {{ eligibility || "pending" | uppercase }}
-          </h3>
-          <span class="small text-muted text-uppercase"
-            >Eligibility Status</span
-          >
-        </div>
+    <div id="actions-container" class="p-4 bg-light">
+      <div class="container-lg">
+        <div class="row">
+          <div class="col-12">
+            <div class="row align-items-center g-3">
+              <div>
+                <div class="card">
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-6">
+                        <button
+                          class="btn btn-success btn-lg w-100 h-100"
+                          type="button"
+                          (click)="saveEntryForm()"
+                          [disabled]="
+                            uniqueARTNumberFormControl.invalid ||
+                            clinicVisitFormGroup.invalid
+                          "
+                        >
+                          Save
+                        </button>
+                      </div>
 
-        <div class="col-4 lead d-flex flex-column text-center">
-          <h3
-            class="m-0"
-            [ngClass]="{
-              'text-success': eligibility == 'eligible',
-              'text-danger': eligibility == 'ineligible'
-            }"
-          >
-            {{ iit || "pending" | uppercase }}
-          </h3>
-          <span class="small text-muted text-uppercase">IIT Status</span>
+                      <div class="col-3 d-flex flex-column text-center">
+                        <h2>
+                          <div
+                            class="badge text-uppercase"
+                            [ngClass]="{
+                              'badge-success': eligibilityStatus?.eligible,
+                              'badge-warning':
+                                eligibilityStatus &&
+                                !eligibilityStatus?.eligible &&
+                                eligibilityStatus.note == 'incomplete-eac',
+                              'badge-danger':
+                                eligibilityStatus &&
+                                !eligibilityStatus?.eligible,
+                              'badge-dark': !eligibilityStatus
+                            }"
+                            [mdbTooltip]="eligibilityStatus?.note || ''"
+                          >
+                            {{
+                              eligibilityStatus
+                                ? eligibilityStatus.eligible
+                                  ? "eligible"
+                                  : "ineligible"
+                                : "pending"
+                            }}
+                          </div>
+                        </h2>
+                        <span class="small text-uppercase"
+                          >Viral Load Eligibility Status
+                        </span>
+                      </div>
+
+                      <div class="col-3 d-flex flex-column text-center">
+                        <h2>
+                          <div
+                            class="badge text-uppercase"
+                            [ngClass]="{
+                              'badge-success': iit == 'active',
+                              'badge-primary': iit == 'iit <= 1',
+                              'badge-warning': iit == 'iit <= 3',
+                              'badge-danger': iit == 'iit > 3',
+                              'badge-dark': iit == 'pending' || !iit
+                            }"
+                          >
+                            {{
+                              (iit || "pending")
+                                .replace("<=", "≤")
+                                .replace("> 3", "3⁺")
+                            }}
+                          </div>
+                        </h2>
+                        <span class="small text-uppercase"
+                          >Clinic Status (IIT)</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <span
+      id="mini-dashboard-toggler"
+      class="mb-1 bg-primary text-white shadow-5 position-absolute top-50 end-0"
+      mdbRipple
+      (click)="miniDashboardShown = !miniDashboardShown"
+    >
+      <a>
+        <i
+          class="fas fa-angle-double-left m-2"
+          [ngStyle]="{
+            transform: miniDashboardShown ? 'rotate(180deg)' : 'none'
+          }"
+        ></i
+      ></a>
+    </span>
+  </div>
+
+  <div
+    id="mini-dashboard"
+    class="bg-light p-3 shadow-7"
+    *ngIf="miniDashboardShown"
+  >
+    Mini-Dashboard Placeholder
   </div>
 </div>

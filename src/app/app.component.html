@@ -13,10 +13,10 @@
     <!-- Sidenav Container -->
     <div id="sidenav-container">
       <!-- Sidenav Navbar -->
-      <nav class="navbar navbar-dark bg-secondary">
+      <nav class="navbar navbar-dark bg-primary">
         <div class="d-flex justify-content-center w-100">
           <a
-            class="navbar-brand"
+            class="navbar-brand position-relative"
             routerLink=""
             *ngIf="!sidenavCollapsed"
             tabindex="-1"
@@ -39,55 +39,38 @@
       <div id="sidenav-content-container">
         <!-- Sidenav Links -->
         <ul class="sidenav-menu my-1">
-          <mdb-sidenav-item>
+          <mdb-sidenav-item *ngFor="let link of sidenavLinks">
             <a
               class="sidenav-link"
-              routerLink="dashboard"
+              [routerLink]="link.route"
               routerLinkActive="active"
               tabindex="-1"
             >
-              <i class="fas fa-chart-line me-3"></i
-              ><span slim="false">Dashboard</span></a
+              <i [class]="link.icon + ' me-3'"></i
+              ><span slim="false">{{
+                routeToLink(link.route) | titlecase
+              }}</span></a
             >
           </mdb-sidenav-item>
-          <mdb-sidenav-item>
+          <hr />
+          <h6
+            class="text-muted"
+            slim="false"
+            [ngStyle]="{ padding: '1rem 1.5rem' }"
+          >
+            <i class="fas fa-star me-3"></i> <span>Admin</span>
+          </h6>
+          <mdb-sidenav-item *ngFor="let link of adminLinks">
             <a
               class="sidenav-link"
-              routerLink="entry-form"
+              [routerLink]="'admin/' + link.route"
               routerLinkActive="active"
               tabindex="-1"
             >
-              <i class="fas fa-info-circle me-3"></i
-              ><span slim="false">Entry Form</span></a
-            >
-          </mdb-sidenav-item>
-          <mdb-sidenav-item>
-            <a
-              class="sidenav-link"
-              routerLink="report"
-              routerLinkActive="active"
-              tabindex="-1"
-            >
-              <i class="fas fa-book me-3"></i
-              ><span slim="false">Report</span></a
-            >
-          </mdb-sidenav-item>
-          <mdb-sidenav-item>
-            <a
-              class="sidenav-link"
-              routerLink="settings"
-              routerLinkActive="active"
-              tabindex="-1"
-            >
-              <i class="fas fa-cog me-3"></i
-              ><span slim="false">Settings</span></a
-            >
-          </mdb-sidenav-item>
-
-          <mdb-sidenav-item (click)="signOut()">
-            <a class="sidenav-link">
-              <i class="fas fa-sign-out-alt me-3"></i
-              ><span slim="false">Sign Out</span></a
+              <i [class]="link.icon + ' me-3'"></i
+              ><span slim="false">{{
+                routeToLink(link.route) | titlecase
+              }}</span></a
             >
           </mdb-sidenav-item>
         </ul>
@@ -102,6 +85,7 @@
       <nav
         class="navbar navbar-light bg-light"
         *ngIf="(activeRoute | async) != 'auth'"
+        style="z-index: 2"
       >
         <div class="d-flex px-2 align-items-center w-100">
           <a
@@ -122,36 +106,148 @@
             *ngIf="sidenavHidden"
             routerLink=""
           >
-            <span class="text-secondary">Vi</span
+            <span class="text-dark">Vi</span
             ><span class="text-primary">SURGE</span>
           </a>
 
           <span *ngIf="sidenavHidden">|</span>
-          <span class="ms-3 text-secondary">{{
+          <span class="ms-3 text-dark">{{
             (activeRoute | async) || "dashboard" | titlecase
           }}</span>
 
           <div class="flex-fill h-100"></div>
-          <ul class="navbar-nav d-flex flex-row" *ngIf="sidenavHidden">
-            <ng-container *ngFor="let link of sidenavLinks">
-              <li
-                class="nav-item"
-                *ngIf="
-                  ((activeRoute | async) || 'dashboard') != routeToLink(link) &&
-                  ((authServ.isAdmin$ | async)
-                    ? adminLinks.includes(link)
-                    : !adminLinks.includes(link))
-                "
-              >
-                <a class="nav-link me-3" href="#" [routerLink]="link">{{
-                  routeToLink(link) | titlecase
-                }}</a>
-              </li>
-            </ng-container>
-            <li class="nav-item">
-              <a class="nav-link me-3 link-danger" href="#" (click)="signOut()"
-                >Sign Out</a
-              >
+          <ul class="navbar-nav d-flex flex-row">
+            <!-- Icons -->
+            <li class="nav-item me-3">
+              <div mdbDropdown #langDropdown>
+                <a
+                  class="nav-link"
+                  mdbDropdownToggle
+                  role="button"
+                  id="dropdownMenuLink"
+                  (click)="$event.stopPropagation()"
+                >
+                  <i class="flag za"></i>
+                </a>
+                <ul
+                  mdbDropdownMenu
+                  class="dropdown-menu"
+                  aria-labelledby="dropdownMenuLink"
+                >
+                  <li><a class="dropdown-item">South Sudan</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item me-3">
+              <div mdbDropdown #notifDropdown>
+                <a
+                  class="nav-link"
+                  mdbDropdownToggle
+                  role="button"
+                  id="dropdownMenuLink"
+                  (click)="$event.stopPropagation()"
+                >
+                  <i class="fas fa-bell"></i>
+                  <span
+                    class="badge rounded-pill badge-notification bg-danger"
+                    *ngIf="(notifs | async)?.length"
+                    >{{ (notifs | async)?.length }}</span
+                  >
+                </a>
+                <ul
+                  mdbDropdownMenu
+                  class="dropdown-menu"
+                  aria-labelledby="dropdownMenuLink"
+                >
+                  <ng-container *ngIf="(notifs | async)?.length; else noNotifs">
+                    <li *ngFor="let notif of notifs | async">
+                      <a class="dropdown-item d-flex align-items-center">
+                        <span class="me-3">{{ notif.message }}</span>
+                        <span class="flex-fill"></span>
+                        <span class="text-muted small">{{
+                          notif.dateCreated.toDate() | date: "longDate"
+                        }}</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        mdbRipple
+                        class="dropdown-item text-center text-danger"
+                        (click)="clearPushNotifs(); notifDropdown.hide()"
+                        style="cursor: pointer"
+                        >Clear</a
+                      >
+                    </li>
+                  </ng-container>
+
+                  <ng-template #noNotifs>
+                    <li>
+                      <h6 class="dropdown-header">No notifications to show.</h6>
+                    </li>
+                  </ng-template>
+                </ul>
+              </div>
+            </li>
+
+            <li class="nav-item me-3">
+              <div mdbDropdown #userDropdown>
+                <a
+                  class="nav-link"
+                  mdbDropdownToggle
+                  role="button"
+                  id="dropdownMenuLink"
+                  (click)="$event.stopPropagation()"
+                >
+                  <i class="fas fa-user"></i>
+                </a>
+                <div
+                  mdbDropdownMenu
+                  class="dropdown-menu me-3"
+                  [ngStyle]="{ overflow: 'hidden' }"
+                >
+                  <div
+                    class="
+                      bg-primary
+                      p-3
+                      d-flex
+                      justify-content-between
+                      align-items-center
+                    "
+                    *ngIf="authServ.isAdmin$ | async"
+                  >
+                    <h6 class="mb-0 text-light me-3">
+                      {{
+                        (authServ.userData$ | async)?.username ||
+                          "Loading . . ."
+                      }}
+                    </h6>
+
+                    <div
+                      class="badge bg-danger"
+                      *ngIf="authServ.isAdmin$ | async"
+                    >
+                      ADMIN
+                    </div>
+                  </div>
+
+                  <div
+                    class="list-group list-group-flush"
+                    [ngStyle]="{ cursor: 'pointer' }"
+                  >
+                    <a
+                      class="list-group-item list-group-item-action"
+                      routerLink="/settings"
+                      >Settings</a
+                    >
+                    <a
+                      class="list-group-item list-group-item-action"
+                      (click)="signOut()"
+                    >
+                      Sign Out</a
+                    >
+                  </div>
+                </div>
+              </div>
             </li>
           </ul>
         </div>

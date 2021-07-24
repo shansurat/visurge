@@ -13,16 +13,15 @@ thead th {
 
 #main-container {
   overflow-y: auto;
-  // height: calc(100% - 70px);
 }
 
 #actions-container {
-  min-height: 100px;
   box-shadow: 0 2px 20px 0 rgba(0, 0, 0, 0.25), 0 3px 20px 3px rgba(0, 0, 0, 0) !important;
-}
+  z-index: 3 !important;
 
-.form-group {
-  background-color: #f4e3ff;
+  .card {
+    background-color: rgba(18, 102, 241, 0.1);
+  }
 }
 
 th,
@@ -30,13 +29,54 @@ td {
   white-space: nowrap;
 }
 
-.form-outline .form-control:disabled,
-.form-outline .form-control.disabled,
-.form-outline .form-control[readonly] {
-  background-color: rgb(214 200 222);
-}
+// .form-outline .form-control:disabled,
+// .form-outline .form-control.disabled,
+// .form-outline .form-control[readonly] {
+//   background-color: rgb(214 200 222);
+// }
 
 small.form-label {
   font-weight: 600;
   white-space: nowrap;
+}
+
+#mini-dashboard-toggler {
+  background-color: #424242;
+
+  border-radius: 20px 0 0 20px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+
+  i {
+    transition: transform 0.3s;
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+#mini-dashboard {
+  min-width: 240px;
+  transition: all 0.3s linear 0s;
+  transition-property: all;
+  transition-duration: 0.3s;
+  transition-timing-function: linear;
+  transition-delay: 0s;
+  z-index: 1;
+}
+
+h6 {
+  text-transform: uppercase;
+}
+
+.form-control.validate-success,
+.form-control.validate-error {
+  margin-bottom: 0 !important;
+}
+
+.select-dropdown {
+  width: fit-content !important;
+  min-width: 100% !important;
 }

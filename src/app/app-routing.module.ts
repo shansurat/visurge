@@ -5,8 +5,10 @@ import { AuthComponentGuard } from './guards/auth-component.guard';
 import { AuthGuard } from './guards/auth.guard';
 import { UserGuard } from './guards/user.guard';
 import { AdminComponent } from './pages/admin/admin.component';
+import { UsersComponent } from './pages/admin/users/users.component';
 import { AuthComponent } from './pages/auth/auth.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { DatabaseComponent } from './pages/database/database.component';
 import { EntriesComponent } from './pages/entries/entries.component';
 import { EntryFormComponent } from './pages/entry-form/entry-form.component';
 import { ReportComponent } from './pages/report/report.component';
@@ -18,22 +20,24 @@ const routes: Routes = [
     path: 'admin',
     component: AdminComponent,
     canActivate: [AuthGuard, AdminGuard],
-  },
-  {
-    path: 'entries',
-    component: EntriesComponent,
-    canActivate: [AuthGuard, AdminGuard],
+    children: [{ path: 'users', component: UsersComponent }],
   },
 
   {
     path: 'entry-form',
     component: EntryFormComponent,
-    canActivate: [AuthGuard, UserGuard],
+    canActivate: [AuthGuard],
+  },
+
+  {
+    path: 'database',
+    component: DatabaseComponent,
+    canActivate: [AuthGuard],
   },
   {
     path: 'report',
     component: ReportComponent,
-    canActivate: [AuthGuard, UserGuard],
+    canActivate: [AuthGuard],
   },
   {
     path: 'dashboard',

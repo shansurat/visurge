@@ -28,6 +28,7 @@
             "inlineStyleLanguage": "scss",
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.scss"],
+
             "scripts": ["node_modules/chart.js/dist/chart.js"]
           },
           "configurations": {

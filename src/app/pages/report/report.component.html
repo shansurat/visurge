@@ -1,1 +1,67 @@
-<p>report works!</p>
+<div id="wrapper" class="d-flex flex-column">
+  <div id="main-container" class="p-4 flex-fill">
+    <div class="container-lg">
+      <mdb-tabs [pills]="true">
+        <mdb-tab title="Individual">
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-body">
+                  <div class="row justify-content-between">
+                    <div class="col-5">
+                      <mdb-form-control>
+                        <input
+                          autocomplete="off"
+                          #uniqueARTNumber
+                          mdbInput
+                          type="text"
+                          id="uniqueARTNumberInput"
+                          class="form-control text-uppercase"
+                          [formControl]="uniqueARTNumberFormControl"
+                          placeholder="XXX/YYY/12345"
+                          autocomplete="off"
+                          [mdbAutocomplete]="UANautocomplete"
+                          autocapitalize="characters"
+                        />
+
+                        <label
+                          mdbLabel
+                          class="form-label"
+                          for="uniqueARTNumberInput"
+                          >Unique ART Number</label
+                        >
+                      </mdb-form-control>
+                      <mdb-autocomplete #UANautocomplete="mdbAutocomplete">
+                        <mdb-option
+                          *ngFor="let entry of entriesAutocomplete$ | async"
+                          [value]="entry.data().uniqueARTNumber"
+                        >
+                          {{ entry.data().uniqueARTNumber | uppercase }}
+                        </mdb-option>
+                      </mdb-autocomplete>
+                    </div>
+                    <div class="col-3 d-flex justify-content-end">
+                      <div class="btn btn-primary">Print</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12" *ngIf="selectedEntry$ | async">
+              <div class="card">
+                <div class="card-body">
+                  {{ selectedEntry$ | async | json }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div></div
+        ></mdb-tab>
+        <mdb-tab title="Weekly">Tab content 2</mdb-tab>
+        <mdb-tab title="Monthly">Tab content 2</mdb-tab>
+      </mdb-tabs>
+    </div>
+  </div>
+</div>

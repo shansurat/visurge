@@ -1,8 +1,13 @@
 import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AngularFirestore } from '@angular/fire/firestore';
 import { NavigationEnd, Router } from '@angular/router';
 import { MdbSidenavComponent } from 'mdb-angular-ui-kit/sidenav';
-import { filter, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { filter, map, mergeMap } from 'rxjs/operators';
 import { AuthService } from './services/auth.service';
+import firebase from 'firebase/app';
+import { PushNotification } from './interfaces/push-notification';
+import { PushNotificationService } from './services/push-notification.service';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +21,8 @@ export class AppComponent {
   sidenavHidden = true;
   sidenavCollapsed = false;
 
+  notifs!: Observable<any[]>;
+
   activeRoute = this.router.events.pipe(
     filter((event: any) => event instanceof NavigationEnd),
     map((event: any) => {
@@ -24,17 +31,22 @@ export class AppComponent {
   );
 
   sidenavLinks = [
-    'admin',
-    'dashboard',
-    'entries',
-    'entry-form',
-    'report',
-    'settings',
+    { route: 'dashboard', icon: 'fas fa-chart-line' },
+    { route: 'entry-form', icon: 'fas fa-info-circle' },
+    { route: 'database', icon: 'fas fa-table' },
+    { route: 'report', icon: 'fas fa-book' },
   ];
 
-  adminLinks = ['dashboard', 'admin', 'entries', 'settings'];
+  adminLinks = [{ route: 'users', icon: 'fas fa-user' }];
 
-  constructor(private router: Router, public authServ: AuthService) {}
+  constructor(
+    private router: Router,
+    public authServ: AuthService,
+    private afs: AngularFirestore,
+    private pushNotifServ: PushNotificationService
+  ) {
+    this.notifs = pushNotifServ.pushNotifs$;
+  }
 
   routeToLink(route: string) {
     return route.replace(/-/g, ' ');
@@ -42,7 +54,10 @@ export class AppComponent {
 
   signOut() {
     this.sidenav.hide();
-
     this.authServ.signOut();
+  }
+
+  clearPushNotifs() {
+    this.pushNotifServ.clearPushNotifs();
   }
 }

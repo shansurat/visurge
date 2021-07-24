@@ -5,6 +5,7 @@ import { AngularFireFunctions } from '@angular/fire/functions';
 import { Router } from '@angular/router';
 import { from, Observable } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
+import firebase from 'firebase/app';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +14,9 @@ export class AuthService {
   isSignedIn$!: Observable<boolean>;
   isAdmin$!: Observable<boolean>;
   createUser!: any;
+
+  user$!: Observable<firebase.User | null>;
+  userData$!: Observable<any>;
 
   constructor(
     public auth: AngularFireAuth,
@@ -32,6 +36,13 @@ export class AuthService {
       }),
       map((doc) => {
         return !!(doc.data() as any)?.admin;
+      })
+    );
+
+    this.user$ = auth.user;
+    this.userData$ = this.user$.pipe(
+      mergeMap((user) => {
+        return this.afs.collection('users').doc(user?.uid).valueChanges();
       })
     );
   }

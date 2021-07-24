@@ -6,6 +6,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { MdbAutocompleteModule } from 'mdb-angular-ui-kit/autocomplete';
 import { MdbCarouselModule } from 'mdb-angular-ui-kit/carousel';
 import { MdbChartModule } from 'mdb-angular-ui-kit/charts';
 import { MdbCheckboxModule } from 'mdb-angular-ui-kit/checkbox';
@@ -58,6 +59,25 @@ import { LogoComponent } from './components/logo/logo.component';
 import { NewVlComponent } from './modals/new-vl/new-vl.component';
 import { EditVlComponent } from './modals/edit-vl/edit-vl.component';
 import { UserLoadedAlertComponent } from './alerts/user-loaded-alert/user-loaded-alert.component';
+import { EligibleByDayComponent } from './charts/eligible-by-day/eligible-by-day.component';
+import { EligibleByWeekComponent } from './charts/eligible-by-week/eligible-by-week.component';
+import { EligibleByMonthComponent } from './charts/eligible-by-month/eligible-by-month.component';
+import { EligibleBySexComponent } from './charts/eligible-by-sex/eligible-by-sex.component';
+import { ViewCvhComponent } from './modals/view-cvh/view-cvh.component';
+import { UserUpdatedAlertComponent } from './alerts/user-updated-alert/user-updated-alert.component';
+import { AlertComponent } from './alerts/alert/alert.component';
+import { ClinicVisitAddedComponent } from './alerts/clinic-visit-added/clinic-visit-added.component';
+import { DatabaseComponent } from './pages/database/database.component';
+import { EligibleByTimeComponent } from './charts/eligible-by-time/eligible-by-time.component';
+import { NotificationsComponent } from './popovers/notifications/notifications.component';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { EligibleByRegimenComponent } from './charts/eligible-by-regimen/eligible-by-regimen.component';
+import { CvsByIitComponent } from './charts/cvs-by-iit/cvs-by-iit.component';
+import { EligibleByPMTCTComponent } from './charts/eligible-by-pmtct/eligible-by-pmtct.component';
+import { PieChartsComponent } from './charts/pie-charts/pie-charts.component';
+
+import 'chartjs-plugin-datalabels';
+import { UsersComponent } from './pages/admin/users/users.component';
 
 @NgModule({
   declarations: [
@@ -78,6 +98,22 @@ import { UserLoadedAlertComponent } from './alerts/user-loaded-alert/user-loaded
     NewVlComponent,
     EditVlComponent,
     UserLoadedAlertComponent,
+    EligibleByDayComponent,
+    EligibleByWeekComponent,
+    EligibleByMonthComponent,
+    EligibleBySexComponent,
+    ViewCvhComponent,
+    UserUpdatedAlertComponent,
+    AlertComponent,
+    ClinicVisitAddedComponent,
+    DatabaseComponent,
+    EligibleByTimeComponent,
+    NotificationsComponent,
+    EligibleByRegimenComponent,
+    CvsByIitComponent,
+    EligibleByPMTCTComponent,
+    PieChartsComponent,
+    UsersComponent,
   ],
   imports: [
     BrowserModule,
@@ -85,7 +121,7 @@ import { UserLoadedAlertComponent } from './alerts/user-loaded-alert/user-loaded
 
     FormsModule,
     ReactiveFormsModule,
-
+    MdbAutocompleteModule,
     MdbCarouselModule,
     MdbChartModule,
     MdbCheckboxModule,
@@ -117,8 +153,9 @@ import { UserLoadedAlertComponent } from './alerts/user-loaded-alert/user-loaded
     AngularFireAuthModule,
     AngularFirestoreModule.enablePersistence(),
     AngularFireFunctionsModule,
+    NgxChartsModule,
   ],
-  providers: [{ provide: USE_EMULATOR, useValue: ['localhost', 5001] }],
+  // providers: [{ provide: USE_EMULATOR, useValue: ['localhost', 5001] }],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

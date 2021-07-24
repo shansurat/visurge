@@ -1,0 +1,14 @@
+<div class="card">
+  <div class="card-header text-center fw-bold bg-primary text-light">
+    Total Number of Eligible for Viral Load By Month
+  </div>
+  <div class="card-body">
+    <canvas
+      mdbChart
+      [type]="'line'"
+      [datasets]="eligibilityChartDatasets"
+      [labels]="eligibilityChartLabels"
+      [options]="eligibilityChartOptions"
+    ></canvas>
+  </div>
+</div>

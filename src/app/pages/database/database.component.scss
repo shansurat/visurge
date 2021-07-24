@@ -1,0 +1,15 @@
+#wrapper {
+  height: 100%;
+  overflow: hidden;
+}
+#main-container {
+  overflow-y: auto;
+}
+
+.datatable table td {
+  padding: 0.5rem 1.4rem;
+}
+
+.datatable tbody tr:last-child {
+  height: unset;
+}

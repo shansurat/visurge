@@ -3,10 +3,27 @@
   <button type="button" class="btn-close" (click)="modalRef.close()"></button>
 </div>
 <div class="modal-body">
-  <div [formGroup]="newVLFormGroup">
-    <div class="mb-3">
-      <small mdbLabel class="form-label" for="value">Viral Load Value</small>
-
+  <div [formGroup]="newVLFormGroup" class="row g-3 align-items-center">
+    <div class="col-12 col-lg-4">
+      <div class="form-check">
+        <input
+          mdbCheckbox
+          class="form-check-input"
+          type="checkbox"
+          id="undetectableViralLoad"
+          formControlName="undetectableViralLoad"
+        />
+        <label class="form-check-label" for="undetectableViralLoad">
+          Below Detection Level
+        </label>
+      </div>
+    </div>
+    <div
+      class="col-12 col-lg-4"
+      [ngClass]="{
+        'visually-hidden': newVLFormGroup.get('undetectableViralLoad')?.value
+      }"
+    >
       <mdb-form-control>
         <input
           mdbInput
@@ -14,7 +31,11 @@
           id="value"
           class="form-control"
           formControlName="value"
+          #viralLoadValue
+          min="0"
+          (keypress)="$event.code.includes('Digit')"
         />
+        <label mdbLabel class="form-label" for="value">Viral Load Value</label>
       </mdb-form-control>
 
       <div class="form-text" *ngIf="newVLFormGroup.get('value')?.value">
@@ -22,10 +43,7 @@
         Viral Load
       </div>
     </div>
-    <div>
-      <small mdbLabel for="dateSampleCollectedInput" class="form-label"
-        >Date Sample Collected</small
-      >
+    <div class="col-12 col-lg-4">
       <mdb-form-control tabindex="1">
         <input
           mdbInput
@@ -34,12 +52,17 @@
           class="form-control"
           id="dateSampleCollectedInput"
           formControlName="dateSampleCollected"
+          (click)="dateSampleCollectedDatePicker.open()"
         />
+        <label mdbLabel for="dateSampleCollectedInput" class="form-label"
+          >Date Sample Collected</label
+        >
 
-        <mdb-datepicker-toggle
-          [mdbDatepicker]="dateSampleCollectedDatePicker"
-        ></mdb-datepicker-toggle>
-        <mdb-datepicker #dateSampleCollectedDatePicker></mdb-datepicker>
+        <mdb-datepicker
+          #dateSampleCollectedDatePicker
+          format="dd, mmm, yyyy"
+          [maxDate]="maxDate"
+        ></mdb-datepicker>
       </mdb-form-control>
     </div>
   </div>

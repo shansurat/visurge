@@ -1,11 +1,33 @@
 <div id="wrapper" class="d-flex flex-column">
   <div id="main-container" class="p-4 flex-fill">
-    <div class="container-lg">
-      <div class="row">
+    <div class="container-fluid-md">
+      <div class="row g-3">
         <!-- Eligibility -->
-        <div class="col-3">
+        <div class="col-12 col-md-6 col-xl-3">
           <div class="card">
-            <div class="card-body">
+            <div class="card-header text-uppercase">
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">Eligible for Viral Load </small>
+
+                <div mdbDropdown>
+                  <a
+                    mdbDropdownToggle
+                    class="text-success"
+                    role="button"
+                    (click)="genLinelist($event, 'eligible')"
+                    ><i class="fas fa-info-circle"></i
+                  ></a>
+                  <ul
+                    mdbDropdownMenu
+                    class="dropdown-menu"
+                    aria-labelledby="dropdownMenuLink"
+                  >
+                    <li><a class="dropdown-item">Generate Linelist</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="card-body d-flex flex-column g-3">
               <div class="d-flex align-items-center mb-3">
                 <button
                   type="button"
@@ -23,32 +45,68 @@
                     justify-content-between
                   "
                 >
-                  <small class="text-muted text-uppercase">Eligibility</small>
-                  <h1 class="mb-0">34</h1>
+                  <h1 class="mb-0">{{ (eligible$ | async)?.length || 0 }}</h1>
                 </div>
               </div>
-              <div class="progress mb-3">
+              <div class="progress rounded show_box_progress">
                 <div
                   class="progress-bar bg-success"
                   role="progressbar"
-                  style="width: 25%"
+                  [ngStyle]="{
+                    width:
+                      (((eligible$ | async)?.length || 0) /
+                        ((entries$ | async)?.length || 1)) *
+                        100 +
+                      '%'
+                  }"
                   aria-valuenow="25"
                   aria-valuemin="0"
                   aria-valuemax="100"
-                ></div>
+                >
+                  {{
+                    r(
+                      (((eligible$ | async)?.length || 0) /
+                        ((entries$ | async)?.length || 1)) *
+                        100
+                    )
+                  }}%
+                </div>
               </div>
-              <p class="card-text">3 added from last week</p>
             </div>
           </div>
         </div>
-        <!-- Pregnant/Breastfeeding -->
-        <div class="col-3">
+
+        <!-- Pregnancy/BreastFeeding Total -->
+        <div class="col-12 col-md-6 col-xl-3">
           <div class="card">
-            <div class="card-body">
-              <div class="d-flex align-items-center mb-3">
-                <div class="card bg-info text-white">
-                  <div class="card-body">PB</div>
+            <div class="card-header text-uppercase">
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted text-center"
+                  >Pregnant/BreastFeeding
+                </small>
+                <div mdbDropdown>
+                  <a
+                    mdbDropdownToggle
+                    class="text-info"
+                    role="button"
+                    (click)="genLinelist($event, 'pregnant')"
+                    ><i class="fas fa-info-circle"></i
+                  ></a>
+                  <ul
+                    mdbDropdownMenu
+                    class="dropdown-menu"
+                    aria-labelledby="dropdownMenuLink"
+                  >
+                    <li><a class="dropdown-item">Generate Linelist</a></li>
+                  </ul>
                 </div>
+              </div>
+            </div>
+            <div class="card-body d-flex flex-column g-3">
+              <div class="d-flex align-items-center mb-3">
+                <button type="button" class="btn btn-info btn-lg btn-floating">
+                  <i class="fas fa-baby"></i>
+                </button>
                 <div class="flex-fill"></div>
                 <div
                   class="
@@ -59,35 +117,71 @@
                     justify-content-between
                   "
                 >
-                  <small class="text-muted text-uppercase"
-                    >Pregnant/Breastfeeding</small
-                  >
-                  <h1 class="mb-0">21</h1>
+                  <h1 class="mb-0">{{ (pregnant$ | async)?.length }}</h1>
                 </div>
               </div>
-              <div class="progress mb-3">
+              <div class="progress rounded show_box_progress">
                 <div
                   class="progress-bar bg-info"
                   role="progressbar"
-                  style="width: 25%"
+                  [ngStyle]="{
+                    width:
+                      (((pregnant$ | async)?.length || 0) /
+                        ((entries$ | async)?.length || 1)) *
+                        100 +
+                      '%'
+                  }"
                   aria-valuenow="25"
                   aria-valuemin="0"
                   aria-valuemax="100"
-                ></div>
+                >
+                  {{
+                    r(
+                      (((pregnant$ | async)?.length || 0) /
+                        ((entries$ | async)?.length || 1)) *
+                        100
+                    )
+                  }}%
+                </div>
               </div>
-              <p class="card-text">0 added from last week</p>
             </div>
           </div>
         </div>
 
-        <!-- High Viral Load -->
-        <div class="col-3">
+        <!-- HVL With EAC-3 Completed -->
+        <div class="col-12 col-md-6 col-xl-3">
           <div class="card">
-            <div class="card-body">
-              <div class="d-flex align-items-center mb-3">
-                <div class="card bg-danger text-white">
-                  <div class="card-body">HV</div>
+            <div class="card-header text-uppercase">
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted text-center"
+                  >HVL W/ EAC-3 Completed
+                </small>
+                <div mdbDropdown>
+                  <a
+                    mdbDropdownToggle
+                    class="text-danger"
+                    role="button"
+                    (click)="genLinelist($event, 'hvl-with-eac3')"
+                    ><i class="fas fa-info-circle"></i
+                  ></a>
+                  <ul
+                    mdbDropdownMenu
+                    class="dropdown-menu"
+                    aria-labelledby="dropdownMenuLink"
+                  >
+                    <li><a class="dropdown-item">Generate Linelist</a></li>
+                  </ul>
                 </div>
+              </div>
+            </div>
+            <div class="card-body d-flex flex-column g-3">
+              <div class="d-flex align-items-center mb-3">
+                <button
+                  type="button"
+                  class="btn btn-danger btn-lg btn-floating"
+                >
+                  <i class="fas fa-clock"></i>
+                </button>
                 <div class="flex-fill"></div>
                 <div
                   class="
@@ -98,35 +192,68 @@
                     justify-content-between
                   "
                 >
-                  <small class="text-muted text-uppercase"
-                    >High Viral Load</small
-                  >
-                  <h1 class="mb-0">26</h1>
+                  <h1 class="mb-0">{{ (pending$ | async)?.length }}</h1>
                 </div>
               </div>
-              <div class="progress mb-3">
+              <div class="progress rounded show_box_progress">
                 <div
+                  [ngStyle]="{
+                    width:
+                      (((pending$ | async)?.length || 0) /
+                        ((entries$ | async)?.length || 1)) *
+                        100 +
+                      '%'
+                  }"
                   class="progress-bar bg-danger"
                   role="progressbar"
-                  style="width: 25%"
-                  aria-valuenow="25"
                   aria-valuemin="0"
                   aria-valuemax="100"
-                ></div>
+                >
+                  {{
+                    r(
+                      (((pending$ | async)?.length || 0) /
+                        ((entries$ | async)?.length || 1)) *
+                        100
+                    )
+                  }}%
+                </div>
               </div>
-              <p class="card-text">7 added last week</p>
             </div>
           </div>
         </div>
 
-        <!-- Clinic Visit Status -->
-        <div class="col-3">
+        <!-- Pending Results -->
+        <div class="col-12 col-md-6 col-xl-3">
           <div class="card">
-            <div class="card-body">
-              <div class="d-flex align-items-center mb-3">
-                <div class="card bg-warning text-white">
-                  <div class="card-body">EL</div>
+            <div class="card-header text-uppercase">
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted text-center">Pending Results </small>
+                <div mdbDropdown>
+                  <a
+                    mdbDropdownToggle
+                    class="text-warning"
+                    role="button"
+                    (click)="genLinelist($event, 'pending')"
+                    ><i class="fas fa-info-circle"></i
+                  ></a>
+                  <ul
+                    mdbDropdownMenu
+                    class="dropdown-menu"
+                    aria-labelledby="dropdownMenuLink"
+                  >
+                    <li><a class="dropdown-item">Generate Linelist</a></li>
+                  </ul>
                 </div>
+              </div>
+            </div>
+            <div class="card-body d-flex flex-column g-3">
+              <div class="d-flex align-items-center mb-3">
+                <button
+                  type="button"
+                  class="btn btn-warning btn-lg btn-floating"
+                >
+                  <i class="fas fa-clock"></i>
+                </button>
                 <div class="flex-fill"></div>
                 <div
                   class="
@@ -137,25 +264,53 @@
                     justify-content-between
                   "
                 >
-                  <small class="text-muted text-uppercase"
-                    >Clinic Visit Status</small
-                  >
-                  <h1 class="mb-0">11</h1>
+                  <h1 class="mb-0">{{ (pending$ | async)?.length }}</h1>
                 </div>
               </div>
-              <div class="progress mb-3">
+              <div class="progress rounded show_box_progress">
                 <div
+                  [ngStyle]="{
+                    width:
+                      (((pending$ | async)?.length || 0) /
+                        ((entries$ | async)?.length || 1)) *
+                        100 +
+                      '%'
+                  }"
                   class="progress-bar bg-warning"
                   role="progressbar"
-                  style="width: 25%"
-                  aria-valuenow="25"
                   aria-valuemin="0"
                   aria-valuemax="100"
-                ></div>
+                >
+                  {{
+                    r(
+                      (((pending$ | async)?.length || 0) /
+                        ((entries$ | async)?.length || 1)) *
+                        100
+                    )
+                  }}%
+                </div>
               </div>
-              <p class="card-text">1 added from last week</p>
             </div>
           </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <eligible-by-time></eligible-by-time>
+        </div>
+        <div class="col-12 col-md-6">
+          <cvs-by-iit></cvs-by-iit>
+        </div>
+
+        <div class="col-12 col-md-4 col-xl-4">
+          <eligible-by-sex></eligible-by-sex>
+        </div>
+
+        <div class="col-12 col-md-4 col-xl-4">
+          <eligible-by-regimen></eligible-by-regimen>
+        </div>
+
+        <div class="col-12 col-md-4 col-xl-4">
+          <eligible-by-pmtct></eligible-by-pmtct>
         </div>
       </div>
     </div>
