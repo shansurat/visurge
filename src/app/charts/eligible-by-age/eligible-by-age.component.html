@@ -1,0 +1,15 @@
+<div class="card">
+  <div class="card-header text-uppercase text-light bg-primary">Age</div>
+
+  <div class="card-body">
+    <div class="d-flex align-items-center justify-content-center h-100">
+      <canvas
+        mdbChart
+        [type]="'bar'"
+        [datasets]="datasets"
+        [labels]="labels"
+        [options]="options"
+      ></canvas>
+    </div>
+  </div>
+</div>

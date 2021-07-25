@@ -16,6 +16,7 @@
             <button
               class="btn btn-secondary me-3"
               (click)="openImportEntriesModal()"
+              *ngIf="authServ.isAdmin$ | async"
             >
               Import Entries
             </button>
@@ -31,10 +32,10 @@
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center">
                 <h4 class="mb-0 me-3">
-                  {{ (entries | async)?.length || 0 }} Entries
+                  {{ (entriesServ.all$ | async)?.length || 0 }} Entries
                 </h4>
                 <div class="badge badge-success">
-                  {{ (eligible$ | async)?.length || 0 }} ELIGIBLE
+                  {{ (entriesServ.eligible$ | async)?.length || 0 }} ELIGIBLE
                 </div>
               </div>
               <div></div>
@@ -65,7 +66,7 @@
                   [fixedHeader]="true"
                   #table="mdbTable"
                   #sort="mdbTableSort"
-                  [dataSource]="(entries | async) || []"
+                  [dataSource]="(entriesServ.all$ | async) || []"
                   [pagination]="pagination"
                   [sort]="sort"
                 >
@@ -84,57 +85,57 @@
                   <tbody class="datatable-body">
                     <tr *ngFor="let data of table.data" scope="row">
                       <td>
-                        {{ data.entryDate?.toDate() | date: "longDate" }}
+                        {{ data?.entryDate?.toDate() | date: "longDate" }}
                       </td>
                       <td>
-                        {{ data.facilityName }}
+                        {{ data?.facilityName }}
                       </td>
                       <td>
                         <div class="badge badge-info">
-                          {{ data.uniqueARTNumber | uppercase }}
+                          {{ data?.uniqueARTNumber | uppercase }}
                         </div>
                       </td>
                       <td>
-                        {{ data.ARTStartDate?.toDate() | date: "longDate" }}
+                        {{ data?.ARTStartDate?.toDate() | date: "longDate" }}
                       </td>
                       <td>
-                        {{ data.sex | titlecase }}
+                        {{ data?.sex | titlecase }}
                       </td>
                       <td>
-                        <ng-container *ngIf="data.age; else birthdateKnown">{{
-                          data.age
+                        <ng-container *ngIf="data?.age; else birthdateKnown">{{
+                          data?.age
                         }}</ng-container>
                         <ng-template #birthdateKnown>
                           <ng-container
                             *ngIf="
-                              getAge(data.birthdate?.toDate()).years ||
-                                getAge(data.birthdate?.toDate()).months;
+                              getAge(data?.birthdate?.toDate())?.years ||
+                                getAge(data?.birthdate?.toDate())?.months;
                               else daysOnly
                             "
                           >
                             {{
-                              getAge(data.birthdate?.toDate()).years
-                                ? getAge(data.birthdate?.toDate()).years +
+                              getAge(data?.birthdate?.toDate())?.years
+                                ? getAge(data?.birthdate?.toDate())?.years +
                                   " year"
                                 : ""
                             }}{{
-                              getAge(data.birthdate?.toDate()).months > 1
+                              getAge(data?.birthdate?.toDate())?.months || 0 > 1
                                 ? "s"
                                 : ""
                             }}
                             {{
-                              getAge(data.birthdate?.toDate()).years &&
-                              getAge(data.birthdate?.toDate()).months
+                              getAge(data?.birthdate?.toDate())?.years &&
+                              getAge(data?.birthdate?.toDate())?.months
                                 ? " and "
                                 : ""
                             }}
                             {{
-                              getAge(data.birthdate?.toDate()).months
-                                ? getAge(data.birthdate?.toDate()).months +
+                              getAge(data?.birthdate?.toDate())?.months
+                                ? getAge(data?.birthdate?.toDate())?.months +
                                   " month"
                                 : ""
                             }}{{
-                              getAge(data.birthdate?.toDate()).months > 1
+                              getAge(data?.birthdate?.toDate())?.months || 0 > 1
                                 ? "s"
                                 : ""
                             }}</ng-container
@@ -142,11 +143,12 @@
                           <ng-template #daysOnly>
                             Approx.
                             {{
-                              getAge(data.birthdate?.toDate()).days
-                                ? getAge(data.birthdate?.toDate()).days + " day"
+                              getAge(data?.birthdate?.toDate())?.days
+                                ? getAge(data?.birthdate?.toDate())?.days +
+                                  " day"
                                 : ""
                             }}{{
-                              getAge(data.birthdate?.toDate()).days > 1
+                              getAge(data?.birthdate?.toDate())?.days || 0 > 1
                                 ? "s"
                                 : ""
                             }}
@@ -155,46 +157,53 @@
                           old
                         </ng-template>
                       </td>
-                      <td>{{ data.phoneNumber }}</td>
+                      <td>{{ data?.phoneNumber }}</td>
 
                       <td>
                         <div
                           class="badge me-3"
                           [ngClass]="{
                             'badge-primary':
-                              getRegimenByCode(data.regimen).category == 'TLD',
+                              getRegimenByCode(data?.regimen)?.category ==
+                              'TLD',
                             'badge-warning':
-                              getRegimenByCode(data.regimen).category == 'TLE'
+                              getRegimenByCode(data?.regimen)?.category == 'TLE'
                           }"
                         >
-                          {{ data.regimen }}
+                          {{ data?.regimen }}
                         </div>
                         <span>
-                          {{ getRegimenByCode(data.regimen).regimen }}
+                          {{ getRegimenByCode(data?.regimen)?.regimen }}
                         </span>
                       </td>
-                      <td>{{ data.pmtct | titlecase }}</td>
                       <td>
                         {{
-                          data.pmtctEnrollStartDate
-                            ? (data.pmtctEnrollStartDate?.toDate()
+                          data?.regimenStartTransDate?.toDate()
+                            | date: "longDate"
+                        }}
+                      </td>
+                      <td>{{ data?.pmtct | titlecase }}</td>
+                      <td>
+                        {{
+                          data?.pmtctEnrollStartDate
+                            ? (data?.pmtctEnrollStartDate?.toDate()
                               | date: "longDate")
                             : "N/A"
                         }}
                       </td>
-                      <td>{{ data.hvl | titlecase }}</td>
+                      <td>{{ data?.hvl | titlecase }}</td>
                       <td>
                         {{
-                          data.eac3Completed == null
+                          data?.eac3Completed == null
                             ? "N/A"
-                            : (data.eac3Completed | titlecase)
+                            : (data?.eac3Completed | titlecase)
                         }}
                       </td>
                       <td>
                         {{
-                          data.eac3CompletionDate == null
+                          data?.eac3CompletionDate == null
                             ? "N/A"
-                            : (data.eac3CompletionDate?.toDate()
+                            : (data?.eac3CompletionDate?.toDate()
                               | date: "longDate")
                         }}
                       </td>
@@ -202,12 +211,12 @@
                         <div
                           class="badge text-uppercase"
                           [ngClass]="{
-                            'badge-success': data.eligibility?.eligible,
-                            'badge-danger': !data.eligibility?.eligible
+                            'badge-success': data?.eligibility?.eligible,
+                            'badge-danger': !data?.eligibility?.eligible
                           }"
                         >
                           {{
-                            data.eligibility?.eligible
+                            data?.eligibility?.eligible
                               ? "eligible"
                               : "ineligible"
                           }}
@@ -217,7 +226,7 @@
                         <button
                           type="button"
                           class="btn btn-primary btn-sm"
-                          (click)="loadEntry(data.uniqueARTNumber)"
+                          (click)="loadEntry(data?.uniqueARTNumber)"
                         >
                           Edit
                         </button>

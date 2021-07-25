@@ -46,3 +46,27 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+@media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  * {
+    visibility: hidden !important;
+  }
+
+  .printContainer {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+
+    &,
+    & * {
+      visibility: visible !important;
+    }
+  }
+}

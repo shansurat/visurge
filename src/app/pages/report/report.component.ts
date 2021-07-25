@@ -1,16 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { AngularFirestore, DocumentSnapshot } from '@angular/fire/firestore';
 import { FormControl } from '@angular/forms';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged,
   map,
   mergeMap,
 } from 'rxjs/operators';
+import { getRegimenByCode } from 'src/app/functions/getRegimenByCode';
 import { UANToId } from 'src/app/functions/UANToID';
 import { UserEntry } from 'src/app/interfaces/user-entry';
-
+import { ageToText, getAge } from '../../functions/getAge';
 @Component({
   selector: 'app-report',
   templateUrl: './report.component.html',
@@ -19,7 +20,13 @@ import { UserEntry } from 'src/app/interfaces/user-entry';
 export class ReportComponent implements OnInit {
   public entriesAutocomplete$!: Observable<any[]>;
   public uniqueARTNumberFormControl: FormControl = new FormControl('');
-  public selectedEntry$!: Observable<any>;
+  public selectedEntry$: BehaviorSubject<any> = new BehaviorSubject(null);
+
+  today = new Date();
+
+  getAge = getAge;
+  ageToText = ageToText;
+  getRegimenByCode = getRegimenByCode;
 
   constructor(private afs: AngularFirestore) {
     let UAN$: Observable<string> =
@@ -40,7 +47,7 @@ export class ReportComponent implements OnInit {
         );
       })
     );
-    this.selectedEntry$ = UAN$.pipe(
+    UAN$.pipe(
       mergeMap((UAN: string): any => {
         console.log(UANToId(UAN));
         return UAN
@@ -48,10 +55,16 @@ export class ReportComponent implements OnInit {
           : of(null);
       }),
       map((entry: DocumentSnapshot<any> | any) => {
-        return entry?.data();
+        console.log(entry?.data());
+
+        this.selectedEntry$.next(entry?.data());
       })
-    );
+    ).subscribe();
   }
 
   ngOnInit(): void {}
+
+  printIndividualReport() {
+    window.print();
+  }
 }

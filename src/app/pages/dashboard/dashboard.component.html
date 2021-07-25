@@ -2,23 +2,14 @@
   <div id="main-container" class="p-4 flex-fill">
     <div class="container-fluid-md">
       <div class="row g-3">
-        <div class="col-12 col-md-4 col-xl-4">
-          <eligible-by-sex></eligible-by-sex>
-        </div>
-
-        <div class="col-12 col-md-4 col-xl-4">
-          <eligible-by-regimen></eligible-by-regimen>
-        </div>
-
-        <div class="col-12 col-md-4 col-xl-4">
-          <eligible-by-pmtct></eligible-by-pmtct>
-        </div>
         <!-- Eligibility -->
         <div class="col-12 col-md-6 col-xl-3">
           <div class="card">
             <div class="card-header text-uppercase">
               <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">Eligible for Viral Load </small>
+                <small class="text-muted text-truncate"
+                  >Eligible for Viral Load
+                </small>
 
                 <div mdbDropdown>
                   <a
@@ -94,7 +85,7 @@
           <div class="card">
             <div class="card-header text-uppercase">
               <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted text-center"
+                <small class="text-muted text-truncate"
                   >Pregnant/BreastFeeding
                 </small>
                 <div mdbDropdown>
@@ -168,7 +159,7 @@
           <div class="card">
             <div class="card-header text-uppercase">
               <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted text-center"
+                <small class="text-muted text-truncate"
                   >HVL W/ EAC-3 Completed
                 </small>
                 <div mdbDropdown>
@@ -246,7 +237,7 @@
           <div class="card">
             <div class="card-header text-uppercase">
               <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted text-center">Pending Results </small>
+                <small class="text-muted text-truncate">Pending Results </small>
                 <div mdbDropdown>
                   <a
                     mdbDropdownToggle
@@ -332,6 +323,10 @@
 
         <div class="col-12 col-md-4 col-xl-4">
           <eligible-by-pmtct></eligible-by-pmtct>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <eligible-by-age></eligible-by-age>
         </div>
       </div>
     </div>

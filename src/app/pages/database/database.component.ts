@@ -6,6 +6,8 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { getRegimenByCode } from 'src/app/functions/getRegimenByCode';
 import { ImportEntriesComponent } from 'src/app/modals/import-entries/import-entries.component';
+import { AuthService } from 'src/app/services/auth.service';
+import { EntriesService } from 'src/app/services/entries.service';
 
 @Component({
   selector: 'app-database',
@@ -42,6 +44,7 @@ export class DatabaseComponent implements OnInit {
     'Age',
     'Phone Number',
     'Regimen',
+    'Start/ Transition Date',
     'Pregnant/Breastfeeding',
     'PMTCT Enrollment Start Date',
     'High Viral Load',
@@ -53,17 +56,12 @@ export class DatabaseComponent implements OnInit {
   constructor(
     private afs: AngularFirestore,
     private router: Router,
-    private modalServ: MdbModalService
+    private modalServ: MdbModalService,
+    public authServ: AuthService,
+    public entriesServ: EntriesService
   ) {
-    this.entries = afs
-      .collection('entries')
-      .valueChanges()
-      .pipe(
-        map((val) => {
-          console.log(val);
-          return val;
-        })
-      );
+    this.entries = afs.collection('entries').valueChanges();
+
     this.eligible$ = this.entries.pipe(
       map((val) => val.filter((entry) => entry?.eligibility?.eligible))
     );
@@ -74,10 +72,14 @@ export class DatabaseComponent implements OnInit {
   openImportEntriesModal() {
     this.modalServ.open(ImportEntriesComponent, {
       modalClass: 'modal-dialog-centered',
+      ignoreBackdropClick: true,
+      keyboard: false,
     });
   }
 
   getAge(birthdate: Date) {
+    if (!birthdate) return null;
+
     let today = new Date();
     let y = today.getFullYear() - birthdate.getFullYear();
     let m = today.getMonth() - birthdate.getMonth();

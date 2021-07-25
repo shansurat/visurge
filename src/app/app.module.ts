@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -33,7 +34,6 @@ import { MdbTabsModule } from 'mdb-angular-ui-kit/tabs';
 import { MdbTimepickerModule } from 'mdb-angular-ui-kit/timepicker';
 import { MdbTooltipModule } from 'mdb-angular-ui-kit/tooltip';
 import { MdbValidationModule } from 'mdb-angular-ui-kit/validation';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AuthComponent } from './pages/auth/auth.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ReportComponent } from './pages/report/report.component';
@@ -82,6 +82,9 @@ import { UsersComponent } from './pages/admin/users/users.component';
 import { UserEditedALertComponent } from './alerts/user-edited-alert/user-edited-alert.component';
 import { ImportAndExportComponent } from './pages/admin/import-and-export/import-and-export.component';
 import { ImportEntriesComponent } from './modals/import-entries/import-entries.component';
+import { EligibleByAgeComponent } from './charts/eligible-by-age/eligible-by-age.component';
+import { ImportEntriesPreviewComponent } from './modals/import-entries-preview/import-entries-preview.component';
+import { NgxPrintModule } from 'ngx-print';
 
 @NgModule({
   declarations: [
@@ -121,10 +124,13 @@ import { ImportEntriesComponent } from './modals/import-entries/import-entries.c
     UserEditedALertComponent,
     ImportAndExportComponent,
     ImportEntriesComponent,
+    EligibleByAgeComponent,
+    ImportEntriesPreviewComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
+    BrowserAnimationsModule,
 
     FormsModule,
     ReactiveFormsModule,
@@ -155,7 +161,8 @@ import { ImportEntriesComponent } from './modals/import-entries/import-entries.c
     MdbTimepickerModule,
     MdbTooltipModule,
     MdbValidationModule,
-    BrowserAnimationsModule,
+
+    NgxPrintModule,
 
     AngularFireModule.initializeApp(firebaseConfig),
     AngularFireAuthModule,

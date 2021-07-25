@@ -59,17 +59,18 @@ import {
   getIITStatus,
 } from 'src/app/functions/getStatus';
 import { EligibilityStatus } from 'src/app/interfaces/eligibility-status';
-import { forkJoin } from 'rxjs';
 import { PushNotificationService } from 'src/app/services/push-notification.service';
-import { firestore } from 'firebase-admin';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EntriesService } from 'src/app/services/entries.service';
+
+import { slideInRightAnimation } from 'mdb-angular-ui-kit/animations';
 
 @Component({
   selector: 'app-entry-form',
   templateUrl: './entry-form.component.html',
   styleUrls: ['./entry-form.component.scss'],
   encapsulation: ViewEncapsulation.None,
+  animations: [slideInRightAnimation()],
 })
 export class EntryFormComponent
   implements OnInit, AfterContentChecked, OnDestroy
@@ -86,6 +87,10 @@ export class EntryFormComponent
   // Status
   eligibilityStatus!: EligibilityStatus | null;
   iit!: string | null;
+  nextViralLoadSampleCollectionDate!: {
+    date: Date;
+    rotation: any;
+  };
 
   // Constants
   regimens = regimens;

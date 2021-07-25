@@ -25,13 +25,18 @@ interface ByPMTCT {
 export class EntriesService {
   all$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
 
-  allBySex$: Subject<{ eligible: BySex; ineligible: BySex }> = new Subject();
+  allBySex$: BehaviorSubject<{ eligible: BySex; ineligible: BySex }> =
+    new BehaviorSubject({} as { eligible: BySex; ineligible: BySex });
 
-  allByRegimen$: Subject<{ eligible: ByRegimen; ineligible: ByRegimen }> =
-    new Subject();
+  allByRegimen$: BehaviorSubject<{
+    eligible: ByRegimen;
+    ineligible: ByRegimen;
+  }> = new BehaviorSubject(
+    {} as { eligible: ByRegimen; ineligible: ByRegimen }
+  );
 
-  allByPMTCT$: Subject<{ eligible: ByPMTCT; ineligible: ByPMTCT }> =
-    new Subject();
+  allByPMTCT$: BehaviorSubject<{ eligible: ByPMTCT; ineligible: ByPMTCT }> =
+    new BehaviorSubject({} as { eligible: ByPMTCT; ineligible: ByPMTCT });
 
   eligible$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
   ineligible$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);

@@ -41,7 +41,12 @@
                       </mdb-autocomplete>
                     </div>
                     <div class="col-3 d-flex justify-content-end">
-                      <div class="btn btn-primary">Print</div>
+                      <div
+                        class="btn btn-primary"
+                        (click)="printIndividualReport()"
+                      >
+                        Print
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -49,9 +54,333 @@
             </div>
 
             <div class="col-12" *ngIf="selectedEntry$ | async">
-              <div class="card">
-                <div class="card-body">
-                  {{ selectedEntry$ | async | json }}
+              <div class="card" [ngStyle]="{ overflow: 'hidden' }">
+                <div class="card-body p-0">
+                  <div class="printContainer bg-light h-100">
+                    <div
+                      class="
+                        d-flex
+                        flex-column
+                        bg-primary
+                        text-light
+                        pb-3
+                        px-4
+                        align-items-end
+                      "
+                      [ngStyle]="{ 'padding-top': '50px' }"
+                    >
+                      <span>ViSURGE</span>
+                      <h1 class="mb-0">Individual Report</h1>
+                    </div>
+                    <div
+                      class="
+                        px-4
+                        py-2
+                        d-flex
+                        align-items-center
+                        justify-content-end
+                        text-light
+                      "
+                      [ngStyle]="{ 'background-color': 'rgba(18,102,241,.75)' }"
+                    >
+                      <div class="small text-uppercase">
+                        <strong>Date: </strong>{{ today | date: "longDate" }}
+                      </div>
+                    </div>
+
+                    <div class="p-4 h-100">
+                      <!-- ART Info -->
+                      <div class="row">
+                        <div class="col-4">
+                          <h5>
+                            {{
+                              (selectedEntry$ | async).entryDate.toDate()
+                                | date: "longDate"
+                            }}
+                          </h5>
+                          <div class="small">Entry Date</div>
+                        </div>
+                        <div class="col-4">
+                          <h5>
+                            {{ (selectedEntry$ | async).uniqueARTNumber }}
+                          </h5>
+                          <div class="small">Unique ART Number</div>
+                        </div>
+                        <div class="col-4">
+                          <h5>
+                            {{
+                              (selectedEntry$ | async).ARTStartDate.toDate()
+                                | date: "longDate"
+                            }}
+                          </h5>
+                          <div class="small">ART Start Date</div>
+                        </div>
+                      </div>
+                      <hr />
+                      <!-- Biodata -->
+                      <div class="row">
+                        <div class="col-4">
+                          <h5>
+                            {{ (selectedEntry$ | async).sex | titlecase }}
+                          </h5>
+                          <div class="small">Sex</div>
+                        </div>
+                        <div class="col-4">
+                          <h5>
+                            {{
+                              (selectedEntry$ | async).age
+                                ? (selectedEntry$ | async).age
+                                : ageToText(
+                                    getAge(
+                                      (
+                                        selectedEntry$ | async
+                                      ).birthdate.toDate()
+                                    ),
+                                    true
+                                  )
+                            }}
+                          </h5>
+                          <div class="small">Age</div>
+                        </div>
+                        <div
+                          class="col-4"
+                          *ngIf="(selectedEntry$ | async).phoneNumber"
+                        >
+                          <h5>
+                            {{ (selectedEntry$ | async).phoneNumber }}
+                          </h5>
+                          <div class="small">Phone Number</div>
+                        </div>
+                      </div>
+                      <hr />
+                      <!-- Regimen Info -->
+
+                      <div class="row">
+                        <div class="col-8">
+                          <h5>
+                            {{
+                              getRegimenByCode((selectedEntry$ | async).regimen)
+                                .regimen
+                            }}
+
+                            <div class="badge badge-primary ms-3">
+                              {{
+                                getRegimenByCode(
+                                  (selectedEntry$ | async).regimen
+                                ).ageCategory
+                              }}
+                            </div>
+                          </h5>
+                          <div class="small">Regimen</div>
+                        </div>
+                        <div class="col-4">
+                          <h5>
+                            {{
+                              (
+                                selectedEntry$ | async
+                              ).regimenStartTransDate.toDate()
+                                | date: "longDate"
+                            }}
+                          </h5>
+                          <div class="small">Start/ Transition Date</div>
+                        </div>
+                      </div>
+
+                      <hr />
+
+                      <!-- PMTCT Info -->
+                      <ng-container
+                        *ngIf="(selectedEntry$ | async).sex == 'male'"
+                      >
+                        <div class="row">
+                          <div class="col-8">
+                            <h5>
+                              {{ (selectedEntry$ | async).pmtct | titlecase }}
+                            </h5>
+                            <div class="small">Pregnant/Breastfeeding?</div>
+                          </div>
+                          <div
+                            class="col-4"
+                            *ngIf="(selectedEntry$ | async).pmtct == 'yes'"
+                          >
+                            <h5>
+                              {{
+                                (
+                                  selectedEntry$ | async
+                                ).pmtctEnrollStartDate.toDate()
+                                  | date: "longDate"
+                              }}
+                            </h5>
+                            <div class="small">Enrollment Start Date</div>
+                          </div>
+                        </div>
+                        <hr />
+                      </ng-container>
+
+                      <!-- HVL Info -->
+
+                      <div class="row">
+                        <div class="col-4">
+                          <h5>
+                            {{ (selectedEntry$ | async).hvl | titlecase }}
+                          </h5>
+                          <div class="small">High Viral Load</div>
+                        </div>
+                        <div
+                          class="col-4"
+                          *ngIf="(selectedEntry$ | async).hvl == 'yes'"
+                        >
+                          <h5>
+                            {{
+                              (selectedEntry$ | async).eac3Completed | titlecase
+                            }}
+                          </h5>
+                          <div class="small">EAC-3 Completed</div>
+                        </div>
+                        <div
+                          class="col-4"
+                          *ngIf="
+                            (selectedEntry$ | async)?.eac3Completed == 'yes'
+                          "
+                        >
+                          <h5>
+                            {{
+                              (
+                                selectedEntry$ | async
+                              ).eac3CompletionDate.toDate() | date: "longDate"
+                            }}
+                          </h5>
+                          <div class="small">EAC-3 Completion Date</div>
+                        </div>
+                      </div>
+                      <hr />
+
+                      <!-- Clinic Visit History -->
+
+                      <div class="row">
+                        <div class="col-12">
+                          <h5 class="text-center">Clinic Visit History</h5>
+                          <table class="table table-sm table-striped">
+                            <thead>
+                              <tr>
+                                <th class="text-truncate" scope="col">
+                                  Last Clinic Visit Date
+                                </th>
+                                <th class="text-truncate" scope="col">
+                                  Next Appt. Date
+                                </th>
+                                <th class="text-truncate" scope="col">
+                                  Comment
+                                </th>
+                                <th class="text-truncate" scope="col">
+                                  Facility
+                                </th>
+                                <th class="text-truncate" scope="col">
+                                  Date Transferred
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr
+                                *ngFor="let cv of (selectedEntry$ | async).cvh"
+                              >
+                                <td>
+                                  {{
+                                    cv.lastClinicVisitDate.toDate()
+                                      | date: "longDate"
+                                  }}
+                                </td>
+                                <td>
+                                  {{
+                                    cv.nextAppointmentDate.toDate()
+                                      | date: "longDate"
+                                  }}
+                                </td>
+                                <td>{{ cv.clinicVisitComment }}</td>
+                                <td>{{ cv?.facility || "N/A" }}</td>
+                                <td>
+                                  {{
+                                    cv?.dateTransferred
+                                      ? (cv?.dateTransferred.toDate()
+                                        | date: "longDate")
+                                      : "N/A"
+                                  }}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <hr />
+
+                      <!-- Viral Load History -->
+
+                      <ng-container
+                        *ngIf="(selectedEntry$ | async).vlh?.length"
+                      >
+                        <div class="row">
+                          <div class="col-12">
+                            <h5 class="text-center">Viral Load History</h5>
+                            <table
+                              class="table table-sm table-striped text-truncate"
+                            >
+                              <thead>
+                                <tr>
+                                  <th scope="col">#</th>
+                                  <th scope="col">Category</th>
+                                  <th scope="col">Value</th>
+                                  <th scope="col">Date Sample Collected</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr
+                                  *ngFor="
+                                    let vl of (selectedEntry$ | async).vlh;
+                                    index as i
+                                  "
+                                  [ngClass]="{
+                                    'table-danger': (vl?.value || 0) >= 1000,
+                                    'table-primary':
+                                      !vl.value || vl.value < 1000
+                                  }"
+                                >
+                                  <th>{{ !i ? "Most Current VL" : i + 1 }}</th>
+                                  <td>
+                                    <span
+                                      class="badge"
+                                      [ngClass]="{
+                                        'bg-danger': (vl?.value || 0) >= 1000,
+                                        'bg-primary':
+                                          !vl.value || vl.value < 1000
+                                      }"
+                                    >
+                                      {{
+                                        (vl?.value || 0) >= 1000
+                                          ? "High"
+                                          : "Low"
+                                      }}
+                                      Viral Load</span
+                                    >
+                                  </td>
+                                  <td>
+                                    {{ vl.value || "Below Detection Level" }}
+                                  </td>
+                                  <td>
+                                    {{
+                                      vl.dateSampleCollected.toDate()
+                                        | date: "longDate"
+                                    }}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                        <hr />
+                      </ng-container>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

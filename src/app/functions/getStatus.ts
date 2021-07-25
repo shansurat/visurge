@@ -163,10 +163,12 @@ export function getEligibilityStatus(val: any): EligibilityStatus | null {
     if (isAdult) {
       if (artDiff >= 180 && regDiff >= 180) {
         if (hvl) {
+          console.log('im here');
           if (
             diffDate(vlh[0]?.dateSampleCollected, regimenStartTransDate) >= 180
-          )
+          ) {
             return eac3Completed ? ELIGIBLE : INELIGIBLE_CHECK_EAC;
+          }
         } else {
           return getVLStatus(vlh, regimenStartTransDate, ARTStartDate)
             ? ELIGIBLE

@@ -7,12 +7,13 @@
       <div class="container-lg">
         <div class="d-flex align-items-center justify-content-between">
           <div>
-            <span class="fw-bold me-3"> Unique ART Number: </span
+            <span class="fw-bold me-2"> Unique ART Number: </span
             >{{ uniqueARTNumberFormControl.value }}
           </div>
           <div class="d-flex align-items-center">
+            <!-- ELIGIBILITY STATUS -->
             <span
-              class="badge text-uppercase me-3"
+              class="badge text-uppercase me-2"
               [ngClass]="{
                 'badge-success': eligibilityStatus?.eligible,
                 'badge-warning':
@@ -32,6 +33,10 @@
                   : "pending"
               }}
             </span>
+            <span *ngIf="eligibilityStatus?.note" class="badge bg-danger me-2">
+              EAC-3 NOT COMPLETED
+            </span>
+            <!-- IIT STATUS -->
             <span
               class="badge text-uppercase"
               [ngClass]="{
@@ -957,7 +962,13 @@
                         <h6 class="me-3 mb-0">Viral Load Eligibility Status</h6>
                         <h3 class="mb-0">
                           <span
-                            class="badge text-uppercase mb-0"
+                            class="
+                              badge
+                              text-uppercase
+                              mb-0
+                              d-flex
+                              align-items-center
+                            "
                             [ngClass]="{
                               'badge-success': eligibilityStatus?.eligible,
                               'badge-warning':
@@ -977,6 +988,12 @@
                                   : "ineligible"
                                 : "pending"
                             }}
+                            <span
+                              *ngIf="eligibilityStatus?.note"
+                              class="badge bg-danger ms-3"
+                            >
+                              EAC-3 NOT COMPLETED
+                            </span>
                           </span>
                         </h3>
                       </div>
@@ -1121,13 +1138,13 @@
 
     <span
       id="mini-dashboard-toggler"
-      class="mb-1 bg-primary text-white shadow-5 position-absolute top-50 end-0"
+      class="mb-1 bg-primary shadow-5 position-absolute top-50 end-0"
       mdbRipple
       (click)="miniDashboardShown = !miniDashboardShown"
     >
       <a>
         <i
-          class="fas fa-angle-double-left m-2"
+          class="fas fa-angle-double-left m-2 text-light"
           [ngStyle]="{
             transform: miniDashboardShown ? 'rotate(180deg)' : 'none'
           }"
@@ -1138,8 +1155,9 @@
 
   <div
     id="mini-dashboard"
-    class="bg-light p-3 shadow-7"
+    class="bg-light p-3 shadow-5"
     *ngIf="miniDashboardShown"
+    [@slideInRight]
   >
     <div class="d-flex flex-column">
       <!-- Eligible -->
@@ -1183,7 +1201,7 @@
             {{ (entriesServ.pregnant$ | async)?.length || 0 }}
           </button>
           <div class="d-flex flex-column flex-fill">
-            <small> Pregnant/Breastfeeding </small>
+            <small> Pregnant/ Breastfeeding </small>
             <div class="progress rounded show_box_progress">
               <div
                 class="progress-bar bg-success"

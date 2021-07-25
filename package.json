@@ -36,8 +36,10 @@
     "firebase-admin": "^9.10.0",
     "firebase-functions": "^3.14.1",
     "mdb-angular-ui-kit": "git+https://oauth2:ss1pQsm9BC7DURanjLS5@git.mdbootstrap.com/mdb/angular/mdb5/prd/mdb5-angular-ui-kit-pro-essential",
+    "ngx-print": "^1.2.1",
     "rxjs": "~6.6.0",
     "tslib": "^2.1.0",
+    "xlsx": "^0.17.0",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
