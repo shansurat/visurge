@@ -1,13 +1,41 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { distinct, distinctUntilChanged, map } from 'rxjs/operators';
+import { getRegimenByCode } from '../functions/getRegimenByCode';
+
+interface BySex {
+  male: any[];
+  female: any[];
+}
+
+interface ByRegimen {
+  TLD: any[];
+  TLE: any[];
+}
+
+interface ByPMTCT {
+  yes: any[];
+  no: any[];
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class EntriesService {
   all$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
+
+  allBySex$: Subject<{ eligible: BySex; ineligible: BySex }> = new Subject();
+
+  allByRegimen$: Subject<{ eligible: ByRegimen; ineligible: ByRegimen }> =
+    new Subject();
+
+  allByPMTCT$: Subject<{ eligible: ByPMTCT; ineligible: ByPMTCT }> =
+    new Subject();
+
   eligible$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
+  ineligible$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
+
   hvl$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
   hvl_eac3_completed$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
   pregnant$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
@@ -19,9 +47,7 @@ export class EntriesService {
       .valueChanges()
       .subscribe((entries) => {
         this.all$.next(entries);
-        this.eligible$.next(
-          entries.filter((entry: any) => entry?.eligibility?.eligible)
-        );
+
         this.pregnant$.next(
           entries.filter((entry: any) => entry?.pmtct == 'yes')
         );
@@ -36,5 +62,129 @@ export class EntriesService {
           )
         );
       });
+
+    // All By Sex$
+    this.all$
+      .pipe(
+        map((entries) => {
+          const eligible = entries.filter(
+            (entry: any) => entry?.eligibility?.eligible
+          );
+          const ineligible = entries.filter(
+            (entry: any) => !entry?.eligibility?.eligible
+          );
+
+          return {
+            eligible: {
+              male: this.getEntriesBySex(eligible).male,
+              female: this.getEntriesBySex(eligible).female,
+            },
+            ineligible: {
+              male: this.getEntriesBySex(ineligible).male,
+              female: this.getEntriesBySex(ineligible).female,
+            },
+          };
+        }),
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+      )
+      .subscribe((allBySex) => {
+        this.allBySex$.next(allBySex);
+      });
+
+    // All By Regimen$
+    this.all$
+      .pipe(
+        map((entries) => {
+          const eligible = entries.filter(
+            (entry: any) => entry?.eligibility?.eligible
+          );
+          const ineligible = entries.filter(
+            (entry: any) => !entry?.eligibility?.eligible
+          );
+
+          return {
+            eligible: {
+              TLD: this.getEntriesByRegimen(eligible).TLD,
+              TLE: this.getEntriesByRegimen(eligible).TLE,
+            },
+            ineligible: {
+              TLD: this.getEntriesByRegimen(ineligible).TLD,
+              TLE: this.getEntriesByRegimen(ineligible).TLE,
+            },
+          };
+        }),
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+      )
+      .subscribe((allByRegimen) => this.allByRegimen$.next(allByRegimen));
+
+    this.all$
+      .pipe(
+        map((entries) => {
+          const eligible = entries.filter(
+            (entry: any) => entry?.eligibility?.eligible
+          );
+          const ineligible = entries.filter(
+            (entry: any) => !entry?.eligibility?.eligible
+          );
+
+          return {
+            eligible: {
+              yes: this.getEntriesByPMTCT(eligible).yes,
+              no: this.getEntriesByPMTCT(eligible).no,
+            },
+            ineligible: {
+              yes: this.getEntriesByPMTCT(ineligible).yes,
+              no: this.getEntriesByPMTCT(ineligible).no,
+            },
+          };
+        }),
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+      )
+      .subscribe((allByPMTCT) => this.allByPMTCT$.next(allByPMTCT));
+
+    // Eligible Entries
+    this.all$
+      .pipe(
+        map((entries) =>
+          entries.filter((entry: any) => entry?.eligibility?.eligible)
+        ),
+        distinctUntilChanged()
+      )
+      .subscribe((entries) => this.eligible$.next(entries));
+
+    // Ineligible Entries
+    this.all$
+      .pipe(
+        map((entries) =>
+          entries.filter((entry: any) => !entry?.eligibility?.eligible)
+        ),
+        distinctUntilChanged()
+      )
+      .subscribe((ineligible) => this.ineligible$.next(ineligible));
+  }
+
+  public getEntriesBySex(entries: any[]): BySex {
+    return {
+      male: entries.filter((entry: any) => entry.sex == 'male'),
+      female: entries.filter((entry: any) => entry.sex != 'male'),
+    };
+  }
+
+  public getEntriesByRegimen(entries: any[]): ByRegimen {
+    return {
+      TLD: entries.filter(
+        (entry: any) => getRegimenByCode(entry?.regimen)?.category == 'TLD'
+      ),
+      TLE: entries.filter(
+        (entry: any) => getRegimenByCode(entry?.regimen)?.category != 'TLD'
+      ),
+    };
+  }
+
+  public getEntriesByPMTCT(entries: any[]): ByPMTCT {
+    return {
+      yes: entries.filter((entry: any) => entry.pmtct == 'yes'),
+      no: entries.filter((entry: any) => entry.pmtct != 'no'),
+    };
   }
 }

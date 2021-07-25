@@ -862,70 +862,78 @@
                     </div>
                   </div>
                 </div>
-                <div class="table-responsive rounded" *ngIf="vlh.length">
-                  <table class="table table-sm align-middle table-bordered">
-                    <thead>
-                      <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Category</th>
-                        <th scope="col">Value</th>
-                        <th scope="col">Date Sample Collected</th>
-                        <th scope="col"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        *ngFor="let vl of vlh; index as i"
-                        [ngClass]="{
-                          'bg-primary text-light':
-                            (!vl.value || vl.value < 1000) && i == 0,
-                          'bg-danger text-light':
-                            (vl?.value || 0) >= 1000 && i == 0,
-                          'table-danger': (vl?.value || 0) >= 1000 && i != 0,
-                          'table-primary':
-                            (!vl.value || vl.value < 1000) && i != 0
-                        }"
+                <div class="card bg-light shadow-3">
+                  <div class="datatable" *ngIf="vlh.length">
+                    <div class="datatable-inner position-relative" mdbScrollbar>
+                      <table
+                        class="table table-sm datatable-table align-middle"
                       >
-                        <th>{{ !i ? "Most Current VL" : i + 1 }}</th>
-                        <td>
-                          <span
-                            class="badge"
+                        <thead>
+                          <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Value</th>
+                            <th scope="col">Date Sample Collected</th>
+                            <th scope="col"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            *ngFor="let vl of vlh; index as i"
                             [ngClass]="{
-                              'bg-danger': (vl?.value || 0) >= 1000,
-                              'bg-primary': !vl.value || vl.value < 1000
+                              'table-danger': (vl?.value || 0) >= 1000,
+                              'table-primary': !vl.value || vl.value < 1000
                             }"
                           >
-                            {{ (vl?.value || 0) >= 1000 ? "High" : "Low" }}
-                            Viral Load</span
-                          >
-                        </td>
-                        <td>{{ vl.value || "Below Detection Level" }}</td>
-                        <td>{{ vl.dateSampleCollected | date: "longDate" }}</td>
+                            <th>{{ !i ? "Most Current VL" : i + 1 }}</th>
+                            <td>
+                              <span
+                                class="badge"
+                                [ngClass]="{
+                                  'bg-danger': (vl?.value || 0) >= 1000,
+                                  'bg-primary': !vl.value || vl.value < 1000
+                                }"
+                              >
+                                {{ (vl?.value || 0) >= 1000 ? "High" : "Low" }}
+                                Viral Load</span
+                              >
+                            </td>
+                            <td>
+                              {{ vl.value || "Below Detection Level" }}
+                            </td>
+                            <td>
+                              {{ vl.dateSampleCollected | date: "longDate" }}
+                            </td>
 
-                        <td>
-                          <div>
-                            <button
-                              mdbRipple
-                              type="button"
-                              class="btn btn-sm btn-primary btn-floating me-3"
-                              (click)="openEditVLModal(i)"
-                            >
-                              <i class="fas fa-edit"></i>
-                            </button>
-                            <button
-                              mdbRipple
-                              rippleColor="danger"
-                              type="button"
-                              class="btn btn-sm btn-danger btn-floating"
-                              (click)="removeVL(i)"
-                            >
-                              <i class="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                            <td>
+                              <div>
+                                <button
+                                  mdbRipple
+                                  type="button"
+                                  class="
+                                    btn btn-sm btn-primary btn-floating
+                                    me-3
+                                  "
+                                  (click)="openEditVLModal(i)"
+                                >
+                                  <i class="fas fa-edit"></i>
+                                </button>
+                                <button
+                                  mdbRipple
+                                  rippleColor="danger"
+                                  type="button"
+                                  class="btn btn-sm btn-danger btn-floating"
+                                  (click)="removeVL(i)"
+                                >
+                                  <i class="fas fa-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="note note-warning" *ngIf="!vlh.length">
@@ -940,67 +948,66 @@
           <div class="col-12">
             <div class="row g-3">
               <div class="col-12 col-md-10">
-                <div class="card">
+                <div class="card bg-primary text-light shadow-3">
                   <div class="card-body">
                     <div
                       class="row align-items-center justify-content-between g-3"
                     >
-                      <h6 class="mb-0 col-12 col-lg-6">
-                        <span class="me-3">Viral Load Eligibility Status</span>
-                        <span
-                          class="badge text-uppercase"
-                          [ngClass]="{
-                            'badge-success': eligibilityStatus?.eligible,
-                            'badge-warning':
-                              eligibilityStatus &&
-                              !eligibilityStatus?.eligible &&
-                              eligibilityStatus?.note == 'incomplete-eac',
-                            'badge-danger':
-                              eligibilityStatus && !eligibilityStatus?.eligible,
-                            'badge-dark': !eligibilityStatus
-                          }"
-                        >
-                          {{
-                            eligibilityStatus
-                              ? eligibilityStatus?.eligible
-                                ? "eligible"
-                                : "ineligible"
-                              : "pending"
-                          }}
-                        </span>
-                      </h6>
-                      <h6 class="mb-0 col-12 col-lg-6">
-                        <span class="me-3">Clinic Status (IIT)</span>
-                        <span
-                          class="badge text-uppercase"
-                          [ngClass]="{
-                            'badge-success': iit == 'active',
-                            'badge-primary': iit == 'iit <= 1',
-                            'badge-warning': iit == 'iit <= 3',
-                            'badge-danger': iit == 'iit > 3',
-                            'badge-dark': iit == 'pending' || !iit
-                          }"
-                        >
-                          {{
-                            (iit || "pending")
-                              .replace("<=", "≤")
-                              .replace("> 3", "3⁺")
-                          }}
-                        </span>
-                      </h6>
+                      <div class="col-12 col-lg-6 d-flex align-items-center">
+                        <h6 class="me-3 mb-0">Viral Load Eligibility Status</h6>
+                        <h3 class="mb-0">
+                          <span
+                            class="badge text-uppercase mb-0"
+                            [ngClass]="{
+                              'badge-success': eligibilityStatus?.eligible,
+                              'badge-warning':
+                                eligibilityStatus &&
+                                !eligibilityStatus?.eligible &&
+                                eligibilityStatus?.note == 'incomplete-eac',
+                              'badge-danger':
+                                eligibilityStatus &&
+                                !eligibilityStatus?.eligible,
+                              'badge-dark': !eligibilityStatus
+                            }"
+                          >
+                            {{
+                              eligibilityStatus
+                                ? eligibilityStatus?.eligible
+                                  ? "eligible"
+                                  : "ineligible"
+                                : "pending"
+                            }}
+                          </span>
+                        </h3>
+                      </div>
+                      <div class="col-12 col-lg-6 d-flex align-items-center">
+                        <h6 class="me-3 mb-0">Clinic Status (IIT)</h6>
+                        <h3 class="mb-0">
+                          <span
+                            class="badge text-uppercase"
+                            [ngClass]="{
+                              'badge-success': iit == 'active',
+                              'badge-primary': iit == 'iit <= 1',
+                              'badge-warning': iit == 'iit <= 3',
+                              'badge-danger': iit == 'iit > 3',
+                              'badge-dark': iit == 'pending' || !iit
+                            }"
+                          >
+                            {{
+                              (iit || "pending")
+                                .replace("<=", "≤")
+                                .replace("> 3", "3⁺")
+                            }}
+                          </span>
+                        </h3>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 col-md-2 d-flex align-items-center">
                 <button
-                  class="
-                    btn btn-lg btn-success
-                    ms-auto
-                    w-100
-                    h-100
-                    shadow-hover
-                  "
+                  class="btn btn-lg btn-success ms-auto w-100 h-100"
                   [ngStyle]="{
                     'border-radius': '0.5rem',
                     cursor:
@@ -1016,7 +1023,7 @@
                   "
                   mdbRipple
                 >
-                  Save
+                  <h5 class="mb-0">Save</h5>
                 </button>
               </div>
             </div>

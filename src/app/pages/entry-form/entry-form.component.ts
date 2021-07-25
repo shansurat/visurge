@@ -633,7 +633,7 @@ export class EntryFormComponent
   openEditVLModal(i: number) {
     let editVLModalRef = this.modalServ.open(EditVlComponent, {
       modalClass: 'modal-dialog-centered modal-lg',
-      data: this.vlh[i],
+      data: { vl: this.vlh[i] },
     });
 
     editVLModalRef.onClose.subscribe((vlEntry) => {

@@ -2,6 +2,17 @@
   <div id="main-container" class="p-4 flex-fill">
     <div class="container-fluid-md">
       <div class="row g-3">
+        <div class="col-12 col-md-4 col-xl-4">
+          <eligible-by-sex></eligible-by-sex>
+        </div>
+
+        <div class="col-12 col-md-4 col-xl-4">
+          <eligible-by-regimen></eligible-by-regimen>
+        </div>
+
+        <div class="col-12 col-md-4 col-xl-4">
+          <eligible-by-pmtct></eligible-by-pmtct>
+        </div>
         <!-- Eligibility -->
         <div class="col-12 col-md-6 col-xl-3">
           <div class="card">
@@ -45,7 +56,9 @@
                     justify-content-between
                   "
                 >
-                  <h1 class="mb-0">{{ (eligible$ | async)?.length || 0 }}</h1>
+                  <h1 class="mb-0">
+                    {{ (entriesServ.eligible$ | async)?.length || 0 }}
+                  </h1>
                 </div>
               </div>
               <div class="progress rounded show_box_progress">
@@ -54,8 +67,8 @@
                   role="progressbar"
                   [ngStyle]="{
                     width:
-                      (((eligible$ | async)?.length || 0) /
-                        ((entries$ | async)?.length || 1)) *
+                      (((entriesServ.eligible$ | async)?.length || 0) /
+                        ((entriesServ.all$ | async)?.length || 1)) *
                         100 +
                       '%'
                   }"
@@ -65,8 +78,8 @@
                 >
                   {{
                     r(
-                      (((eligible$ | async)?.length || 0) /
-                        ((entries$ | async)?.length || 1)) *
+                      (((entriesServ.eligible$ | async)?.length || 0) /
+                        ((entriesServ.all$ | async)?.length || 1)) *
                         100
                     )
                   }}%
@@ -117,7 +130,9 @@
                     justify-content-between
                   "
                 >
-                  <h1 class="mb-0">{{ (pregnant$ | async)?.length }}</h1>
+                  <h1 class="mb-0">
+                    {{ (entriesServ.pregnant$ | async)?.length }}
+                  </h1>
                 </div>
               </div>
               <div class="progress rounded show_box_progress">
@@ -126,8 +141,8 @@
                   role="progressbar"
                   [ngStyle]="{
                     width:
-                      (((pregnant$ | async)?.length || 0) /
-                        ((entries$ | async)?.length || 1)) *
+                      (((entriesServ.pregnant$ | async)?.length || 0) /
+                        ((entriesServ.all$ | async)?.length || 1)) *
                         100 +
                       '%'
                   }"
@@ -137,8 +152,8 @@
                 >
                   {{
                     r(
-                      (((pregnant$ | async)?.length || 0) /
-                        ((entries$ | async)?.length || 1)) *
+                      (((entriesServ.pregnant$ | async)?.length || 0) /
+                        ((entriesServ.all$ | async)?.length || 1)) *
                         100
                     )
                   }}%
@@ -192,15 +207,18 @@
                     justify-content-between
                   "
                 >
-                  <h1 class="mb-0">{{ (pending$ | async)?.length }}</h1>
+                  <h1 class="mb-0">
+                    {{ (entriesServ.hvl_eac3_completed$ | async)?.length }}
+                  </h1>
                 </div>
               </div>
               <div class="progress rounded show_box_progress">
                 <div
                   [ngStyle]="{
                     width:
-                      (((pending$ | async)?.length || 0) /
-                        ((entries$ | async)?.length || 1)) *
+                      (((entriesServ.hvl_eac3_completed$ | async)?.length ||
+                        0) /
+                        ((entriesServ.all$ | async)?.length || 1)) *
                         100 +
                       '%'
                   }"
@@ -211,8 +229,9 @@
                 >
                   {{
                     r(
-                      (((pending$ | async)?.length || 0) /
-                        ((entries$ | async)?.length || 1)) *
+                      (((entriesServ.hvl_eac3_completed$ | async)?.length ||
+                        0) /
+                        ((entriesServ.all$ | async)?.length || 1)) *
                         100
                     )
                   }}%
@@ -264,15 +283,17 @@
                     justify-content-between
                   "
                 >
-                  <h1 class="mb-0">{{ (pending$ | async)?.length }}</h1>
+                  <h1 class="mb-0">
+                    {{ (entriesServ.pending$ | async)?.length }}
+                  </h1>
                 </div>
               </div>
               <div class="progress rounded show_box_progress">
                 <div
                   [ngStyle]="{
                     width:
-                      (((pending$ | async)?.length || 0) /
-                        ((entries$ | async)?.length || 1)) *
+                      (((entriesServ.pending$ | async)?.length || 0) /
+                        ((entriesServ.all$ | async)?.length || 1)) *
                         100 +
                       '%'
                   }"
@@ -283,8 +304,8 @@
                 >
                   {{
                     r(
-                      (((pending$ | async)?.length || 0) /
-                        ((entries$ | async)?.length || 1)) *
+                      (((entriesServ.pending$ | async)?.length || 0) /
+                        ((entriesServ.all$ | async)?.length || 1)) *
                         100
                     )
                   }}%

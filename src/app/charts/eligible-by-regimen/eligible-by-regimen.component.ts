@@ -4,6 +4,7 @@ import { MdbChartDirective } from 'mdb-angular-ui-kit/charts';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { regimens } from 'src/app/constants/regimens';
+import { EntriesService } from 'src/app/services/entries.service';
 
 @Component({
   selector: 'eligible-by-regimen',
@@ -22,6 +23,15 @@ export class EligibleByRegimenComponent implements OnInit {
     },
   ];
 
+  eligibilityChartDatasets_Bar: any[] = [
+    {
+      data: [],
+      fill: true,
+      fillColor: '#fff',
+      backgroundColor: ['#1266F1', '#F93154'],
+    },
+  ];
+
   eligibilityChartLabels: string[] = ['TLD', 'TLE'];
 
   eligibilityChartOptions = {
@@ -32,30 +42,52 @@ export class EligibleByRegimenComponent implements OnInit {
     },
   };
 
-  regimen$!: Observable<number[]>;
+  eligibilityChartOptions_Bar = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+  };
 
-  constructor(private afs: AngularFirestore) {
-    this.regimen$ = afs
-      .collection('entries')
-      .valueChanges()
-      .pipe(
-        map((entries) => {
-          const mCount = entries.filter((entry: any) => {
-            const code = entry.regimen;
+  constructor(
+    private afs: AngularFirestore,
+    public entriesServ: EntriesService
+  ) {}
 
-            return (
-              regimens.filter((regimen) => regimen.code == code)[0].category ==
-              'TLD'
-            );
-          }).length;
-          return [mCount, entries.length - mCount];
-        })
-      );
+  ngOnInit() {
+    this.entriesServ.allByRegimen$.subscribe((entries) => {
+      this.eligibilityChartDatasets = [
+        {
+          data: [entries.eligible.TLD.length, entries.eligible.TLE.length],
+          fill: true,
+          fillColor: '#fff',
+          backgroundColor: ['#1266F1', '#B23CFD'],
+        },
+      ];
 
-    this.regimen$.subscribe((data: number[]) => this.updateData(data));
+      this.eligibilityChartDatasets_Bar = [
+        {
+          label: ['Eligible'],
+          data: [entries.eligible.TLD.length, entries.eligible.TLE.length],
+          fill: true,
+          fillColor: '#fff',
+          backgroundColor: ['#1266F1', '#B23CFD'],
+        },
+        {
+          label: ['Ineligible'],
+          data: [entries.ineligible.TLD.length, entries.ineligible.TLE.length],
+          fill: true,
+          fillColor: '#fff',
+          backgroundColor: ['rgba(18,102,241,.3)', 'rgba(178,60,253,.3)'],
+        },
+      ];
+
+      this.eligibilityChartLabels = ['TLD', 'TLE'];
+    });
   }
-
-  async ngOnInit() {}
 
   ngAfterViewInit(): void {}
 

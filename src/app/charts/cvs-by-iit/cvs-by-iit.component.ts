@@ -43,7 +43,7 @@ export class CvsByIitComponent implements OnInit {
   constructor(private afs: AngularFirestore) {
     this.entries$ = afs.collection('entries').valueChanges();
 
-    const res$ = this.entries$.subscribe((entries) => {
+    const sub = this.entries$.subscribe((entries) => {
       this.cvsChartDatasets = [
         {
           label: '',
@@ -59,7 +59,7 @@ export class CvsByIitComponent implements OnInit {
         },
       ];
 
-      res$.unsubscribe();
+      sub.unsubscribe();
     });
   }
 

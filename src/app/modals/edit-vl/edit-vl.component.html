@@ -21,7 +21,7 @@
     <div
       class="col-12 col-lg-4"
       [ngClass]="{
-        'visually-hidden': editVLFormGroup.get('undetectableViralLoad')?.value
+        'visually-hidden': editVLFormGroup?.get('undetectableViralLoad')?.value
       }"
     >
       <mdb-form-control>
@@ -74,7 +74,14 @@
   <button
     type="button"
     class="btn btn-primary"
-    [disabled]="editVLFormGroup.invalid"
+    [disabled]="
+      editVLFormGroup.pristine ||
+      editVLFormGroup.invalid ||
+      ((this._isSameDay | async) &&
+        !this.vl.undetectableViralLoad ==
+          !this.editVLFormGroup.value.undetectableViralLoad &&
+        this.vl.value == this.editVLFormGroup.value.value)
+    "
     (click)="updateVL()"
   >
     Update

@@ -6,6 +6,7 @@ import { MdbChartDirective } from 'mdb-angular-ui-kit/charts';
 import { combineLatest, interval, Observable } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { EntriesService } from 'src/app/services/entries.service';
 @Component({
   selector: 'eligible-by-sex',
   templateUrl: './eligible-by-sex.component.html',
@@ -36,40 +37,32 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
 
   eligibilityChartOptions = {
     plugins: {
-      ChartDataLabels,
       legend: {
         display: false,
       },
     },
   };
 
-  eligibilityChartPlugins = [ChartDataLabels];
+  eligibilityChartOptions_Bar = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+  };
 
-  sex$!: Observable<number[]>;
-  entries$!: Observable<any[]>;
-
-  showAllFormControl: FormControl = new FormControl();
-
-  constructor(private afs: AngularFirestore) {
-    this.entries$ = afs.collection('entries').valueChanges();
-    this.sex$ = afs
-      .collection('entries')
-      .valueChanges()
-      .pipe(
-        map((entries) => {
-          const mCount = entries.filter(
-            (entry: any) => entry.sex == 'male'
-          ).length;
-          return [mCount, entries.length - mCount];
-        })
-      );
-  }
+  constructor(public entriesServ: EntriesService) {}
 
   ngOnInit() {
-    this.entries$.subscribe((entries) => {
+    this.entriesServ.allBySex$.subscribe((allBySex) => {
       this.eligibilityChartDatasets = [
         {
-          data: getSex(entries),
+          data: [
+            allBySex.eligible.male.length,
+            allBySex.eligible.female.length,
+          ],
           fill: true,
           fillColor: '#fff',
           backgroundColor: ['#1266F1', '#F93154'],
@@ -78,13 +71,22 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
 
       this.eligibilityChartDatasets_Bar = [
         {
-          data: getSex(entries),
+          label: ['Eligible'],
+          data: [
+            allBySex.eligible.male.length,
+            allBySex.eligible.female.length,
+          ],
           fill: true,
           fillColor: '#fff',
           backgroundColor: ['#1266F1', '#F93154'],
         },
         {
-          data: getSex(entries, false),
+          label: ['Ineligible'],
+
+          data: [
+            allBySex.ineligible.male.length,
+            allBySex.ineligible.female.length,
+          ],
           fill: true,
           fillColor: '#fff',
           backgroundColor: ['rgba(18,102,241,.3)', 'rgba(249,49,84,.3)'],
@@ -95,30 +97,5 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
     });
   }
 
-  ngAfterViewInit(): void {
-    Chart.register(ChartDataLabels);
-  }
-
-  updateData(data: any) {
-    this.eligibilityChartDatasets[0].data = data;
-    this.eligibilityChartLabels = ['Male', 'Female'];
-  }
-}
-
-function getSex(entries: any[], eligible: boolean = true) {
-  const eligibles = entries.filter((entry) => entry.eligibility.eligible);
-  const ineligibles = entries.filter((entry) => !entry.eligibility.eligible);
-
-  // Eligibles Count
-  const mCount_e = eligibles.filter((entry) => entry.sex == 'male').length;
-
-  // Ineligibles Count
-  const mCount_i = ineligibles.filter((entry) => entry.sex == 'male').length;
-
-  // All Count
-  const mCount = entries.filter((entry) => entry.sex == 'male').length;
-
-  return eligible
-    ? [mCount_e, eligibles.length - mCount_e]
-    : [mCount_i, ineligibles.length - mCount_i];
+  ngAfterViewInit(): void {}
 }

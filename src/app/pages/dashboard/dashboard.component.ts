@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { regimens } from 'src/app/constants/regimens';
 import { Regimen } from 'src/app/interfaces/regimen';
+import { EntriesService } from 'src/app/services/entries.service';
 
 const MONTHS = [
   'Jan',
@@ -32,7 +33,10 @@ export class DashboardComponent implements OnInit {
   pregnant$!: Observable<any[]>;
   pending$!: Observable<any[]>;
 
-  constructor(private afs: AngularFirestore) {
+  constructor(
+    private afs: AngularFirestore,
+    public entriesServ: EntriesService
+  ) {
     this.entries$ = afs.collection('entries').valueChanges();
     this.eligible$ = this.entries$.pipe(
       map((entries) => {

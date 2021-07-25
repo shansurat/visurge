@@ -29,11 +29,14 @@ td {
   white-space: nowrap;
 }
 
-// .form-outline .form-control:disabled,
-// .form-outline .form-control.disabled,
-// .form-outline .form-control[readonly] {
-//   background-color: rgb(214 200 222);
-// }
+.datatable table td {
+  padding: 0.5rem 1.4rem;
+  vertical-align: middle;
+}
+
+.datatable tbody tr:last-child {
+  height: unset;
+}
 
 small.form-label {
   font-weight: 600;
