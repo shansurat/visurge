@@ -57,6 +57,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import {
   getEligibilityStatus,
   getIITStatus,
+  getNextVLDate,
 } from 'src/app/functions/getStatus';
 import { EligibilityStatus } from 'src/app/interfaces/eligibility-status';
 import { PushNotificationService } from 'src/app/services/push-notification.service';
@@ -75,6 +76,7 @@ import { slideInRightAnimation } from 'mdb-angular-ui-kit/animations';
 export class EntryFormComponent
   implements OnInit, AfterContentChecked, OnDestroy
 {
+  isLoading!: boolean;
   entriesAutocomplete$!: Observable<any[]>;
 
   newEntry: boolean = true;
@@ -87,10 +89,7 @@ export class EntryFormComponent
   // Status
   eligibilityStatus!: EligibilityStatus | null;
   iit!: string | null;
-  nextViralLoadSampleCollectionDate!: {
-    date: Date;
-    rotation: any;
-  };
+  nextViralLoadSampleCollectionDate!: Date | null;
 
   // Constants
   regimens = regimens;
@@ -120,6 +119,9 @@ export class EntryFormComponent
   maxDate = new Date();
 
   miniDashboardShown!: boolean;
+
+  diffDate = diffDate;
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private cdref: ChangeDetectorRef,
@@ -127,7 +129,6 @@ export class EntryFormComponent
     private modalServ: MdbModalService,
     private afs: AngularFirestore,
     private notifServ: MdbNotificationService,
-    private authServ: AuthService,
     private pushNotifServ: PushNotificationService,
     public entriesServ: EntriesService
   ) {
@@ -150,6 +151,8 @@ export class EntryFormComponent
   }
 
   ngOnInit(): void {
+    this.isLoading = true;
+
     // Unique ART Number Form Control initialization
     this.uniqueARTNumberFormControl = new FormControl('', [
       Validators.required,
@@ -202,20 +205,24 @@ export class EntryFormComponent
       })
     );
 
-    // Realtime updating Eligibility
+    // Realtime updating Eligibility and Next Viral Load Sample Collection Date
     this.entryFormGroup.valueChanges.subscribe((val) => {
-      console.log('FORM UPDATED');
       this.eligibilityStatus = getEligibilityStatus({
         ...val,
         vlh: this.vlh,
       });
+
+      if (this.eligibilityStatus?.eligible)
+        this.nextViralLoadSampleCollectionDate = getNextVLDate(this.vlh);
     });
     this.noViralLoadHasBeenDoneFormControl.valueChanges.subscribe(() => {
-      console.log('NIL UPDATED');
       this.eligibilityStatus = getEligibilityStatus({
         ...this.entryFormGroup.value,
         vlh: this.vlh,
       });
+
+      if (this.eligibilityStatus?.eligible)
+        this.nextViralLoadSampleCollectionDate = getNextVLDate(this.vlh);
     });
 
     this.vlhUpdated.subscribe((val) => {
@@ -227,6 +234,9 @@ export class EntryFormComponent
         ...this.entryFormGroup.value,
         vlh: this.vlh,
       });
+
+      if (this.eligibilityStatus?.eligible)
+        this.nextViralLoadSampleCollectionDate = getNextVLDate(this.vlh);
     });
 
     // Realtime updating IIT Status
@@ -488,8 +498,6 @@ export class EntryFormComponent
         const entryErr = this.entryFormGroup.errors;
         const cvErr = this.clinicVisitFormGroup.errors;
 
-        console.log(uanErr, entryErr, cvErr);
-
         if (uanErr?.length) {
           return this.currentErr.next(uanErr[0]);
         } else if (entryErr?.length) return this.currentErr.next(entryErr[0]);
@@ -499,9 +507,11 @@ export class EntryFormComponent
       })
     );
 
-    this.uniqueARTNumberFormControl.setValue(
-      this.activatedRoute.snapshot.paramMap.get('UAN')
-    );
+    // Settting the UAN param
+    const activeUAN = this.activatedRoute.snapshot.paramMap.get('UAN');
+    if (activeUAN) this.uniqueARTNumberFormControl.setValue(activeUAN);
+
+    this.isLoading = false;
   }
 
   ngAfterContentChecked(): void {
@@ -552,12 +562,16 @@ export class EntryFormComponent
           facilityName: this.facilityName,
           eligibility: this.eligibilityStatus,
           iit: this.iit,
+          nextViralLoadSampleCollectionDate:
+            this.nextViralLoadSampleCollectionDate,
         }
       : {
           ...this.entryFormGroup.getRawValue(),
           vlh: this.vlh,
           eligibility: this.eligibilityStatus,
           iit: this.iit,
+          nextViralLoadSampleCollectionDate:
+            this.nextViralLoadSampleCollectionDate,
         };
 
     Object.keys(data).forEach((key) => {
@@ -578,7 +592,6 @@ export class EntryFormComponent
 
           if (cur == newCV) return;
         }
-        console.log('NEWCV', newCV);
 
         userRef
           .update({
@@ -593,7 +606,6 @@ export class EntryFormComponent
                 .get('clinicVisitComment')
                 ?.value?.includes('Transfer')
             ) {
-              console.log('TRANSFER NOTIF');
               this.pushNotifServ.addPushNotif({
                 message: `${uniqueARTNumber} ${
                   this.clinicVisitFormGroup.get('clinicVisitComment')?.value
@@ -673,7 +685,6 @@ export class EntryFormComponent
       .doc(UANToId(this.uniqueARTNumberFormControl.value))
       .get()
       .subscribe((res) => {
-        console.log(res.data());
         this.modalServ.open(ViewCvhComponent, {
           data: {
             cvh: (res.data() as UserEntry).cvh,
@@ -689,9 +700,14 @@ function UANToId(UAN: string) {
   return UAN.replace(/\//g, '').toUpperCase();
 }
 
-function diffDate(date1: Date, date2: Date) {
+function diffDate(date1: any, date2: any) {
   if (!(date1 && date2)) return -1;
   return (date1.getTime() - date2.getTime()) / (1000 * 3600 * 24);
+}
+
+function isUAN(uan: string): boolean {
+  const UANRegEx = /^[A-Z]{2,3}\/[A-Z]{2,5}\/[\d]{5}$/;
+  return UANRegEx.test(uan);
 }
 
 export class EntryFormValidators {
@@ -705,9 +721,4 @@ export class EntryFormValidators {
       return isUAN(uan) ? null : { notUAN: true };
     };
   }
-}
-
-function isUAN(uan: string): boolean {
-  const UANRegEx = /^[A-Z]{2,3}\/[A-Z]{2,5}\/[\d]{5}$/;
-  return UANRegEx.test(uan);
 }

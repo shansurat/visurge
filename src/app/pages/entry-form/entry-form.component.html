@@ -858,15 +858,25 @@
                       align-items-end
                       justify-content-between
                     "
+                    *ngIf="
+                      nextViralLoadSampleCollectionDate ||
+                      diffDate(nextViralLoadSampleCollectionDate, time) > 0
+                    "
                   >
                     <small class="mb-1"
                       >Next Viral Load Sample Collection Date</small
                     >
                     <div class="badge badge-primary">
-                      DEC 3 2021 | 6M 3D LEFT
+                      {{ nextViralLoadSampleCollectionDate | date: "longDate" }}
+                      |
+                      {{
+                        diffDate(nextViralLoadSampleCollectionDate, time)
+                          | number: "1.0-0"
+                      }}
+                      DAYS LEFT
                     </div>
                   </div>
-                </div>
+                </div>  
                 <div class="card bg-light shadow-3">
                   <div class="datatable" *ngIf="vlh.length">
                     <div class="datatable-inner position-relative" mdbScrollbar>

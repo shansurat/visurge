@@ -1,5 +1,6 @@
 import { regimens } from '../constants/regimens';
 import { EligibilityStatus } from '../interfaces/eligibility-status';
+import { ViralLoadEntry } from '../interfaces/viral-load-entry';
 import { diffDate } from './diffDate';
 import { getAge } from './getAge';
 
@@ -208,6 +209,24 @@ export function getIITStatus(nextAppointmentDate: any) {
     else return 'iit > 3';
   }
   return 'pending';
+}
+
+export function getNextVLDate(vlh: ViralLoadEntry[]): Date | null {
+  if (vlh.length >= 2) {
+    const vl1IsLow = vlh[0].undetectableViralLoad || vlh[0].value < 1000;
+    const vl2IsLow = vlh[1].undetectableViralLoad || vlh[1].value < 1000;
+
+    const vl1Date = vlh[0].dateSampleCollected;
+    let nextVLDate = new Date();
+
+    if (vl1IsLow && vl2IsLow) {
+      nextVLDate.setDate(vl1Date.getDate() + 365);
+      console.log(nextVLDate);
+      return nextVLDate;
+    }
+  }
+
+  return null;
 }
 
 export function getCountDown(vlh: any[]) {}
