@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -45,10 +45,11 @@ import { firebaseConfig } from 'src/environments/firebaseConfig';
 import { AngularFireModule } from '@angular/fire';
 import { AngularFireAuthModule } from '@angular/fire/auth';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
-import {
-  AngularFireFunctionsModule,
-  USE_EMULATOR,
-} from '@angular/fire/functions';
+import { AngularFireFunctionsModule } from '@angular/fire/functions';
+
+import { USE_EMULATOR as USE_FUNCTIONS_EMULATOR } from '@angular/fire/functions';
+
+import { environment } from 'src/environments/environment';
 
 import { EntriesComponent } from './pages/entries/entries.component';
 import { NewUserComponent } from './modals/new-user/new-user.component';
@@ -170,7 +171,12 @@ import { NgxPrintModule } from 'ngx-print';
     AngularFireFunctionsModule,
     NgxChartsModule,
   ],
-  // providers: [{ provide: USE_EMULATOR, useValue: ['localhost', 5001] }],
+  providers: [
+    {
+      provide: USE_FUNCTIONS_EMULATOR,
+      useValue: environment.emulator ? ['localhost', 5001] : undefined,
+    },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
