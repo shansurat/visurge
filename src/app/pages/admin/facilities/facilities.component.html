@@ -9,7 +9,13 @@
           <div class="card-body">
             <div class="d-flex align-items-center">
               <mdb-form-control>
-                <input mdbInput type="text" id="filter" class="form-control" />
+                <input
+                  mdbInput
+                  type="text"
+                  id="filter"
+                  class="form-control"
+                  (keyup)="search($event)"
+                />
                 <label mdbLabel class="form-label" for="filter">Filter</label>
               </mdb-form-control>
               <div class="flex-fill"></div>
@@ -17,9 +23,9 @@
                 <button
                   type="button"
                   class="btn btn-primary"
-                  (click)="openNewUserModal()"
+                  (click)="openNewFacilityModal()"
                 >
-                  Add New User
+                  Add New Facility
                 </button>
               </div>
             </div>
@@ -32,10 +38,10 @@
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center">
                 <h4 class="mb-0 me-3">
-                  {{ (usersServ.users$ | async)?.length || 0 }} Users
+                  {{ (facilitiesServ.facilities$ | async)?.length || 0 }}
+                  Facilities
                 </h4>
               </div>
-              <div></div>
             </div>
           </div>
           <div
@@ -68,9 +74,10 @@
                   mdbTableSort
                   #table="mdbTable"
                   #sort="mdbTableSort"
-                  [dataSource]="(usersServ.users$ | async) || []"
+                  [dataSource]="(facilitiesServ.facilities$ | async) || []"
                   [pagination]="pagination"
                   [sort]="sort"
+                  [filterFn]="filterFn"
                 >
                   <thead class="datatable-header">
                     <tr>
@@ -85,50 +92,24 @@
                   </thead>
                   <tbody class="datatable-body">
                     <tr
-                      *ngFor="let user of table.data; index as i"
+                      *ngFor="let facility of table.data; index as i"
                       scope="row"
-                      [ngClass]="{
-                        'table-success':
-                          (authServ.auth.authState | async)?.uid == user.uid
-                      }"
                     >
-                      <td>
-                        <div class="form-check form-switch">
-                          <input
-                            mdbCheckbox
-                            class="form-check-input"
-                            type="checkbox"
-                            [checked]="!!user?.enabled"
-                            (checkboxChange)="toggleUser(user)"
-                          />
-                        </div>
-                      </td>
-                      <td>{{ user.admin ? "Yes" : "No" }}</td>
-                      <td>
-                        {{ user.username }}
-                      </td>
-                      <td>
-                        {{ user.password }}
-                      </td>
-                      <td>
-                        {{ user.createdAt?.toDate() | date }}
-                      </td>
+                      <th>{{ i + 1 }}</th>
+                      <td>{{ facility.code }}</td>
+                      <td>{{ facility.site }}</td>
+                      <td>{{ facility.state }}</td>
                       <td>
                         <button
                           class="btn btn-primary btn-floating btn-sm"
-                          (click)="openEditUserModal(user)"
-                          [disabled]="
-                            (authServ.auth.authState | async)?.uid == user.uid
-                          "
+                          (click)="openFacilityUserModal(facility)"
+                          disabled
                         >
                           <i class="fa fa-edit"></i>
                         </button>
                         <button
                           class="btn ms-2 btn-danger btn-floating btn-sm"
-                          (click)="deleteUser(user.uid)"
-                          [disabled]="
-                            (authServ.auth.authState | async)?.uid == user.uid
-                          "
+                          (click)="deleteFacility(facility?.uid || '')"
                         >
                           <i class="fa fa-trash"></i>
                         </button>

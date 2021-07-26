@@ -86,6 +86,10 @@ import { ImportEntriesComponent } from './modals/import-entries/import-entries.c
 import { EligibleByAgeComponent } from './charts/eligible-by-age/eligible-by-age.component';
 import { ImportEntriesPreviewComponent } from './modals/import-entries-preview/import-entries-preview.component';
 import { NgxPrintModule } from 'ngx-print';
+import { FacilitiesComponent } from './pages/admin/facilities/facilities.component';
+import { NewFacilityComponent } from './modals/new-facility/new-facility.component';
+import { EditFacilityComponent } from './modals/edit-facility/edit-facility.component';
+import { SupportComponent } from './pages/support/support.component';
 
 @NgModule({
   declarations: [
@@ -127,6 +131,10 @@ import { NgxPrintModule } from 'ngx-print';
     ImportEntriesComponent,
     EligibleByAgeComponent,
     ImportEntriesPreviewComponent,
+    FacilitiesComponent,
+    NewFacilityComponent,
+    EditFacilityComponent,
+    SupportComponent,
   ],
   imports: [
     BrowserModule,

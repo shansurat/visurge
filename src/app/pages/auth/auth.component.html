@@ -30,6 +30,7 @@
         <app-logo></app-logo>
         <mdb-form-control class="mb-3">
           <input
+            autocomplete="off"
             mdbInput
             type="text"
             id="username"
@@ -38,9 +39,49 @@
           />
           <label mdbLabel class="form-label" for="username">Username</label>
         </mdb-form-control>
+        <div
+          class="note note-danger mb-3"
+          *ngIf="
+            signInFormGroup.get('username')?.invalid &&
+            signInFormGroup.get('username')?.dirty
+          "
+        >
+          <ng-container
+            *ngIf="signInFormGroup.get('username')?.hasError('required')"
+          >
+            Username is <b>required</b>.
+          </ng-container>
 
+          <ng-container
+            *ngIf="signInFormGroup.get('username')?.hasError('notUsername')"
+          >
+            Username should only be alphanumeric (no special characters
+            allowed).
+          </ng-container>
+
+          <ng-container
+            *ngIf="
+              signInFormGroup.get('username')?.hasError('accountDoesNotExist')
+            "
+          >
+            An account with the username
+            <b> {{ signInFormGroup.get("username")?.value }}</b> does not exist.
+          </ng-container>
+
+          <ng-container
+            *ngIf="
+              signInFormGroup.get('username')?.hasError('accountDisabled') &&
+              !signInFormGroup.get('username')?.hasError('accountDoesNotExist')
+            "
+          >
+            An account with the username
+            <b> {{ signInFormGroup.get("username")?.value }}</b> is disabled by
+            the administrator.
+          </ng-container>
+        </div>
         <mdb-form-control class="mb-3">
           <input
+            autocomplete="off"
             mdbInput
             type="password"
             id="password"

@@ -5,6 +5,7 @@ import { AuthComponentGuard } from './guards/auth-component.guard';
 import { AuthGuard } from './guards/auth.guard';
 import { UserGuard } from './guards/user.guard';
 import { AdminComponent } from './pages/admin/admin.component';
+import { FacilitiesComponent } from './pages/admin/facilities/facilities.component';
 import { ImportAndExportComponent } from './pages/admin/import-and-export/import-and-export.component';
 import { UsersComponent } from './pages/admin/users/users.component';
 import { AuthComponent } from './pages/auth/auth.component';
@@ -14,6 +15,7 @@ import { EntriesComponent } from './pages/entries/entries.component';
 import { EntryFormComponent } from './pages/entry-form/entry-form.component';
 import { ReportComponent } from './pages/report/report.component';
 import { SettingsComponent } from './pages/settings/settings.component';
+import { SupportComponent } from './pages/support/support.component';
 
 const routes: Routes = [
   { path: 'auth', component: AuthComponent, canActivate: [AuthComponentGuard] },
@@ -24,6 +26,7 @@ const routes: Routes = [
     children: [
       { path: 'users', component: UsersComponent },
       { path: 'import-and-export', component: ImportAndExportComponent },
+      { path: 'facilities', component: FacilitiesComponent },
     ],
   },
 
@@ -44,11 +47,20 @@ const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'support',
+    component: SupportComponent,
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'dashboard',
     component: DashboardComponent,
     canActivate: [AuthGuard],
   },
-  { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
+  {
+    path: 'user-settings',
+    component: SettingsComponent,
+    canActivate: [AuthGuard],
+  },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: '**', redirectTo: 'dashboard' },
 ];

@@ -1,0 +1,120 @@
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">New Facility</h5>
+  <button type="button" class="btn-close" (click)="modalRef.close()"></button>
+</div>
+<div class="modal-body">
+  <div class="row justify-content-center align-items-center" *ngIf="isLoading">
+    <div class="spinner-border m-auto" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div [formGroup]="newFacilityFormGroup" *ngIf="!isLoading" class="row g-3">
+    <div class="col-12">
+      <mdb-form-control>
+        <input
+          mdbInput
+          type="text"
+          id="site"
+          class="form-control"
+          formControlName="site"
+          required
+        />
+        <label mdbLabel class="form-label" for="site">Site</label>
+      </mdb-form-control>
+    </div>
+    <div
+      class="note note-danger col-12"
+      *ngIf="
+        newFacilityFormGroup.get('site')?.invalid &&
+        newFacilityFormGroup.get('site')?.dirty
+      "
+    >
+      <ng-container
+        *ngIf="newFacilityFormGroup.get('site')?.hasError('required')"
+      >
+        Site is <b>required</b>.
+      </ng-container>
+      <ng-container
+        *ngIf="newFacilityFormGroup.get('site')?.hasError('siteAlreadyExists')"
+      >
+        An facility with the site
+        <b> {{ newFacilityFormGroup.get("site")?.value }}</b> already exists.
+      </ng-container>
+    </div>
+    <div class="col-12 col-md-6">
+      <mdb-form-control>
+        <input
+          mdbInput
+          type="text"
+          id="code"
+          class="form-control"
+          formControlName="code"
+          required
+        />
+        <label mdbLabel class="form-label" for="code">Code</label>
+      </mdb-form-control>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <mdb-form-control>
+        <input
+          mdbInput
+          type="text"
+          id="state"
+          class="form-control"
+          formControlName="state"
+          required
+        />
+        <label mdbLabel class="form-label" for="state">State</label>
+      </mdb-form-control>
+    </div>
+
+    <div
+      class="note note-danger col-12"
+      *ngIf="
+        newFacilityFormGroup.get('code')?.invalid &&
+        newFacilityFormGroup.get('code')?.dirty
+      "
+    >
+      <ng-container
+        *ngIf="newFacilityFormGroup.get('code')?.hasError('required')"
+      >
+        Code is <b>required</b>.
+      </ng-container>
+      <ng-container
+        *ngIf="newFacilityFormGroup.get('code')?.hasError('codeAlreadyExists')"
+      >
+        An facility with the code
+        <b> {{ newFacilityFormGroup.get("code")?.value }}</b> already exists.
+      </ng-container>
+    </div>
+
+    <div
+      class="note note-danger col-12"
+      *ngIf="
+        newFacilityFormGroup.get('state')?.invalid &&
+        newFacilityFormGroup.get('state')?.dirty
+      "
+    >
+      <ng-container
+        *ngIf="newFacilityFormGroup.get('state')?.hasError('required')"
+      >
+        State is <b>required</b>.
+      </ng-container>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-danger" (click)="modalRef.close()">
+    Discard
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    [disabled]="newFacilityFormGroup.invalid || newFacilityFormGroup.pristine"
+    (click)="addFacility()"
+  >
+    Add New Facility
+  </button>
+</div>

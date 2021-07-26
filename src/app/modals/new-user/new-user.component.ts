@@ -33,14 +33,10 @@ export class NewUserComponent implements OnInit {
     this.newUserFormGroup = this.fb.group({
       username: [
         '',
-        [
-          Validators.required,
-          Validators.minLength(6),
-          NewUserValidators.usernameValidity(),
-        ],
+        [Validators.required, NewUserValidators.usernameValidity()],
         [NewUserValidators.usernameExistence(this.afs)],
       ],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required]],
       admin: '',
     });
   }
@@ -82,7 +78,7 @@ export class NewUserValidators {
           debounceTime(250),
           take(1),
           map((res) => {
-            return res.length ? { usernameAlreadyExists: true } : null;
+            return res.length ? null : { usernameAlreadyExists: true };
           })
         );
     };

@@ -10,6 +10,7 @@ import { User } from 'src/app/interfaces/user';
 import { EditUserComponent } from 'src/app/modals/edit-user/edit-user.component';
 import { NewUserComponent } from 'src/app/modals/new-user/new-user.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-users',
@@ -34,24 +35,18 @@ export class UsersComponent implements OnInit {
     scrollYMarginOffset: 0,
   };
 
-  users$!: Observable<User[]>;
-
-  headers = ['Admin', 'Username', 'Password', 'Created At', 'Actions'];
+  headers = ['', 'Admin', 'Username', 'Password', 'Created At', 'Actions'];
 
   constructor(
     private afs: AngularFirestore,
     private modalServ: MdbModalService,
     private fns: AngularFireFunctions,
     public authServ: AuthService,
-    private notifServ: MdbNotificationService
+    private notifServ: MdbNotificationService,
+    public usersServ: UsersService
   ) {}
 
-  ngOnInit(): void {
-    this.users$ = this.afs
-      .collection('users')
-      .valueChanges()
-      .pipe(map((res) => res as User[]));
-  }
+  ngOnInit(): void {}
 
   openNewUserModal() {
     this.modalServ.open(NewUserComponent, {
@@ -82,5 +77,14 @@ export class UsersComponent implements OnInit {
         this.notifServ.open(UserDeletedAlertComponent, { autohide: true });
         console.log('deleted');
       });
+  }
+
+  toggleUser(user: User) {
+    const currState = user?.enabled;
+
+    this.afs
+      .collection('users')
+      .doc(user.uid)
+      .set({ enabled: !currState }, { merge: true });
   }
 }

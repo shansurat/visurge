@@ -35,10 +35,12 @@ export class AppComponent {
     { route: 'entry-form', icon: 'fas fa-info-circle' },
     { route: 'database', icon: 'fas fa-table' },
     { route: 'report', icon: 'fas fa-book' },
+    { route: 'support', icon: 'fas fa-phone' },
   ];
 
   adminLinks = [
     { route: 'users', icon: 'fas fa-user' },
+    { route: 'facilities', icon: 'fas fa-landmark' },
     // { route: 'import-and-export', icon: 'fas fa-cloud-download-alt' },
   ];
 

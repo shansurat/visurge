@@ -3,7 +3,7 @@ import { AngularFireAuth } from '@angular/fire/auth';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { Router } from '@angular/router';
-import { from, Observable } from 'rxjs';
+import { BehaviorSubject, from, Observable } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 import firebase from 'firebase/app';
 
@@ -13,6 +13,7 @@ import firebase from 'firebase/app';
 export class AuthService {
   isSignedIn$!: Observable<boolean>;
   isAdmin$!: Observable<boolean>;
+
   createUser!: any;
 
   user$!: Observable<firebase.User | null>;
