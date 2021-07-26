@@ -170,7 +170,7 @@ import { NgxPrintModule } from 'ngx-print';
     AngularFireFunctionsModule,
     NgxChartsModule,
   ],
-  providers: [{ provide: USE_EMULATOR, useValue: ['localhost', 5001] }],
+  // providers: [{ provide: USE_EMULATOR, useValue: ['localhost', 5001] }],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
