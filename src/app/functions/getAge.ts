@@ -1,8 +1,4 @@
-interface Age {
-  years?: number;
-  months?: number;
-  days?: number;
-}
+import { Age } from '../interfaces/age';
 
 export function getAge(birthDate: Date) {
   let today = new Date();
@@ -22,7 +18,7 @@ export function getAge(birthDate: Date) {
 
   if (m === 0 && today.getDate() < birthDate.getDate()) y--;
 
-  return { years: y, months: m, days: d };
+  return { years: y, months: m, days: d } as Age;
 }
 
 export function ageToText(age: Age, rounded: boolean = false): string {
@@ -32,7 +28,6 @@ export function ageToText(age: Age, rounded: boolean = false): string {
     if (years) return `${years} year${years > 0 ? 's' : ''} old`;
     if (months) return `${years} month${months > 0 ? 's' : ''} old`;
     if (days) return `${years} day${days > 0 ? 's' : ''} old`;
-  } else {
   }
   return '';
 }

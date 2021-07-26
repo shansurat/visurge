@@ -68,6 +68,8 @@ export class EditVlComponent implements OnInit {
       distinctUntilChanged(),
       map((date) => this.isSameDay(date, this.vl.dateSampleCollected))
     );
+
+    this.editVLFormGroup.patchValue(this.vl);
   }
 
   updateVL() {

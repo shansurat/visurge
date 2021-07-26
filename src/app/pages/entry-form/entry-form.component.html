@@ -100,243 +100,243 @@
 
         <div class="row g-3 mb-3">
           <!-- ART Information -->
-          <div class="col-12 col-md-6 col-lg-4 col-xl-4">
+          <div class="col-12">
             <div class="form-group card shadow-2 d-flex flex-column">
               <div class="card-header">
                 <h6 class="text-primary mb-0">ART INFORMATION</h6>
               </div>
               <div class="card-body">
-                <!-- Unique ART Number -->
-                <div class="mb-3">
-                  <mdb-form-control>
-                    <input
-                      autocomplete="off"
-                      #uniqueARTNumber
-                      [mdbValidate]="true"
-                      mdbInput
-                      type="text"
-                      id="uniqueARTNumberInput"
-                      class="form-control text-uppercase"
-                      [formControl]="uniqueARTNumberFormControl"
-                      placeholder="XXX/YYY/12345"
-                      autocomplete="off"
-                      [mdbAutocomplete]="UANautocomplete"
-                      autocapitalize="characters"
-                    />
+                <div class="row g-3">
+                  <!-- Unique ART Number -->
+                  <div class="col-12 col-md-4">
+                    <mdb-form-control>
+                      <input
+                        autocomplete="off"
+                        #uniqueARTNumber
+                        [mdbValidate]="true"
+                        mdbInput
+                        type="text"
+                        id="uniqueARTNumberInput"
+                        class="form-control text-uppercase"
+                        [formControl]="uniqueARTNumberFormControl"
+                        placeholder="XXX/YYY/12345"
+                        autocomplete="off"
+                        [mdbAutocomplete]="UANautocomplete"
+                        autocapitalize="characters"
+                      />
 
-                    <label
-                      mdbLabel
-                      class="form-label"
-                      for="uniqueARTNumberInput"
-                      >Unique ART Number</label
-                    >
-                  </mdb-form-control>
-                  <mdb-autocomplete #UANautocomplete="mdbAutocomplete">
-                    <mdb-option
-                      *ngFor="let entry of entriesAutocomplete$ | async"
-                      [value]="entry.data().uniqueARTNumber"
-                    >
-                      {{ entry.data().uniqueARTNumber | uppercase }}
-                    </mdb-option>
-                  </mdb-autocomplete>
-                </div>
+                      <label
+                        mdbLabel
+                        class="form-label"
+                        for="uniqueARTNumberInput"
+                        >Unique ART Number</label
+                      >
+                    </mdb-form-control>
+                    <mdb-autocomplete #UANautocomplete="mdbAutocomplete">
+                      <mdb-option
+                        *ngFor="let entry of entriesAutocomplete$ | async"
+                        [value]="entry.data().uniqueARTNumber"
+                      >
+                        {{ entry.data().uniqueARTNumber | uppercase }}
+                      </mdb-option>
+                    </mdb-autocomplete>
+                  </div>
 
-                <!-- ART Start Date -->
-                <div>
-                  <mdb-form-control>
-                    <input
-                      autocomplete="off"
-                      mdbInput
-                      [mdbValidate]="true"
-                      [mdbDatepicker]="ARTStartDatePicker"
-                      type="text"
-                      class="form-control"
-                      id="ARTStartDateInput"
-                      formControlName="ARTStartDate"
-                      placeholder="dd, mmm, yyyy"
-                      (click)="ARTStartDatePicker.open()"
-                    />
-                    <label mdbLabel for="ARTStartDateInput" class="form-label"
-                      >ART Start Date</label
-                    >
+                  <!-- ART Start Date -->
+                  <div class="col-12 col-md-4">
+                    <mdb-form-control>
+                      <input
+                        autocomplete="off"
+                        mdbInput
+                        [mdbValidate]="true"
+                        [mdbDatepicker]="ARTStartDatePicker"
+                        type="text"
+                        class="form-control"
+                        id="ARTStartDateInput"
+                        formControlName="ARTStartDate"
+                        placeholder="dd, mmm, yyyy"
+                        (click)="ARTStartDatePicker.open()"
+                      />
+                      <label mdbLabel for="ARTStartDateInput" class="form-label"
+                        >ART Start Date</label
+                      >
 
-                    <mdb-datepicker
-                      #ARTStartDatePicker
-                      [maxDate]="maxDate"
-                      format="dd, mmm, yyyy"
-                    ></mdb-datepicker>
-                  </mdb-form-control>
+                      <mdb-datepicker
+                        #ARTStartDatePicker
+                        [maxDate]="maxDate"
+                        format="dd, mmm, yyyy"
+                      ></mdb-datepicker>
+                    </mdb-form-control>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Biodata -->
-          <div class="col-12 col-md-6 col-lg-4 col-xl-4">
+          <div class="col-12 col-md-8">
             <div class="form-group card shadow-2 d-flex flex-column">
               <div class="card-header">
                 <h6 class="text-primary mb-0">BIODATA</h6>
               </div>
 
               <div class="card-body">
-                <!-- Sex -->
-                <div class="mb-3">
-                  <mdb-form-control>
-                    <mdb-select formControlName="sex" #sex [mdbValidate]="true">
-                      <mdb-option value="male">Male</mdb-option>
-                      <mdb-option value="female">Female</mdb-option>
-                    </mdb-select>
-                    <label mdbLabel class="form-label">Sex</label>
-                  </mdb-form-control>
-                </div>
-                <div class="mb-3">
-                  <div class="form-check">
-                    <input
-                      autocomplete="off"
-                      mdbCheckbox
-                      class="form-check-input"
-                      type="checkbox"
-                      id="birthdateKnown"
-                      formControlName="birthdateKnown"
-                      #birthdateKnown
-                    />
-                    <label class="form-check-label" for="birthdateKnown">
-                      Birthdate known
-                    </label>
-                  </div>
-                </div>
-
-                <div
-                  class="row g-3 align-items-center mb-3"
-                  [ngClass]="{ 'visually-hidden': !birthdateKnown.checked }"
-                >
-                  <div class="col-12 col-sm-6">
-                    <mdb-form-control>
-                      <input
-                        autocomplete="off"
-                        mdbInput
-                        [mdbValidate]="true"
-                        [mdbDatepicker]="birthdateDatepicker"
-                        type="text"
-                        class="form-control"
-                        id="birthdateInput"
-                        formControlName="birthdate"
-                        placeholder="dd, mmm, yyyy"
-                        (click)="birthdateDatepicker.open()"
-                        #birthdateInput
-                      />
-                      <label mdbLabel for="birthdateInput" class="form-label"
-                        >Birthdate</label
-                      >
-                      <mdb-datepicker
-                        #birthdateDatepicker
-                        [maxDate]="maxDate"
-                        format="dd, mmm, yyyy"
-                      ></mdb-datepicker>
-                    </mdb-form-control>
-                  </div>
+                <div class="row g-3">
                   <div class="col-12 col-md-6">
-                    <div
-                      class="note note-warning"
-                      *ngIf="entryFormGroup.get('birthdate')?.value as bday"
-                    >
-                      <ng-container
-                        *ngIf="
-                          calculateAge(bday).years || calculateAge(bday).months;
-                          else daysOnly
-                        "
-                      >
-                        {{
-                          calculateAge(bday).years
-                            ? calculateAge(bday).years + " year"
-                            : ""
-                        }}{{ calculateAge(bday).months > 1 ? "s" : "" }}
-                        {{
-                          calculateAge(bday).years && calculateAge(bday).months
-                            ? " and "
-                            : ""
-                        }}
-                        {{
-                          calculateAge(bday).months
-                            ? calculateAge(bday).months + " month"
-                            : ""
-                        }}{{
-                          calculateAge(bday).months > 1 ? "s" : ""
-                        }}</ng-container
-                      >
-                      <ng-template #daysOnly>
-                        Approx.
-                        {{
-                          calculateAge(bday).days
-                            ? calculateAge(bday).days + " day"
-                            : ""
-                        }}{{ calculateAge(bday).days > 1 ? "s" : "" }}
-                      </ng-template>
-
-                      old
+                    <div class="row g-3">
+                      <!-- Sex -->
+                      <div class="col-6 col-md-12">
+                        <mdb-form-control>
+                          <mdb-select
+                            formControlName="sex"
+                            #sex
+                            [mdbValidate]="true"
+                          >
+                            <mdb-option value="male">Male</mdb-option>
+                            <mdb-option value="female">Female</mdb-option>
+                          </mdb-select>
+                          <label mdbLabel class="form-label">Sex</label>
+                        </mdb-form-control>
+                      </div>
+                      <!-- Phone Number -->
+                      <div class="col-6 col-md-12">
+                        <mdb-form-control>
+                          <input
+                            autocomplete="off"
+                            mdbInput
+                            [mdbValidate]="true"
+                            type="number"
+                            class="form-control"
+                            formControlName="phoneNumber"
+                            id="phoneNumberInput"
+                            min="0"
+                            (keypress)="$event.code.includes('Digit')"
+                          />
+                          <label
+                            mdbLabel
+                            for="phoneNumberInput"
+                            class="form-label"
+                            >Phone Number</label
+                          >
+                        </mdb-form-control>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="row g-3 mb-3"
-                  [ngClass]="{ 'visually-hidden': birthdateKnown.checked }"
-                >
-                  <div class="col-12 col-sm-6">
-                    <mdb-form-control>
-                      <input
-                        autocomplete="off"
-                        mdbInput
-                        [mdbValidate]="true"
-                        type="number"
-                        class="form-control"
-                        formControlName="age"
-                        id="ageInput"
-                        min="0"
-                        (keypress)="$event.code.includes('Digit')"
-                      />
-                      <label mdbLabel for="ageInput" class="form-label"
-                        >Age</label
-                      >
-                    </mdb-form-control>
-                  </div>
-                  <div class="col-12 col-sm-6">
-                    <mdb-form-control>
-                      <mdb-select
-                        formControlName="ageUnit"
-                        [mdbValidate]="true"
-                      >
-                        <mdb-option value="years">Year</mdb-option>
-                        <mdb-option value="months">Month</mdb-option>
-                      </mdb-select>
-                      <label mdbLabel class="form-label">Unit</label>
-                    </mdb-form-control>
-                  </div>
-                </div>
 
-                <div>
-                  <mdb-form-control>
-                    <input
-                      autocomplete="off"
-                      mdbInput
-                      [mdbValidate]="true"
-                      type="number"
-                      class="form-control"
-                      formControlName="phoneNumber"
-                      id="phoneNumberInput"
-                      min="0"
-                      (keypress)="$event.code.includes('Digit')"
-                    />
-                    <label mdbLabel for="phoneNumberInput" class="form-label"
-                      >Phone Number</label
-                    >
-                  </mdb-form-control>
+                  <!-- Age Field -->
+                  <div class="col-12 col-md-6">
+                    <div class="row align-items-center g-3">
+                      <!-- Birthdate -->
+                      <div class="col-6 col-md-12">
+                        <div
+                          class="input-group"
+                          [ngStyle]="{ 'flex-wrap': 'nowrap' }"
+                        >
+                          <div class="input-group-text">
+                            <input
+                              class="form-check-input mt-0"
+                              type="checkbox"
+                              id="birthdateKnownCheckbox"
+                              [formControl]="birthdateKnownCheckboxFormControl"
+                            />
+                          </div>
+                          <mdb-form-control class="flex-fill">
+                            <input
+                              [mdbValidate]="true"
+                              autocomplete="off"
+                              mdbInput
+                              [mdbDatepicker]="birthdateDatePicker"
+                              type="text"
+                              class="form-control form-control"
+                              id="birthdateInput"
+                              placeholder="dd, mmm, yyyy"
+                              (click)="birthdateDatePicker.open()"
+                              [disabled]="
+                                !birthdateKnownCheckboxFormControl.value
+                              "
+                              formControlName="birthdate"
+                            />
+                            <label
+                              mdbLabel
+                              for="birthdateInput"
+                              class="form-label"
+                              >Birthdate</label
+                            >
+                            <mdb-datepicker
+                              #birthdateDatePicker
+                              [maxDate]="maxDate"
+                              format="dd, mmm, yyyy"
+                            ></mdb-datepicker>
+                          </mdb-form-control>
+                        </div>
+                      </div>
+
+                      <!-- Age -->
+                      <div class="col-6 col-md-12">
+                        <div
+                          class="input-group"
+                          [ngStyle]="{ 'flex-wrap': 'nowrap' }"
+                        >
+                          <mdb-form-control class="flex-fill">
+                            <input
+                              [mdbValidate]="true"
+                              autocomplete="off"
+                              mdbInput
+                              type="number"
+                              class="form-control"
+                              id="ageInput"
+                              placeholder="Age"
+                              [formControl]="ageFormControl"
+                            />
+                          </mdb-form-control>
+                          <div mdbDropdown class="dropdown">
+                            <button
+                              mdbDropdownToggle
+                              class="btn btn-primary dropdown-toggle"
+                              type="button"
+                              aria-expanded="false"
+                              [ngStyle]="{
+                                'border-top-left-radius': 0,
+                                'border-bottom-left-radius': 0
+                              }"
+                              [disabled]="
+                                birthdateKnownCheckboxFormControl.value
+                              "
+                            >
+                              {{ selectedAgeUnit }}
+                            </button>
+                            <ul
+                              mdbDropdownMenu
+                              class="dropdown-menu"
+                              [ngStyle]="{ cursor: 'pointer' }"
+                            >
+                              <ng-container *ngFor="let unit of ageUnits">
+                                <li *ngIf="selectedAgeUnit != unit">
+                                  <a
+                                    class="dropdown-item"
+                                    (click)="
+                                      selectedAgeUnit = unit;
+                                      updateAge();
+                                      updateEligibilityStatus()
+                                    "
+                                  >
+                                    {{ unit | titlecase }}</a
+                                  >
+                                </li>
+                              </ng-container>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Regimen -->
-          <div class="col-12 col-md-6 col-lg-4 col-xl-4">
+          <div class="col-12 col-md-4">
             <div class="form-group card shadow-2 d-flex flex-column">
               <!-- Regimen -->
 
@@ -345,65 +345,67 @@
               </div>
 
               <div class="card-body">
-                <div class="mb-3">
-                  <mdb-form-control>
-                    <mdb-select
-                      [filter]="true"
-                      formControlName="regimen"
-                      [mdbValidate]="true"
-                    >
-                      <mdb-option-group
-                        *ngFor="let regimenGroup of regimensByGroup"
-                        [label]="regimenGroup.name"
+                <div class="row g-3">
+                  <div class="col-12 col-md-4 col-xl-12">
+                    <mdb-form-control>
+                      <mdb-select
+                        [filter]="true"
+                        formControlName="regimen"
+                        [mdbValidate]="true"
                       >
-                        <mdb-option
-                          *ngFor="let regimen of regimenGroup.regimens"
-                          [value]="regimen.code"
-                          label="{{ regimen.regimen }} ({{
-                            regimenGroup.name
-                          }})"
+                        <mdb-option-group
+                          *ngFor="let regimenGroup of regimensByGroup"
+                          [label]="regimenGroup.name"
                         >
-                          <div class="d-flex align-items-center w-100 m-auto">
-                            <span class="badge bg-primary me-3">{{
-                              regimen.code
-                            }}</span>
-                            <span>{{ regimen.regimen }}</span>
-                            <div class="flex-fill"></div>
-                          </div>
-                        </mdb-option>
-                      </mdb-option-group>
-                    </mdb-select>
-                    <label mdbLabel class="form-label">Regimen</label>
-                  </mdb-form-control>
-                </div>
+                          <mdb-option
+                            *ngFor="let regimen of regimenGroup.regimens"
+                            [value]="regimen.code"
+                            label="{{ regimen.regimen }} ({{
+                              regimenGroup.name
+                            }})"
+                          >
+                            <div class="d-flex align-items-center w-100 m-auto">
+                              <span class="badge bg-primary me-3">{{
+                                regimen.code
+                              }}</span>
+                              <span>{{ regimen.regimen }}</span>
+                              <div class="flex-fill"></div>
+                            </div>
+                          </mdb-option>
+                        </mdb-option-group>
+                      </mdb-select>
+                      <label mdbLabel class="form-label">Regimen</label>
+                    </mdb-form-control>
+                  </div>
 
-                <!-- Regimen Start / Transition Date -->
-                <div>
-                  <mdb-form-control>
-                    <input
-                      autocomplete="off"
-                      mdbInput
-                      [mdbValidate]="true"
-                      [mdbDatepicker]="regimenStartTransDatePicker"
-                      type="text"
-                      class="form-control"
-                      id="regimenStartTransDateInput"
-                      formControlName="regimenStartTransDate"
-                      placeholder="dd, mmm, yyyy"
-                      (click)="regimenStartTransDatePicker.open()"
-                    />
-                    <label
-                      mdbLabel
-                      for="regimenStartTransDateInput"
-                      class="form-label"
-                      >Start / Transition Date</label
-                    >
-                    <mdb-datepicker
-                      #regimenStartTransDatePicker
-                      [maxDate]="maxDate"
-                      format="dd, mmm, yyyy"
-                    ></mdb-datepicker>
-                  </mdb-form-control>
+                  <!-- Regimen Start / Transition Date -->
+                  <div class="col-12 col-md-4 col-xl-12">
+                    <mdb-form-control>
+                      <input
+                        autocomplete="off"
+                        mdbInput
+                        [mdbValidate]="true"
+                        [mdbDatepicker]="regimenStartTransDatePicker"
+                        type="text"
+                        class="form-control"
+                        id="regimenStartTransDateInput"
+                        formControlName="regimenStartTransDate"
+                        placeholder="dd, mmm, yyyy"
+                        (click)="regimenStartTransDatePicker.open()"
+                      />
+                      <label
+                        mdbLabel
+                        for="regimenStartTransDateInput"
+                        class="form-label"
+                        >Start / Transition Date</label
+                      >
+                      <mdb-datepicker
+                        #regimenStartTransDatePicker
+                        [maxDate]="maxDate"
+                        format="dd, mmm, yyyy"
+                      ></mdb-datepicker>
+                    </mdb-form-control>
+                  </div>
                 </div>
               </div>
             </div>
@@ -776,7 +778,6 @@
                         <input
                           class="form-check-input mt-0"
                           type="checkbox"
-                          value=""
                           id="pendingStatus"
                           [formControl]="pendingStatusFormControl"
                           #pendingStatus
@@ -785,7 +786,6 @@
                       <mdb-form-control>
                         <input
                           autocomplete="off"
-                          formControlName="nextAppointmentDate"
                           mdbInput
                           [mdbDatepicker]="pendingSampleDatepicker"
                           type="text"
@@ -809,46 +809,6 @@
                         ></mdb-datepicker>
                       </mdb-form-control>
                     </div>
-
-                    <!-- <div class="form-check me-3">
-                      <input
-                        autocomplete="off"
-                        mdbCheckbox
-                        class="form-check-input"
-                        type="checkbox"
-                        id="pendingStatus"
-                        [formControl]="pendingStatusFormControl"
-                        #pendingStatus
-                      />
-                      <label class="form-check-label" for="pendingStatus">
-                        Pending Status
-                      </label>
-                    </div>
-                    <mdb-form-control *ngIf="pendingStatus.checked">
-                      <input
-                        autocomplete="off"
-                        formControlName="nextAppointmentDate"
-                        mdbInput
-                        [mdbDatepicker]="pendingSampleDatepicker"
-                        type="text"
-                        class="form-control"
-                        id="pendingSampleDateInput"
-                        placeholder="dd, mmm, yyyy"
-                        (click)="pendingSampleDatepicker.open()"
-                        formControlName="pendingStatusDate"
-                      />
-                      <label
-                        mdbLabel
-                        for="pendingSampleDateInput"
-                        class="form-label"
-                        >Date Sample Collected</label
-                      >
-                      <mdb-datepicker
-                        #pendingSampleDatepicker
-                        [maxDate]="maxDate"
-                        format="dd, mmm, yyyy"
-                      ></mdb-datepicker>
-                    </mdb-form-control> -->
                   </div>
                   <div
                     class="
@@ -876,7 +836,7 @@
                       DAYS LEFT
                     </div>
                   </div>
-                </div>  
+                </div>
                 <div class="card bg-light shadow-3">
                   <div class="datatable" *ngIf="vlh.length">
                     <div class="datatable-inner position-relative" mdbScrollbar>

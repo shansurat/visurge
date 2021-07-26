@@ -19,7 +19,7 @@ const INELIGIBLE_CHECK_EAC: EligibilityStatus = {
 export function getEligibilityStatus(val: any): EligibilityStatus | null {
   let {
     ARTStartDate,
-    birthDateKnown,
+    age,
     hvl,
     pmtct,
     pmtctEnrollStartDate,
@@ -36,11 +36,7 @@ export function getEligibilityStatus(val: any): EligibilityStatus | null {
   eac3Completed = eac3Completed == 'yes';
   hvl = hvl == 'yes';
 
-  const isAdult: boolean = birthDateKnown
-    ? getAge(val.birthdate)?.years >= 19
-    : val.ageUnit == 'years'
-    ? val.age >= 19
-    : false;
+  const isAdult: boolean = Object.keys(age)[0] == 'years' && age.years >= 19;
 
   const regimenIsTLD =
     regimens.find((_regimen) => _regimen.code == regimen)?.category == 'TLD';

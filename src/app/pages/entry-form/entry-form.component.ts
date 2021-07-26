@@ -44,11 +44,7 @@ import { ViralLoadEntry } from 'src/app/interfaces/viral-load-entry';
 import { EditVlComponent } from 'src/app/modals/edit-vl/edit-vl.component';
 import { NewVlComponent } from 'src/app/modals/new-vl/new-vl.component';
 import { ViewCvhComponent } from 'src/app/modals/view-cvh/view-cvh.component';
-import {
-  ageCategories,
-  regimens,
-  regimensByGroup,
-} from '../../constants/regimens';
+import { regimens, regimensByGroup } from '../../constants/regimens';
 import firebase from 'firebase/app';
 import { UserUpdatedAlertComponent } from 'src/app/alerts/user-updated-alert/user-updated-alert.component';
 import { facilities } from 'src/app/constants/facilities';
@@ -65,6 +61,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EntriesService } from 'src/app/services/entries.service';
 
 import { slideInRightAnimation } from 'mdb-angular-ui-kit/animations';
+import { getAge } from 'src/app/functions/getAge';
+import { Age } from 'src/app/interfaces/age';
 
 @Component({
   selector: 'app-entry-form',
@@ -76,6 +74,10 @@ import { slideInRightAnimation } from 'mdb-angular-ui-kit/animations';
 export class EntryFormComponent
   implements OnInit, AfterContentChecked, OnDestroy
 {
+  ageUnits = ['years', 'months', 'days'];
+  selectedAgeUnit = 'years';
+  age: Age = {};
+
   isLoading!: boolean;
   entriesAutocomplete$!: Observable<any[]>;
 
@@ -94,7 +96,6 @@ export class EntryFormComponent
   // Constants
   regimens = regimens;
   regimensByGroup = regimensByGroup;
-  ageCategories = ageCategories;
   clinicComments = clinicComments;
   facilities = facilities;
 
@@ -110,8 +111,11 @@ export class EntryFormComponent
   entryFormGroup!: FormGroup;
   clinicVisitFormGroup!: FormGroup;
   uniqueARTNumberFormControl!: FormControl;
+  birthdateKnownCheckboxFormControl = new FormControl();
+  ageFormControl = new FormControl();
   noViralLoadHasBeenDoneFormControl: FormControl = new FormControl();
   pendingStatusFormControl: FormControl = new FormControl();
+
   currentErr: Subject<any> = new Subject();
 
   vlhUpdated: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
@@ -121,7 +125,6 @@ export class EntryFormComponent
   miniDashboardShown!: boolean;
 
   diffDate = diffDate;
-
   constructor(
     private activatedRoute: ActivatedRoute,
     private cdref: ChangeDetectorRef,
@@ -162,11 +165,8 @@ export class EntryFormComponent
     // Entry Form Group initialization
     this.entryFormGroup = this.fb.group({
       sex: ['', [Validators.required]],
-      birthdateKnown: [''],
-      birthdate: ['', Validators.required],
-      age: ['', [Validators.min(0)]],
-      ageUnit: ['years'],
       phoneNumber: [''],
+      birthdate: [''],
       ARTStartDate: ['', [Validators.required]],
       regimen: ['', [Validators.required]],
       regimenStartTransDate: ['', [Validators.required]],
@@ -205,24 +205,62 @@ export class EntryFormComponent
       })
     );
 
-    // Realtime updating Eligibility and Next Viral Load Sample Collection Date
-    this.entryFormGroup.valueChanges.subscribe((val) => {
-      this.eligibilityStatus = getEligibilityStatus({
-        ...val,
-        vlh: this.vlh,
-      });
+    // Birthday listeners
+    this.birthdateKnownCheckboxFormControl.valueChanges
+      .pipe(
+        distinctUntilChanged(),
+        map((known) => {
+          if (known) {
+            this.entryFormGroup
+              .get('birthdate')
+              ?.setValidators([Validators.required]);
+            this.entryFormGroup.get('birthdate')?.enable();
 
-      if (this.eligibilityStatus?.eligible)
-        this.nextViralLoadSampleCollectionDate = getNextVLDate(this.vlh);
+            this.ageFormControl.reset();
+            this.ageFormControl.clearValidators();
+            this.ageFormControl.disable();
+          } else {
+            this.entryFormGroup.get('birthdate')?.reset();
+            this.entryFormGroup.get('birthdate')?.clearValidators();
+            this.entryFormGroup.get('birthdate')?.disable();
+
+            this.ageFormControl.reset();
+            this.ageFormControl.setValidators([Validators.required]);
+            this.ageFormControl.enable();
+          }
+        })
+      )
+      .subscribe();
+
+    this.entryFormGroup
+      .get('birthdate')
+      ?.valueChanges.pipe(
+        distinctUntilChanged(),
+        map((val) => {
+          this.updateAge();
+
+          const { years, months, days } = this.age;
+
+          if (years) {
+            this.selectedAgeUnit = 'years';
+            return this.ageFormControl.setValue(years);
+          } else if (months) {
+            this.selectedAgeUnit = 'months';
+            return this.ageFormControl.setValue(months);
+          }
+
+          this.selectedAgeUnit = 'days';
+          return this.ageFormControl.setValue(days);
+        })
+      )
+      .subscribe();
+
+    // Realtime updating Eligibility and Next Viral Load Sample Collection Date
+    this.entryFormGroup.valueChanges.subscribe(() => {
+      this.updateEligibilityStatus();
     });
     this.noViralLoadHasBeenDoneFormControl.valueChanges.subscribe(() => {
-      this.eligibilityStatus = getEligibilityStatus({
-        ...this.entryFormGroup.value,
-        vlh: this.vlh,
-      });
-
-      if (this.eligibilityStatus?.eligible)
-        this.nextViralLoadSampleCollectionDate = getNextVLDate(this.vlh);
+      this.updateEligibilityStatus();
     });
 
     this.vlhUpdated.subscribe((val) => {
@@ -230,13 +268,12 @@ export class EntryFormComponent
         this.entryFormGroup.get('hvl')?.setValue('yes');
       }
 
-      this.eligibilityStatus = getEligibilityStatus({
-        ...this.entryFormGroup.value,
-        vlh: this.vlh,
-      });
+      this.updateEligibilityStatus();
+    });
 
-      if (this.eligibilityStatus?.eligible)
-        this.nextViralLoadSampleCollectionDate = getNextVLDate(this.vlh);
+    this.ageFormControl.valueChanges.subscribe(() => {
+      this.updateAge();
+      this.updateEligibilityStatus();
     });
 
     // Realtime updating IIT Status
@@ -244,29 +281,6 @@ export class EntryFormComponent
       .pipe(distinctUntilChanged())
       .subscribe((cv: ClinicVisitEntry) => {
         this.iit = getIITStatus(cv.nextAppointmentDate);
-      });
-
-    //  Birthdate Know checkbox listener
-    this.entryFormGroup
-      .get('birthdateKnown')
-      ?.valueChanges.pipe(distinctUntilChanged())
-      .subscribe((birthDateKnown) => {
-        if (birthDateKnown) {
-          this.entryFormGroup.get('age')?.reset();
-          this.entryFormGroup.get('age')?.clearValidators();
-          this.entryFormGroup.get('ageUnit')?.reset();
-          this.entryFormGroup.get('ageUnit')?.clearValidators();
-          this.entryFormGroup
-            .get('birthdate')
-            ?.setValidators([Validators.required]);
-        } else {
-          this.entryFormGroup.get('birthdate')?.reset();
-          this.entryFormGroup.get('birthdate')?.clearValidators();
-          this.entryFormGroup.get('age')?.setValidators([Validators.required]);
-          this.entryFormGroup
-            .get('ageUnit')
-            ?.setValidators([Validators.required]);
-        }
       });
 
     // Sex field listener
@@ -507,9 +521,11 @@ export class EntryFormComponent
       })
     );
 
-    // Settting the UAN param
+    // Setting the UAN param
     const activeUAN = this.activatedRoute.snapshot.paramMap.get('UAN');
     if (activeUAN) this.uniqueARTNumberFormControl.setValue(activeUAN);
+
+    this.birthdateKnownCheckboxFormControl.setValue(false);
 
     this.isLoading = false;
   }
@@ -525,26 +541,30 @@ export class EntryFormComponent
     }
   }
 
-  calculateAge(val: string) {
-    let today = new Date();
-    let birthDate = new Date(val);
-    let y = today.getFullYear() - birthDate.getFullYear();
-    let m = today.getMonth() - birthDate.getMonth();
-    let d = today.getDate() - birthDate.getDate();
+  updateAge() {
+    // Resetting Age
+    Object.keys(this.age).forEach((key) => {
+      this.age[key] = undefined;
+    });
 
-    if (d < 0) {
-      d += new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-      m--;
+    if (this.birthdateKnownCheckboxFormControl.value) {
+      if (this.entryFormGroup.get('birthdate')?.value)
+        this.age = getAge(this.entryFormGroup.get('birthdate')?.value);
+    } else if (this.ageFormControl.value) {
+      this.age[this.selectedAgeUnit] = this.ageFormControl.value;
     }
+  }
 
-    if (m < 0) {
-      m += 12;
-      y--;
-    }
+  updateEligibilityStatus() {
+    console.log(this.age);
+    this.eligibilityStatus = getEligibilityStatus({
+      age: this.age,
+      ...this.entryFormGroup.getRawValue(),
+      vlh: this.vlh,
+    });
 
-    if (m === 0 && today.getDate() < birthDate.getDate()) y--;
-
-    return { years: y, months: m, days: d };
+    if (this.eligibilityStatus?.eligible)
+      this.nextViralLoadSampleCollectionDate = getNextVLDate(this.vlh);
   }
 
   strToInt(text: string) {
@@ -552,27 +572,32 @@ export class EntryFormComponent
   }
 
   saveEntryForm() {
-    let uniqueARTNumber = this.uniqueARTNumberFormControl.value.toUpperCase();
+    const uniqueARTNumber = this.uniqueARTNumberFormControl.value.toUpperCase();
+
+    const _entryVal = this.entryFormGroup.getRawValue();
+
+    let age: any = {};
+    age[this.selectedAgeUnit] = this.ageFormControl.value;
+
+    let _data = {
+      ..._entryVal,
+      vlh: this.vlh,
+      eligibility: this.eligibilityStatus,
+      iit: this.iit,
+      nextViralLoadSampleCollectionDate: this.nextViralLoadSampleCollectionDate,
+      age: this.birthdateKnownCheckboxFormControl.value
+        ? getAge(_entryVal.birthdate)
+        : age,
+    };
+
     let data = this.newEntry
       ? {
-          ...this.entryFormGroup.getRawValue(),
-          vlh: this.vlh,
+          ..._data,
           uniqueARTNumber,
           entryDate: this.entryDate,
           facilityName: this.facilityName,
-          eligibility: this.eligibilityStatus,
-          iit: this.iit,
-          nextViralLoadSampleCollectionDate:
-            this.nextViralLoadSampleCollectionDate,
         }
-      : {
-          ...this.entryFormGroup.getRawValue(),
-          vlh: this.vlh,
-          eligibility: this.eligibilityStatus,
-          iit: this.iit,
-          nextViralLoadSampleCollectionDate:
-            this.nextViralLoadSampleCollectionDate,
-        };
+      : _data;
 
     Object.keys(data).forEach((key) => {
       if (data[key] == undefined) data[key] = null;
@@ -700,7 +725,7 @@ function UANToId(UAN: string) {
   return UAN.replace(/\//g, '').toUpperCase();
 }
 
-function diffDate(date1: any, date2: any) {
+function diffDate(date1: Date | null, date2: Date | null) {
   if (!(date1 && date2)) return -1;
   return (date1.getTime() - date2.getTime()) / (1000 * 3600 * 24);
 }
