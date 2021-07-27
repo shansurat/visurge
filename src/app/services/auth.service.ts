@@ -6,6 +6,8 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, from, Observable } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 import firebase from 'firebase/app';
+import { UserData } from '../interfaces/user-data';
+import { User } from '../interfaces/user';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +19,7 @@ export class AuthService {
   createUser!: any;
 
   user$!: Observable<firebase.User | null>;
-  userData$!: Observable<any>;
+  userData$: BehaviorSubject<User> = new BehaviorSubject({} as User);
 
   constructor(
     public auth: AngularFireAuth,
@@ -39,11 +41,14 @@ export class AuthService {
       .subscribe((isAdmin) => this.isAdmin$.next(isAdmin));
 
     this.user$ = auth.user;
-    this.userData$ = this.user$.pipe(
-      mergeMap((user) => {
-        return this.afs.collection('users').doc(user?.uid).valueChanges();
-      })
-    );
+
+    this.user$
+      .pipe(
+        mergeMap((user) => {
+          return this.afs.collection('users').doc(user?.uid).valueChanges();
+        })
+      )
+      .subscribe((userData) => this.userData$.next(userData as User));
   }
 
   signIn({ username, password }: { username: string; password: string }) {

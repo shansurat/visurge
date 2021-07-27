@@ -8,7 +8,7 @@
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <span class="fw-bold me-2"> Unique ART Number: </span
-            >{{ uniqueARTNumberFormControl.value }}
+            >{{ uniqueARTNumberFormControl.value | uppercase }}
           </div>
           <div class="d-flex align-items-center">
             <!-- ELIGIBILITY STATUS -->
@@ -207,7 +207,7 @@
                         </mdb-form-control>
                       </div>
                       <!-- Phone Number -->
-                      <div class="col-6 col-md-12">
+                      <!-- <div class="col-6 col-md-12">
                         <mdb-form-control>
                           <input
                             autocomplete="off"
@@ -227,6 +227,40 @@
                             >Phone Number</label
                           >
                         </mdb-form-control>
+                      </div> -->
+
+                      <div class="col-6 col-md-12">
+                        <div class="input-group me-3">
+                          <div class="input-group-text">
+                            <input
+                              class="form-check-input mt-0"
+                              type="checkbox"
+                              id="pendingStatus"
+                              [formControl]="phoneNumberFormControl"
+                              #phoneNumber
+                            />
+                          </div>
+                          <mdb-form-control [ngStyle]="{ flex: 1 }">
+                            <input
+                              autocomplete="off"
+                              mdbInput
+                              type="text"
+                              class="form-control"
+                              id="phoneNumberInput"
+                              [placeholder]="
+                                phoneNumber.checked ? 'Phone Number' : 'Unknown'
+                              "
+                              formControlName="phoneNumber"
+                              [disabled]="!phoneNumber.checked"
+                            />
+                            <label
+                              mdbLabel
+                              for="phoneNumberInput"
+                              class="form-label"
+                              >Phone Number</label
+                            >
+                          </mdb-form-control>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -781,7 +815,7 @@
                   <div class="d-flex flex-column justify-content-center">
                     <small class="mb-1">Pending Status</small>
 
-                    <div class="input-group input-group-sm">
+                    <div class="input-group input-group-sm me-3">
                       <div class="input-group-text">
                         <input
                           class="form-check-input mt-0"
@@ -791,7 +825,7 @@
                           #pendingStatus
                         />
                       </div>
-                      <mdb-form-control>
+                      <mdb-form-control [ngStyle]="{ flex: 1 }">
                         <input
                           autocomplete="off"
                           mdbInput

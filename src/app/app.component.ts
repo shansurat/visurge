@@ -1,4 +1,9 @@
-import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { NavigationEnd, Router } from '@angular/router';
 import { MdbSidenavComponent } from 'mdb-angular-ui-kit/sidenav';
@@ -14,6 +19,7 @@ import { PushNotificationService } from './services/push-notification.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
   encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
   @ViewChild('sidenav') sidenav!: MdbSidenavComponent;

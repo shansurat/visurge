@@ -31,6 +31,8 @@ export class EligibleByPMTCTComponent implements OnInit {
   eligibilityChartLabels: string[] = ['Yes', 'No'];
 
   eligibilityChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false,

@@ -50,11 +50,7 @@ import { UserUpdatedAlertComponent } from 'src/app/alerts/user-updated-alert/use
 import { facilities } from 'src/app/constants/facilities';
 import { clinicComments } from 'src/app/constants/clinicComments';
 import { AuthService } from 'src/app/services/auth.service';
-import {
-  getEligibilityStatus,
-  getIITStatus,
-  getNextVLDate,
-} from 'src/app/functions/getStatus';
+
 import { EligibilityStatus } from 'src/app/interfaces/eligibility-status';
 import { PushNotificationService } from 'src/app/services/push-notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -64,6 +60,7 @@ import { slideInRightAnimation } from 'mdb-angular-ui-kit/animations';
 import { getAge } from 'src/app/functions/getAge';
 import { Age } from 'src/app/interfaces/age';
 import { FacilitiesService } from 'src/app/services/facilities.service';
+import { StatusService } from 'src/app/services/status.service';
 
 @Component({
   selector: 'app-entry-form',
@@ -100,7 +97,7 @@ export class EntryFormComponent
   clinicComments = clinicComments;
   facilities = facilities;
 
-  facilityName = 'Philippines - Reg IV';
+  facilityName = 'South Sudan';
 
   // Arrays
   vlh: ViralLoadEntry[] = [];
@@ -116,6 +113,7 @@ export class EntryFormComponent
   ageFormControl = new FormControl();
   noViralLoadHasBeenDoneFormControl: FormControl = new FormControl();
   pendingStatusFormControl: FormControl = new FormControl();
+  phoneNumberFormControl: FormControl = new FormControl();
 
   currentErr: Subject<any> = new Subject();
 
@@ -137,7 +135,8 @@ export class EntryFormComponent
     private pushNotifServ: PushNotificationService,
     public entriesServ: EntriesService,
     public authServ: AuthService,
-    public facilitiesServ: FacilitiesService
+    public facilitiesServ: FacilitiesService,
+    private statusServ: StatusService
   ) {
     let today = new Date();
     this.maxDate.setDate(today.getDate() + 1);
@@ -184,7 +183,7 @@ export class EntryFormComponent
 
     // Clinic Visit Form Group initialization
     this.clinicVisitFormGroup = this.fb.group({
-      lastClinicVisitDate: ['', Validators.required],
+      lastClinicVisitDate: [''],
       clinicVisitComment: ['', Validators.required],
       nextAppointmentDate: [''],
       facility: [''],
@@ -240,7 +239,9 @@ export class EntryFormComponent
       .get('birthdate')
       ?.valueChanges.pipe(
         distinctUntilChanged(),
-        map((val) => {
+        map((birthdate) => {
+          console.log('VALUE UPDATED', birthdate);
+
           this.updateAge();
 
           const { years, months, days } = this.age;
@@ -251,10 +252,10 @@ export class EntryFormComponent
           } else if (months) {
             this.selectedAgeUnit = 'months';
             return this.ageFormControl.setValue(months);
+          } else {
+            this.selectedAgeUnit = 'days';
+            return this.ageFormControl.setValue(days);
           }
-
-          this.selectedAgeUnit = 'days';
-          return this.ageFormControl.setValue(days);
         })
       )
       .subscribe();
@@ -284,7 +285,7 @@ export class EntryFormComponent
     this.clinicVisitFormGroup.valueChanges
       .pipe(distinctUntilChanged())
       .subscribe((cv: ClinicVisitEntry) => {
-        this.iit = getIITStatus(cv.nextAppointmentDate);
+        this.iit = this.statusServ.getIITStatus(cv.nextAppointmentDate);
       });
 
     // Sex field listener
@@ -395,6 +396,18 @@ export class EntryFormComponent
       )
       .subscribe();
 
+    this.phoneNumberFormControl.valueChanges.pipe(
+      distinctUntilChanged(),
+      map((phoneNumber) => {
+        const phoneNumberInput = this.entryFormGroup.get('phoneNumber');
+        if (phoneNumber) {
+          phoneNumberInput?.setValidators([Validators.required]);
+        } else {
+          phoneNumberInput?.reset();
+          phoneNumberInput?.clearValidators();
+        }
+      })
+    );
     // Selected entry observable
     const selectedUserEntry$ = UAN$.pipe(
       mergeMap((uniqueARTNumber: string): any => {
@@ -493,6 +506,8 @@ export class EntryFormComponent
         this.vlh = vlh;
 
         this.pendingStatusFormControl.setValue(res.pendingStatusDate);
+        this.birthdateKnownCheckboxFormControl.setValue(res.birthdate);
+        this.phoneNumberFormControl.setValue(res.phoneNumber);
 
         // Pushing notification
         this.notifServ.open(UserLoadedAlertComponent, {
@@ -509,6 +524,8 @@ export class EntryFormComponent
         this.entryFormGroup.get('eac3CompletionDate')?.enable();
         this.noViralLoadHasBeenDoneFormControl.enable();
         this.pendingStatusFormControl.reset();
+        this.birthdateKnownCheckboxFormControl.reset();
+        this.phoneNumberFormControl.reset();
         this.ageFormControl.reset();
         this.selectedAgeUnit = 'years';
         this.clinicVisitFormGroup.reset();
@@ -546,8 +563,6 @@ export class EntryFormComponent
     const activeUAN = this.activatedRoute.snapshot.paramMap.get('UAN');
     if (activeUAN) this.uniqueARTNumberFormControl.setValue(activeUAN);
 
-    this.birthdateKnownCheckboxFormControl.setValue(false);
-
     this.isLoading = false;
   }
 
@@ -578,13 +593,13 @@ export class EntryFormComponent
 
   updateEligibilityStatus() {
     console.log(this.age);
-    this.eligibilityStatus = getEligibilityStatus({
+    this.eligibilityStatus = this.statusServ.getEligibilityStatus({
       age: this.age,
       ...this.entryFormGroup.getRawValue(),
       vlh: this.vlh,
     });
 
-    this.nextViralLoadSampleCollectionDate = getNextVLDate({
+    this.nextViralLoadSampleCollectionDate = this.statusServ.getNextVLDate({
       age: this.age,
       ...this.entryFormGroup.getRawValue(),
       vlh: this.vlh,
@@ -646,7 +661,9 @@ export class EntryFormComponent
           .update({
             cvh: firebase.firestore.FieldValue.arrayUnion({
               ...newCV,
-              iitStatus: getIITStatus(newCV.nextAppointmentDate),
+              iitStatus: this.statusServ.getIITStatus(
+                newCV.nextAppointmentDate
+              ),
             }),
           })
           .then(() => {

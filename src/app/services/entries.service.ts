@@ -3,6 +3,8 @@ import { AngularFirestore } from '@angular/fire/firestore';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { distinct, distinctUntilChanged, map } from 'rxjs/operators';
 import { getRegimenByCode } from '../functions/getRegimenByCode';
+import { distinctUntilChangedObj } from '../functions/observable-functions';
+import { Age } from '../interfaces/age';
 import { StatusService } from './status.service';
 
 interface BySex {
@@ -42,10 +44,14 @@ export class EntriesService {
   eligible$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
   ineligible$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
 
-  hvl$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
-  hvl_eac3_completed$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
-  pregnant$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
-  pending$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
+  hvl$: BehaviorSubject<any[]> = new BehaviorSubject([] as any[]);
+  hvl_eac3_completed$: BehaviorSubject<any[]> = new BehaviorSubject(
+    [] as any[]
+  );
+  pregnant$: BehaviorSubject<any[]> = new BehaviorSubject([] as any[]);
+  pending$: BehaviorSubject<any[]> = new BehaviorSubject([] as any[]);
+
+  age$: BehaviorSubject<any> = new BehaviorSubject({} as any);
 
   constructor(
     private afs: AngularFirestore,
@@ -95,7 +101,7 @@ export class EntriesService {
             },
           };
         }),
-        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+        distinctUntilChangedObj()
       )
       .subscribe((allBySex) => {
         this.allBySex$.next(allBySex);
@@ -123,7 +129,7 @@ export class EntriesService {
             },
           };
         }),
-        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+        distinctUntilChangedObj()
       )
       .subscribe((allByRegimen) => this.allByRegimen$.next(allByRegimen));
 
@@ -148,7 +154,7 @@ export class EntriesService {
             },
           };
         }),
-        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+        distinctUntilChangedObj()
       )
       .subscribe((allByPMTCT) => this.allByPMTCT$.next(allByPMTCT));
 
@@ -168,7 +174,7 @@ export class EntriesService {
             ).eligible;
           })
         ),
-        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+        distinctUntilChangedObj()
       )
       .subscribe((entries) => this.eligible$.next(entries));
 
@@ -188,9 +194,28 @@ export class EntriesService {
             ).eligible;
           })
         ),
-        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+        distinctUntilChangedObj()
       )
       .subscribe((ineligible) => this.ineligible$.next(ineligible));
+
+    this.all$
+      .pipe(
+        map((entries) => {
+          const eligible = entries.filter(
+            (entry: any) => entry?.eligibility?.eligible
+          );
+          const ineligible = entries.filter(
+            (entry: any) => !entry?.eligibility?.eligible
+          );
+
+          return {
+            eligible: this.getEntriesByAge(eligible),
+            ineligible: this.getEntriesByAge(ineligible),
+          };
+        }),
+        distinctUntilChangedObj()
+      )
+      .subscribe((age) => this.age$.next(age));
   }
 
   public getEntriesBySex(entries: any[]): BySex {
@@ -217,14 +242,29 @@ export class EntriesService {
       no: entries.filter((entry: any) => entry.pmtct != 'no'),
     };
   }
+
+  public getEntriesByAge(entries: any[]) {
+    return {
+      '<1': filterEntriesByAge(entries, 1, undefined),
+      '1-9': filterEntriesByAge(entries, 1, 9),
+      '10-14': filterEntriesByAge(entries, 10, 14),
+      '15-19': filterEntriesByAge(entries, 15, 19),
+      '20-24': filterEntriesByAge(entries, 20, 24),
+      '25-29': filterEntriesByAge(entries, 25, 29),
+      '30-34': filterEntriesByAge(entries, 30, 34),
+      '35-39': filterEntriesByAge(entries, 35, 39),
+      '40-49': filterEntriesByAge(entries, 40, 49),
+      '50+': filterEntriesByAge(entries, undefined, 50),
+    };
+  }
 }
 
-function isSameDay(first: Date, second: Date) {
-  if (!first || !second) return null;
+function filterEntriesByAge(entries: any[], age1?: number, age2?: number) {
+  if (!age2) return entries.filter((entry: any) => !entry.age?.years);
 
-  return (
-    first.getFullYear() === second.getFullYear() &&
-    first.getMonth() === second.getMonth() &&
-    first.getDate() === second.getDate()
+  if (!age1) return entries.filter((entry: any) => entry.age?.years >= 50);
+
+  return entries.filter(
+    (entry: any) => entry.age?.years >= age1 && entry.age?.years <= age2
   );
 }

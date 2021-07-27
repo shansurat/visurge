@@ -22,7 +22,7 @@ export class FacilitiesService {
       .subscribe();
   }
 
-  getFacilityByCode(code: string): Observable<Facility> {
+  getFacilityByCode(code?: string): Observable<Facility> {
     return this.facilities$.pipe(
       map(
         (facilities) =>

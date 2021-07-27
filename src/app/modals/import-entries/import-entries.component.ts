@@ -3,11 +3,8 @@ import { FormControl } from '@angular/forms';
 import { execFile } from 'child_process';
 import { MdbModalRef, MdbModalService } from 'mdb-angular-ui-kit/modal';
 import { BehaviorSubject, Subject } from 'rxjs';
-import {
-  getEligibilityStatus,
-  getIITStatus,
-} from 'src/app/functions/getStatus';
 import { UserEntry } from 'src/app/interfaces/user-entry';
+import { StatusService } from 'src/app/services/status.service';
 import * as XLSX from 'xlsx';
 import { ImportEntriesPreviewComponent } from '../import-entries-preview/import-entries-preview.component';
 
@@ -31,7 +28,8 @@ export class ImportEntriesComponent implements OnInit {
 
   constructor(
     public modalRef: MdbModalRef<ImportEntriesComponent>,
-    private modalServ: MdbModalService
+    private modalServ: MdbModalService,
+    private statuServ: StatusService
   ) {}
 
   ngOnInit(): void {
@@ -134,8 +132,8 @@ export class ImportEntriesComponent implements OnInit {
         ],
       };
 
-      let eligibility = getEligibilityStatus(convertedEntry);
-      let iit = getIITStatus(
+      let eligibility = this.statuServ.getEligibilityStatus(convertedEntry);
+      let iit = this.statuServ.getIITStatus(
         serialDateToJSDate(entry['Next appointment date (dd/ mm/ yyyy)'])
       );
       convertedData.push({ ...convertedEntry, eligibility, iit });

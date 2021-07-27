@@ -190,7 +190,6 @@ export class EligibleByTimeComponent implements OnInit {
         while (i >= 0) {
           const _day = new Date();
           const day = new Date(_day.setMonth(_day.getMonth() - i));
-          console.log('day', day);
           entriesByMonth.push({
             eligible: entries.filter((entry) => {
               const nextVLDate =

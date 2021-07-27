@@ -34,7 +34,6 @@ export class StatusService {
       eac3Completed,
       vlh,
     } = val;
-    console.log(val);
 
     if (!(ARTStartDate && hvl && regimen && regimenStartTransDate)) return null;
 
@@ -76,31 +75,19 @@ export class StatusService {
     const {
       ARTStartDate,
       age,
-      _hvl,
       _pmtct,
       pmtctEnrollStartDate,
-      regimen,
       regimenStartTransDate,
-      _eac3Completed,
       vlh,
     } = val;
-    console.log(val);
 
     const l = vlh?.length || 0;
 
     const pmtct = _pmtct == 'yes';
-    const eac3Completed = _eac3Completed == 'yes';
-    const hvl = _hvl == 'yes';
 
     const mostCurrentVLDate = l ? vlh[0]?.dateSampleCollected : null;
 
     const isAdult: boolean = (age?.years || 0) >= 19;
-
-    const regimenIsTLD =
-      regimens.find((_regimen) => _regimen.code == regimen)?.category == 'TLD';
-    const regimenIs2ndLine = regimens
-      .find((_regimen) => _regimen.code == regimen)
-      ?.ageCategory.includes('2');
 
     // Setting the latest date
     let latestDate;
@@ -117,12 +104,15 @@ export class StatusService {
     let inc!: number;
 
     if (
-      new Set([ARTStartDate, regimenStartTransDate, pmtctEnrollStartDate])
-        .size == 1 &&
+      new Set([
+        ARTStartDate?.getTime(),
+        regimenStartTransDate?.getTime(),
+        pmtctEnrollStartDate?.getTime(),
+      ]).size == 1 &&
       !l
     ) {
       inc = 90;
-    } else if (l >= 2 && vlh[0].value < 1000 && vlh[1].value) {
+    } else if (l >= 2 && vlh[0].value < 1000 && vlh[1].value && isAdult) {
       inc = 365;
     } else {
       inc = 180;

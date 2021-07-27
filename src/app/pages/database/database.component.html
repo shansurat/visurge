@@ -102,9 +102,23 @@
                         {{ data?.sex | titlecase }}
                       </td>
                       <td>
-                        <ng-container *ngIf="data?.age; else birthdateKnown">{{
-                          data?.age
-                        }}</ng-container>
+                        <ng-container *ngIf="data?.age; else birthdateKnown"
+                          >{{
+                            data?.age?.years
+                              ? data.age.years
+                              : data?.age?.months
+                              ? data?.age?.months
+                              : data.age?.days
+                          }}
+                          {{
+                            data?.age?.years
+                              ? "years"
+                              : data?.age?.months
+                              ? "months"
+                              : "days"
+                          }}
+                          old</ng-container
+                        >
                         <ng-template #birthdateKnown>
                           <ng-container
                             *ngIf="

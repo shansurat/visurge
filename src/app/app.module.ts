@@ -91,6 +91,7 @@ import { NewFacilityComponent } from './modals/new-facility/new-facility.compone
 import { EditFacilityComponent } from './modals/edit-facility/edit-facility.component';
 import { SupportComponent } from './pages/support/support.component';
 import { AbsoluteValuePipe } from './pipes/absolute-value.pipe';
+import { EligibleByTimeExpectedComponent } from './charts/eligible-by-time-expected/eligible-by-time-expected.component';
 
 @NgModule({
   declarations: [
@@ -137,6 +138,7 @@ import { AbsoluteValuePipe } from './pipes/absolute-value.pipe';
     EditFacilityComponent,
     SupportComponent,
     AbsoluteValuePipe,
+    EligibleByTimeExpectedComponent,
   ],
   imports: [
     BrowserModule,

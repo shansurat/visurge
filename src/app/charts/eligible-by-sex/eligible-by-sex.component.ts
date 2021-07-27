@@ -36,6 +36,8 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
   eligibilityChartLabels: string[] = ['Male', 'Female'];
 
   eligibilityChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false,
