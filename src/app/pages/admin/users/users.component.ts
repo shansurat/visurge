@@ -10,6 +10,7 @@ import { User } from 'src/app/interfaces/user';
 import { EditUserComponent } from 'src/app/modals/edit-user/edit-user.component';
 import { NewUserComponent } from 'src/app/modals/new-user/new-user.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { FacilitiesService } from 'src/app/services/facilities.service';
 import { UsersService } from 'src/app/services/users.service';
 
 @Component({
@@ -28,14 +29,22 @@ export class UsersComponent implements OnInit {
     minScrollbarLength: null,
     maxScrollbarLength: null,
     scrollingThreshold: 1000,
-    useBothWheelAxes: false,
+    useBothWheelAxes: true,
     suppressScrollX: false,
     suppressScrollY: false,
     scrollXMarginOffset: 0,
     scrollYMarginOffset: 0,
   };
 
-  headers = ['', 'Admin', 'Username', 'Password', 'Created At', 'Actions'];
+  headers = [
+    '',
+    'Admin',
+    'Username',
+    'Password',
+    'Facility',
+    'Created At',
+    'Actions',
+  ];
 
   constructor(
     private afs: AngularFirestore,
@@ -43,7 +52,8 @@ export class UsersComponent implements OnInit {
     private fns: AngularFireFunctions,
     public authServ: AuthService,
     private notifServ: MdbNotificationService,
-    public usersServ: UsersService
+    public usersServ: UsersService,
+    public facilitiesServ: FacilitiesService
   ) {}
 
   ngOnInit(): void {}
@@ -81,7 +91,6 @@ export class UsersComponent implements OnInit {
 
   toggleUser(user: User) {
     const currState = user?.enabled;
-
     this.afs
       .collection('users')
       .doc(user.uid)

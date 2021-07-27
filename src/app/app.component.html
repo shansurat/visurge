@@ -52,20 +52,23 @@
               }}</span></a
             >
           </mdb-sidenav-item>
-          <hr />
-          <mdb-sidenav-item *ngFor="let link of adminLinks">
-            <a
-              class="sidenav-link"
-              [routerLink]="'admin/' + link.route"
-              routerLinkActive="active"
-              tabindex="-1"
-            >
-              <i [class]="link.icon + ' me-3'"></i
-              ><span slim="false">{{
-                routeToLink(link.route) | titlecase
-              }}</span></a
-            >
-          </mdb-sidenav-item>
+
+          <ng-container *ngIf="authServ.isAdmin$ | async">
+            <hr />
+            <mdb-sidenav-item *ngFor="let link of adminLinks">
+              <a
+                class="sidenav-link"
+                [routerLink]="'admin/' + link.route"
+                routerLinkActive="active"
+                tabindex="-1"
+              >
+                <i [class]="link.icon + ' me-3'"></i
+                ><span slim="false">{{
+                  routeToLink(link.route) | titlecase
+                }}</span></a
+              >
+            </mdb-sidenav-item>
+          </ng-container>
         </ul>
       </div>
     </div>
@@ -105,7 +108,7 @@
 
           <span *ngIf="sidenavHidden">|</span>
           <span class="ms-3 text-dark">{{
-            (activeRoute | async) || "dashboard" | titlecase
+            (activeRoute | async)?.split(";")[0] || "dashboard" | titlecase
           }}</span>
 
           <div class="flex-fill h-100"></div>
@@ -120,7 +123,12 @@
                   id="dropdownMenuLink"
                   (click)="$event.stopPropagation()"
                 >
-                  <i class="flag sd"></i>
+                  <img
+                    src="../assets/south-sudan-flag.jpg"
+                    class="mb-1"
+                    alt="South Sudan Flag"
+                    [ngStyle]="{ 'max-height': '16px' }"
+                  />
                 </a>
                 <ul
                   mdbDropdownMenu

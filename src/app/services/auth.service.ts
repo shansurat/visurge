@@ -12,7 +12,7 @@ import firebase from 'firebase/app';
 })
 export class AuthService {
   isSignedIn$!: Observable<boolean>;
-  isAdmin$!: Observable<boolean>;
+  isAdmin$ = new BehaviorSubject(false);
 
   createUser!: any;
 
@@ -29,16 +29,14 @@ export class AuthService {
       map((authState) => !!authState?.uid)
     );
 
-    this.isAdmin$ = auth.authState.pipe(
-      mergeMap((authState) => {
-        const uid = authState?.uid;
-
-        return this.afs.collection('users').doc(uid).get();
-      }),
-      map((doc) => {
-        return !!(doc.data() as any)?.admin;
-      })
-    );
+    auth.authState
+      .pipe(
+        mergeMap((authState) =>
+          this.afs.collection('users').doc(authState?.uid).get()
+        ),
+        map((doc) => !!(doc.data() as any)?.admin)
+      )
+      .subscribe((isAdmin) => this.isAdmin$.next(isAdmin));
 
     this.user$ = auth.user;
     this.userData$ = this.user$.pipe(

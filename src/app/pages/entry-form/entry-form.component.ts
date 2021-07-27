@@ -63,6 +63,7 @@ import { EntriesService } from 'src/app/services/entries.service';
 import { slideInRightAnimation } from 'mdb-angular-ui-kit/animations';
 import { getAge } from 'src/app/functions/getAge';
 import { Age } from 'src/app/interfaces/age';
+import { FacilitiesService } from 'src/app/services/facilities.service';
 
 @Component({
   selector: 'app-entry-form',
@@ -125,6 +126,7 @@ export class EntryFormComponent
   miniDashboardShown!: boolean;
 
   diffDate = diffDate;
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private cdref: ChangeDetectorRef,
@@ -133,7 +135,9 @@ export class EntryFormComponent
     private afs: AngularFirestore,
     private notifServ: MdbNotificationService,
     private pushNotifServ: PushNotificationService,
-    public entriesServ: EntriesService
+    public entriesServ: EntriesService,
+    public authServ: AuthService,
+    public facilitiesServ: FacilitiesService
   ) {
     let today = new Date();
     this.maxDate.setDate(today.getDate() + 1);
@@ -413,7 +417,8 @@ export class EntryFormComponent
       if (res) {
         this.newEntry = false;
 
-        let { uniqueARTNumber, vlh, entryDate, cvh, eligibility, iit } = res;
+        let { uniqueARTNumber, vlh, entryDate, cvh, eligibility, iit, age } =
+          res;
         this.entryDate = entryDate.toDate();
         this.eligibilityStatus = eligibility;
         this.iit = iit;
@@ -445,6 +450,20 @@ export class EntryFormComponent
         }
         if (res.eac3Completed == 'no')
           this.entryFormGroup.get('eac3CompletionDate')?.disable();
+
+        if (!res.birthdate) {
+          console.log('BIRTHDATE DOES NOT EXIST');
+          if (age.years) {
+            this.ageFormControl.setValue(age.years);
+            this.selectedAgeUnit = 'years';
+          } else if (age.months) {
+            this.ageFormControl.setValue(age.months);
+            this.selectedAgeUnit = 'months';
+          } else if (age.days) {
+            this.ageFormControl.setValue(age.days);
+            this.selectedAgeUnit = 'days';
+          }
+        }
 
         // Seting Regimen
         this.entryFormGroup.get('regimen')?.setValue(res.regimen);
@@ -490,6 +509,8 @@ export class EntryFormComponent
         this.entryFormGroup.get('eac3CompletionDate')?.enable();
         this.noViralLoadHasBeenDoneFormControl.enable();
         this.pendingStatusFormControl.reset();
+        this.ageFormControl.reset();
+        this.selectedAgeUnit = 'years';
         this.clinicVisitFormGroup.reset();
 
         this.vlh = [];
@@ -563,8 +584,11 @@ export class EntryFormComponent
       vlh: this.vlh,
     });
 
-    if (this.eligibilityStatus?.eligible)
-      this.nextViralLoadSampleCollectionDate = getNextVLDate(this.vlh);
+    this.nextViralLoadSampleCollectionDate = getNextVLDate({
+      age: this.age,
+      ...this.entryFormGroup.getRawValue(),
+      vlh: this.vlh,
+    });
   }
 
   strToInt(text: string) {

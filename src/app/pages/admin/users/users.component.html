@@ -111,15 +111,41 @@
                         {{ user.password }}
                       </td>
                       <td>
+                        <div class="d-flex">
+                          <div>
+                            {{
+                              (
+                                facilitiesServ.getFacilityByCode(user.facility)
+                                | async
+                              )?.site || ""
+                            }}
+                          </div>
+                          <div class="flex-fill"></div>
+                          <div
+                            *ngIf="
+                              facilitiesServ.getFacilityByCode(user.facility)
+                                | async
+                            "
+                          >
+                            <div class="badge badge-primary">
+                              {{
+                                (
+                                  facilitiesServ.getFacilityByCode(
+                                    user.facility
+                                  ) | async
+                                )?.code
+                              }}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
                         {{ user.createdAt?.toDate() | date }}
                       </td>
                       <td>
                         <button
                           class="btn btn-primary btn-floating btn-sm"
                           (click)="openEditUserModal(user)"
-                          [disabled]="
-                            (authServ.auth.authState | async)?.uid == user.uid
-                          "
                         >
                           <i class="fa fa-edit"></i>
                         </button>

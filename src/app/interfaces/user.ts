@@ -6,4 +6,5 @@ export interface User {
   password: string;
   uid: string;
   enabled: boolean;
+  facility: string;
 }

@@ -21,24 +21,24 @@
         <button
           type="button"
           class="btn btn-light"
-          (click)="setMode('day')"
-          [ngClass]="{ active: mode == 'day' }"
+          (click)="mode$.next('day')"
+          [ngClass]="{ active: (mode$ | async) == 'day' }"
         >
           Day
         </button>
         <button
           type="button"
           class="btn btn-light"
-          (click)="setMode('week')"
-          [ngClass]="{ active: mode == 'week' }"
+          (click)="mode$.next('week')"
+          [ngClass]="{ active: (mode$ | async) == 'week' }"
         >
           Week
         </button>
         <button
           type="button"
           class="btn btn-light"
-          (click)="setMode('month')"
-          [ngClass]="{ active: mode == 'month' }"
+          (click)="mode$.next('month')"
+          [ngClass]="{ active: (mode$ | async) == 'month' }"
         >
           Month
         </button>

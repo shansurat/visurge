@@ -14,6 +14,7 @@ import { of } from 'rxjs';
 import { debounceTime, map, take } from 'rxjs/operators';
 import { UserEditedALertComponent } from 'src/app/alerts/user-edited-alert/user-edited-alert.component';
 import { User } from 'src/app/interfaces/user';
+import { FacilitiesService } from 'src/app/services/facilities.service';
 
 @Component({
   selector: 'app-edit-user',
@@ -32,7 +33,8 @@ export class EditUserComponent implements OnInit {
     private fns: AngularFireFunctions,
     private fb: FormBuilder,
     public modalRef: MdbModalRef<EditUserComponent>,
-    private notifServ: MdbNotificationService
+    private notifServ: MdbNotificationService,
+    public facilitiesServ: FacilitiesService
   ) {}
 
   ngOnInit(): void {
@@ -50,6 +52,18 @@ export class EditUserComponent implements OnInit {
       ],
       password: [user.password, [Validators.required, Validators.minLength(6)]],
       admin: [user.admin],
+      facility: [user.facility],
+    });
+
+    this.editUserFormGroup.get('admin')?.valueChanges.subscribe((admin) => {
+      if (admin) {
+        this.editUserFormGroup.get('facility')?.reset();
+        this.editUserFormGroup.get('facility')?.clearValidators();
+      } else {
+        this.editUserFormGroup
+          .get('facility')
+          ?.setValidators([Validators.required]);
+      }
     });
   }
 

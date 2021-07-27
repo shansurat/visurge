@@ -322,9 +322,7 @@
                         <div class="row">
                           <div class="col-12">
                             <h5 class="text-center">Viral Load History</h5>
-                            <table
-                              class="table table-sm table-striped text-truncate"
-                            >
+                            <table class="table table-sm table-striped">
                               <thead>
                                 <tr>
                                   <th scope="col">#</th>
@@ -339,11 +337,6 @@
                                     let vl of (selectedEntry$ | async).vlh;
                                     index as i
                                   "
-                                  [ngClass]="{
-                                    'table-danger': (vl?.value || 0) >= 1000,
-                                    'table-primary':
-                                      !vl.value || vl.value < 1000
-                                  }"
                                 >
                                   <th>{{ !i ? "Most Current VL" : i + 1 }}</th>
                                   <td>

@@ -3,6 +3,7 @@ import { AngularFirestore } from '@angular/fire/firestore';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { distinct, distinctUntilChanged, map } from 'rxjs/operators';
 import { getRegimenByCode } from '../functions/getRegimenByCode';
+import { StatusService } from './status.service';
 
 interface BySex {
   male: any[];
@@ -23,7 +24,7 @@ interface ByPMTCT {
   providedIn: 'root',
 })
 export class EntriesService {
-  all$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
+  all$ = new BehaviorSubject([] as any[]);
 
   allBySex$: BehaviorSubject<{ eligible: BySex; ineligible: BySex }> =
     new BehaviorSubject({} as { eligible: BySex; ineligible: BySex });
@@ -46,12 +47,16 @@ export class EntriesService {
   pregnant$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
   pending$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
 
-  constructor(private afs: AngularFirestore) {
+  constructor(
+    private afs: AngularFirestore,
+    private statusServ: StatusService
+  ) {
     afs
       .collection('entries')
       .valueChanges()
+
       .subscribe((entries) => {
-        this.all$.next(entries);
+        this.all$.next(entries as any[]);
 
         this.pregnant$.next(
           entries.filter((entry: any) => entry?.pmtct == 'yes')
@@ -151,9 +156,19 @@ export class EntriesService {
     this.all$
       .pipe(
         map((entries) =>
-          entries.filter((entry: any) => entry?.eligibility?.eligible)
+          entries.filter((entry: any) => {
+            const nextVLDate =
+              entry.nextViralLoadSampleCollectionDate?.toDate();
+
+            return statusServ.getEligibilityStatusByNextVLDate(
+              nextVLDate,
+              entry.hvl == 'yes',
+              entry.eac3Completed == 'yes',
+              entry.vlh
+            ).eligible;
+          })
         ),
-        distinctUntilChanged()
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
       )
       .subscribe((entries) => this.eligible$.next(entries));
 
@@ -161,9 +176,19 @@ export class EntriesService {
     this.all$
       .pipe(
         map((entries) =>
-          entries.filter((entry: any) => !entry?.eligibility?.eligible)
+          entries.filter((entry: any) => {
+            const nextVLDate =
+              entry.nextViralLoadSampleCollectionDate?.toDate();
+
+            return !statusServ.getEligibilityStatusByNextVLDate(
+              nextVLDate,
+              entry.hvl == 'yes',
+              entry.eac3Completed == 'yes',
+              entry.vlh
+            ).eligible;
+          })
         ),
-        distinctUntilChanged()
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
       )
       .subscribe((ineligible) => this.ineligible$.next(ineligible));
   }
@@ -192,4 +217,14 @@ export class EntriesService {
       no: entries.filter((entry: any) => entry.pmtct != 'no'),
     };
   }
+}
+
+function isSameDay(first: Date, second: Date) {
+  if (!first || !second) return null;
+
+  return (
+    first.getFullYear() === second.getFullYear() &&
+    first.getMonth() === second.getMonth() &&
+    first.getDate() === second.getDate()
+  );
 }

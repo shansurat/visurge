@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import firebase from 'firebase/app';
 import {
@@ -12,11 +12,13 @@ import { MdbModalRef } from 'mdb-angular-ui-kit/modal';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { MdbNotificationService } from 'mdb-angular-ui-kit/notification';
 import { NewUserCreatedAlertComponent } from 'src/app/alerts/new-user-created-alert/new-user-created-alert.component';
+import { FacilitiesService } from 'src/app/services/facilities.service';
 
 @Component({
   selector: 'app-new-user',
   templateUrl: './new-user.component.html',
   styleUrls: ['./new-user.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class NewUserComponent implements OnInit {
   isLoading!: boolean;
@@ -26,7 +28,8 @@ export class NewUserComponent implements OnInit {
     private afs: AngularFirestore,
     public modalRef: MdbModalRef<NewUserComponent>,
     private fns: AngularFireFunctions,
-    private notifServ: MdbNotificationService
+    private notifServ: MdbNotificationService,
+    public facilitiesServ: FacilitiesService
   ) {}
 
   ngOnInit(): void {
@@ -38,6 +41,19 @@ export class NewUserComponent implements OnInit {
       ],
       password: ['', [Validators.required]],
       admin: '',
+      enabled: [true],
+      facility: ['', [Validators.required]],
+    });
+
+    this.newUserFormGroup.get('admin')?.valueChanges.subscribe((admin) => {
+      if (admin) {
+        this.newUserFormGroup.get('facility')?.reset();
+        this.newUserFormGroup.get('facility')?.clearValidators();
+      } else {
+        this.newUserFormGroup
+          .get('facility')
+          ?.setValidators([Validators.required]);
+      }
     });
   }
 
@@ -78,7 +94,7 @@ export class NewUserValidators {
           debounceTime(250),
           take(1),
           map((res) => {
-            return res.length ? null : { usernameAlreadyExists: true };
+            return res.length ? { usernameAlreadyExists: true } : null;
           })
         );
     };

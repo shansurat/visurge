@@ -60,8 +60,16 @@
             <div class="card bg-light h-100">
               <div class="d-flex align-content-center h-100 p-3">
                 <div class="d-flex flex-column justify-content-center">
-                  <h5>{{ facilityName }}</h5>
-                  <p class="mb-0 small text-muted">FACILITY NAME</p>
+                  <h5>
+                    {{
+                      (
+                        facilitiesServ.getFacilityByCode(
+                          (authServ.userData$ | async)?.facility
+                        ) | async
+                      )?.site
+                    }}
+                  </h5>
+                  <p class="mb-0 small text-muted">FACILITY</p>
                 </div>
                 <div class="flex-fill"></div>
                 <div class="d-flex flex-column text-end justify-content-center">
@@ -346,7 +354,7 @@
 
               <div class="card-body">
                 <div class="row g-3">
-                  <div class="col-12 col-md-4 col-xl-12">
+                  <div class="col-12 col-xl-12">
                     <mdb-form-control>
                       <mdb-select
                         [filter]="true"
@@ -379,7 +387,7 @@
                   </div>
 
                   <!-- Regimen Start / Transition Date -->
-                  <div class="col-12 col-md-4 col-xl-12">
+                  <div class="col-12 col-xl-12">
                     <mdb-form-control>
                       <input
                         autocomplete="off"
@@ -826,22 +834,60 @@
                     <small class="mb-1"
                       >Next Viral Load Sample Collection Date</small
                     >
-                    <div class="badge badge-primary">
-                      {{ nextViralLoadSampleCollectionDate | date: "longDate" }}
-                      |
-                      {{
-                        diffDate(nextViralLoadSampleCollectionDate, time)
-                          | number: "1.0-0"
-                      }}
-                      DAYS LEFT
-                    </div>
+                    <h4 class="mb-0">
+                      <div
+                        class="badge"
+                        [ngClass]="{
+                          'badge-primary':
+                            diffDate(nextViralLoadSampleCollectionDate, time) >=
+                            0,
+                          'badge-danger':
+                            diffDate(nextViralLoadSampleCollectionDate, time) <
+                            0
+                        }"
+                      >
+                        {{
+                          nextViralLoadSampleCollectionDate | date: "longDate"
+                        }}
+                        |
+                        <ng-container
+                          *ngIf="
+                            diffDate(nextViralLoadSampleCollectionDate, time) ==
+                              0;
+                            else notToday
+                          "
+                        >
+                          "TODAY"
+                        </ng-container>
+
+                        <ng-template #notToday>
+                          {{
+                            diffDate(nextViralLoadSampleCollectionDate, time)
+                              | abs
+                              | number: "1.0-0"
+                          }}
+                          DAYS
+                          {{
+                            diffDate(nextViralLoadSampleCollectionDate, time) >
+                            0
+                              ? "LEFT"
+                              : "PASSED"
+                          }}
+                        </ng-template>
+                      </div>
+                    </h4>
                   </div>
                 </div>
                 <div class="card bg-light shadow-3">
                   <div class="datatable" *ngIf="vlh.length">
                     <div class="datatable-inner position-relative" mdbScrollbar>
                       <table
-                        class="table table-sm datatable-table align-middle"
+                        class="
+                          table table-sm
+                          datatable-table
+                          align-middle
+                          table-striped
+                        "
                       >
                         <thead>
                           <tr>
@@ -853,13 +899,7 @@
                           </tr>
                         </thead>
                         <tbody>
-                          <tr
-                            *ngFor="let vl of vlh; index as i"
-                            [ngClass]="{
-                              'table-danger': (vl?.value || 0) >= 1000,
-                              'table-primary': !vl.value || vl.value < 1000
-                            }"
-                          >
+                          <tr *ngFor="let vl of vlh; index as i">
                             <th>{{ !i ? "Most Current VL" : i + 1 }}</th>
                             <td>
                               <span

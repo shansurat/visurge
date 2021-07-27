@@ -90,6 +90,7 @@ import { FacilitiesComponent } from './pages/admin/facilities/facilities.compone
 import { NewFacilityComponent } from './modals/new-facility/new-facility.component';
 import { EditFacilityComponent } from './modals/edit-facility/edit-facility.component';
 import { SupportComponent } from './pages/support/support.component';
+import { AbsoluteValuePipe } from './pipes/absolute-value.pipe';
 
 @NgModule({
   declarations: [
@@ -135,6 +136,7 @@ import { SupportComponent } from './pages/support/support.component';
     NewFacilityComponent,
     EditFacilityComponent,
     SupportComponent,
+    AbsoluteValuePipe,
   ],
   imports: [
     BrowserModule,

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Facility } from '../interfaces/facility';
 
@@ -20,5 +20,14 @@ export class FacilitiesService {
         map((facilities) => this.facilities$.next(facilities as Facility[]))
       )
       .subscribe();
+  }
+
+  getFacilityByCode(code: string): Observable<Facility> {
+    return this.facilities$.pipe(
+      map(
+        (facilities) =>
+          facilities.find((facility) => facility.code == code) as Facility
+      )
+    );
   }
 }
