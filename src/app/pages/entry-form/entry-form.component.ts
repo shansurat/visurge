@@ -15,27 +15,21 @@ import {
 } from '@angular/forms';
 import { MdbModalService } from 'mdb-angular-ui-kit/modal';
 import { MdbNotificationService } from 'mdb-angular-ui-kit/notification';
-import { MdbStepperOrientation } from 'mdb-angular-ui-kit/stepper';
 import {
   of,
   Subject,
   Subscription,
   timer,
-  fromEvent,
   Observable,
   combineLatest,
-  EMPTY,
   BehaviorSubject,
-  zip,
 } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged,
-  filter,
   map,
   mergeMap,
   share,
-  switchMap,
 } from 'rxjs/operators';
 import { UserLoadedAlertComponent } from 'src/app/alerts/user-loaded-alert/user-loaded-alert.component';
 import { ClinicVisitEntry } from 'src/app/interfaces/clinic-visit-entry';
@@ -106,9 +100,9 @@ export class EntryFormComponent
   entryDate!: Date;
 
   // FormControls
+  uniqueARTNumberFormControl!: FormControl;
   entryFormGroup!: FormGroup;
   clinicVisitFormGroup!: FormGroup;
-  uniqueARTNumberFormControl!: FormControl;
   birthdateKnownCheckboxFormControl = new FormControl();
   ageFormControl = new FormControl();
   noViralLoadHasBeenDoneFormControl: FormControl = new FormControl();
@@ -202,7 +196,7 @@ export class EntryFormComponent
           await this.afs.collection('entries').get().toPromise()
         ).docs.filter((entry) =>
           (entry.data() as UserEntry).uniqueARTNumber.includes(
-            UAN.toUpperCase()
+            UAN?.toUpperCase()
           )
         );
       })
@@ -246,6 +240,7 @@ export class EntryFormComponent
 
           const { years, months, days } = this.age;
 
+          console.log(this.age);
           if (years) {
             this.selectedAgeUnit = 'years';
             return this.ageFormControl.setValue(years);
@@ -465,7 +460,6 @@ export class EntryFormComponent
           this.entryFormGroup.get('eac3CompletionDate')?.disable();
 
         if (!res.birthdate) {
-          console.log('BIRTHDATE DOES NOT EXIST');
           if (age.years) {
             this.ageFormControl.setValue(age.years);
             this.selectedAgeUnit = 'years';
@@ -517,21 +511,7 @@ export class EntryFormComponent
       } else {
         // Setting form to input new entry
         this.newEntry = true;
-        this.entryFormGroup.reset();
-        this.entryFormGroup.get('pmtct')?.enable();
-        this.entryFormGroup.get('pmtctEnrollStartDate')?.enable();
-        this.entryFormGroup.get('eac3Completed')?.enable();
-        this.entryFormGroup.get('eac3CompletionDate')?.enable();
-        this.noViralLoadHasBeenDoneFormControl.enable();
-        this.pendingStatusFormControl.reset();
-        this.birthdateKnownCheckboxFormControl.reset();
-        this.phoneNumberFormControl.reset();
-        this.ageFormControl.reset();
-        this.selectedAgeUnit = 'years';
-        this.clinicVisitFormGroup.reset();
-
-        this.vlh = [];
-        this.entryDate = this.time;
+        this.resetEntryForm();
       }
 
       sexSubscription = sex$?.subscribe();
@@ -592,7 +572,6 @@ export class EntryFormComponent
   }
 
   updateEligibilityStatus() {
-    console.log(this.age);
     this.eligibilityStatus = this.statusServ.getEligibilityStatus({
       age: this.age,
       ...this.entryFormGroup.getRawValue(),
@@ -608,6 +587,23 @@ export class EntryFormComponent
 
   strToInt(text: string) {
     return parseInt(text);
+  }
+
+  resetEntryForm() {
+    this.entryFormGroup.reset();
+    this.entryFormGroup.get('pmtct')?.enable();
+    this.entryFormGroup.get('pmtctEnrollStartDate')?.enable();
+    this.entryFormGroup.get('eac3Completed')?.enable();
+    this.entryFormGroup.get('eac3CompletionDate')?.enable();
+    this.noViralLoadHasBeenDoneFormControl.enable();
+    this.pendingStatusFormControl.reset();
+    this.birthdateKnownCheckboxFormControl.reset();
+    this.phoneNumberFormControl.reset();
+    this.ageFormControl.reset();
+    this.selectedAgeUnit = 'years';
+    this.clinicVisitFormGroup.reset();
+    this.vlh = [];
+    this.entryDate = this.time;
   }
 
   saveEntryForm() {
@@ -687,6 +683,9 @@ export class EntryFormComponent
               data: { uniqueARTNumber: uniqueARTNumber.toUpperCase() },
               autohide: true,
             });
+
+            this.uniqueARTNumberFormControl.reset();
+            this.resetEntryForm();
           });
       });
     });

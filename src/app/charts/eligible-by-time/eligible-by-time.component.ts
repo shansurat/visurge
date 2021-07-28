@@ -47,8 +47,14 @@ export class EligibleByTimeComponent implements OnInit {
   eligibilityChartLabels: string[] = [];
 
   eligibilityChartOptions = {
+    dataLabelsPlugin: true,
+
     responsive: true,
     plugins: {
+      datalabels: {
+        anchor: 'end',
+        align: 'top',
+      },
       legend: {
         display: false,
       },
