@@ -1,7 +1,23 @@
 import { Component, OnInit } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { draw } from 'patternomaly';
+import { hexToRGB } from 'src/app/functions/colors';
 import { distinctUntilChangedObj } from 'src/app/functions/observable-functions';
 import { EntriesService } from 'src/app/services/entries.service';
+
+const ageColors = [
+  '#F44336',
+  '#E91E63',
+  '#9C27B0',
+  '#673AB7',
+  '#3F51B5',
+  '#1E88E5',
+  '#0288D1',
+  '#0097A7',
+  '#26A69A',
+  '#43A047',
+];
+
+const patternType = 'diagonal-right-left';
 
 @Component({
   selector: 'eligible-by-age',
@@ -15,36 +31,16 @@ export class EligibleByAgeComponent implements OnInit {
       data: [''],
       fill: true,
       fillColor: '#fff',
-      backgroundColor: [
-        '#F44336',
-        '#E91E63',
-        '#9C27B0',
-        '#673AB7',
-        '#3F51B5',
-        '#1E88E5',
-        '#0288D1',
-        '#0097A7',
-        '#26A69A',
-        '#43A047',
-      ],
+      backgroundColor: ageColors,
     },
     {
       label: 'Ineligible',
       data: [''],
       fill: true,
       fillColor: '#fff',
-      backgroundColor: [
-        'rgba(244,67,54,.3)',
-        'rgba(233,30,99,.3)',
-        'rgba(156,39,176,.3)',
-        'rgba(103,58,183,.3)',
-        'rgba(63,81,181,.3)',
-        'rgba(30,136,229,.3)',
-        'rgba(2,136,209,.3)',
-        'rgba(0,151,167,.3)',
-        'rgba(38,166,154,.3)',
-        'rgba(67,160,71,.3)',
-      ],
+      backgroundColor: ageColors.map((color, i) =>
+        draw(patternType, hexToRGB(color, 0.3))
+      ),
     },
   ];
 
@@ -64,6 +60,8 @@ export class EligibleByAgeComponent implements OnInit {
   ];
 
   options = {
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false,
@@ -73,6 +71,7 @@ export class EligibleByAgeComponent implements OnInit {
 
   constructor(public entriesServ: EntriesService) {
     entriesServ.age$.pipe(distinctUntilChangedObj()).subscribe((age) => {
+      console.log(age);
       let e: any[] = [];
       Object.values(age.eligible).forEach((entries: any) =>
         e.push(entries.length)

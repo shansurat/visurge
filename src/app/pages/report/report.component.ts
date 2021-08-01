@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { AngularFirestore, DocumentSnapshot } from '@angular/fire/firestore';
 import { FormControl } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import {
   debounceTime,
@@ -28,7 +29,10 @@ export class ReportComponent implements OnInit {
   ageToText = ageToText;
   getRegimenByCode = getRegimenByCode;
 
-  constructor(private afs: AngularFirestore) {
+  constructor(
+    private afs: AngularFirestore,
+    private activatedRoute: ActivatedRoute
+  ) {
     let UAN$: Observable<string> =
       this.uniqueARTNumberFormControl.valueChanges.pipe(
         debounceTime(250),
@@ -62,7 +66,10 @@ export class ReportComponent implements OnInit {
     ).subscribe();
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    const activeUAN = this.activatedRoute.snapshot.paramMap.get('UAN');
+    if (activeUAN) this.uniqueARTNumberFormControl.setValue(activeUAN);
+  }
 
   printIndividualReport() {
     window.print();

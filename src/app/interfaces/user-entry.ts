@@ -1,25 +1,25 @@
-import { Timestamp } from '@google-cloud/firestore';
+import {} from '@google-cloud/firestore';
 import { ClinicVisitEntry } from './clinic-visit-entry';
 import { Regimen } from './regimen';
 import { ViralLoadEntry } from './viral-load-entry';
 
 export interface UserEntry {
-  entryDate: Date | Timestamp;
+  entryDate: Date;
   sex: string;
   uniqueARTNumber: string;
-  birthdate?: Timestamp | Date;
+  birthdate?: Date;
   birthdateKnown?: boolean;
   age?: number;
   ageUnit?: string;
   phoneNumber?: string;
-  ARTStartDate: Timestamp | Date;
+  ARTStartDate: Date;
   regimen: Regimen;
-  regimenStartTransDate: Timestamp | Date;
+  regimenStartTransDate: Date;
   pmtct: boolean;
-  pmtctEnrollStartDate?: Timestamp | Date;
+  pmtctEnrollStartDate?: Date;
   hvl: boolean;
   eac3Completed?: boolean;
-  eac3CompletionDate?: Timestamp | Date;
+  eac3CompletionDate?: Date;
   vlh: ViralLoadEntry[];
   cvh: ClinicVisitEntry[];
 }

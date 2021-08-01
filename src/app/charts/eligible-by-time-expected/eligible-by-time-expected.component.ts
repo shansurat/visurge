@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ChartOptions } from 'chart.js';
 import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { diffDate } from 'src/app/functions/diffDate';
@@ -32,6 +33,7 @@ export class EligibleByTimeExpectedComponent implements OnInit {
     fillColor: '#fff',
     backgroundColor: 'rgba(0,183,74,.3)',
     borderColor: '#00B74A',
+    pointBackGroundColor: 'rgba(0,0,0,0)',
   };
 
   eligibilityChartDatasets = [
@@ -43,9 +45,10 @@ export class EligibleByTimeExpectedComponent implements OnInit {
 
   eligibilityChartLabels: string[] = [];
 
-  eligibilityChartOptions = {
+  eligibilityChartOptions: ChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+
     plugins: {
       legend: {
         display: false,
@@ -59,7 +62,7 @@ export class EligibleByTimeExpectedComponent implements OnInit {
       },
       y: {
         ticks: {
-          min: 0,
+          precision: 0,
           stepSize: 1,
         },
       },

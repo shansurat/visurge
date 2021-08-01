@@ -8,28 +8,32 @@ import { map, mergeMap } from 'rxjs/operators';
 import firebase from 'firebase/app';
 import { UserData } from '../interfaces/user-data';
 import { User } from '../interfaces/user';
+import { FacilitiesService } from './facilities.service';
+import { Facility } from '../interfaces/facility';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  isSignedIn$!: Observable<boolean>;
+  isSignedIn$ = new BehaviorSubject(false);
   isAdmin$ = new BehaviorSubject(false);
 
   createUser!: any;
 
   user$!: Observable<firebase.User | null>;
   userData$: BehaviorSubject<User> = new BehaviorSubject({} as User);
+  currentFacility$ = new BehaviorSubject({} as Facility);
 
   constructor(
     public auth: AngularFireAuth,
     private afs: AngularFirestore,
     private router: Router,
-    private fns: AngularFireFunctions
+    private fns: AngularFireFunctions,
+    private facilitiesServ: FacilitiesService
   ) {
-    this.isSignedIn$ = auth.authState.pipe(
-      map((authState) => !!authState?.uid)
-    );
+    auth.authState
+      .pipe()
+      .subscribe((authState) => this.isSignedIn$.next(!!authState?.uid));
 
     auth.authState
       .pipe(
@@ -49,6 +53,15 @@ export class AuthService {
         })
       )
       .subscribe((userData) => this.userData$.next(userData as User));
+
+    this.userData$
+      .pipe(
+        mergeMap((userData) =>
+          this.facilitiesServ.getFacilityByCode(userData.facility)
+        ),
+        map((facility) => this.currentFacility$.next(facility as Facility))
+      )
+      .subscribe();
   }
 
   signIn({ username, password }: { username: string; password: string }) {

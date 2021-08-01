@@ -1,11 +1,43 @@
-<div class="card">
-  <div class="card-header text-light bg-info text-uppercase text-truncate">
+<div class="card" *ngIf="entriesServ.allByPMTCT$ | async as allByPMTCT">
+  <!-- <div class="card-header text-primary text-uppercase text-truncate">
     Is pregnant/breastfeeding?
-  </div>
+  </div> -->
 
   <div class="card-body">
     <div class="row align-items-center justify-content-center h-100 g-3">
-      <div class="col-12 col-md-6">
+      <div class="col-12">
+        <div class="lead text-center text-truncate">
+          Pregnant/ Breastfeeding
+        </div>
+        <div class="d-flex justify-content-center">
+          <div class="d-flex align-items-center me-3">
+            <i
+              [ngStyle]="{ color: 'rgba(63,81,181,.3)' }"
+              class="fas fa-circle me-1"
+            ></i>
+            <span class="small text-muted">Eligible</span>
+          </div>
+
+          <div class="d-flex align-items-center">
+            <i [ngStyle]="{ color: '#3F51B5' }" class="fas fa-circle me-1"></i>
+            <span class="small text-muted">Ineligible</span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="col-12 position-relative"
+        [ngStyle]="{ 'max-height': '175px', width: '100%' }"
+      >
+        <div
+          class="position-absolute start-50 translate-middle text-center"
+          [ngStyle]="{ top: '75%' }"
+        >
+          <h1 class="mb-0">
+            {{
+              allByPMTCT.eligible.yes.length + allByPMTCT.ineligible.yes.length
+            }}
+          </h1>
+        </div>
         <canvas
           mdbChart
           [type]="'doughnut'"
@@ -13,36 +45,6 @@
           [labels]="eligibilityChartLabels"
           [options]="eligibilityChartOptions"
         ></canvas>
-      </div>
-      <div class="col-12 col-md-6 h-100" [ngStyle]="{ 'max-height': '250px' }">
-        <canvas
-          mdbChart
-          [type]="'bar'"
-          [datasets]="eligibilityChartDatasets_Bar"
-          [labels]="eligibilityChartLabels"
-          [options]="eligibilityChartOptions_Bar"
-        ></canvas>
-      </div>
-      <div class="text-muted mt-1" [ngStyle]="{ 'font-size': '.7em' }">
-        *Bars with the solid color are <b>Eligible</b>, otherwise
-        <b>Ineligible.</b>
-      </div>
-    </div>
-  </div>
-
-  <div class="card-footer">
-    <div class="d-flex justify-content-center">
-      <div class="d-flex align-items-center me-3">
-        <div class="badge-primary badge me-3">YES</div>
-        <div class="lead">
-          {{ (entriesServ.allByPMTCT$ | async)?.eligible?.yes?.length }}
-        </div>
-      </div>
-      <div class="d-flex align-items-center">
-        <div class="badge-danger badge me-3">NO</div>
-        <div class="lead">
-          {{ (entriesServ.allByPMTCT$ | async)?.eligible?.no?.length }}
-        </div>
       </div>
     </div>
   </div>

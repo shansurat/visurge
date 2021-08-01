@@ -1,12 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
 import { MdbModalRef } from 'mdb-angular-ui-kit/modal';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { ClinicVisitEntry } from 'src/app/interfaces/clinic-visit-entry';
-import { UserEntry } from 'src/app/interfaces/user-entry';
-import { Timestamp } from '@google-cloud/firestore';
-import { diffDate } from 'src/app/functions/diffDate';
+import { StatusService } from 'src/app/services/status.service';
 
 @Component({
   selector: 'app-view-cvh',
@@ -14,19 +8,21 @@ import { diffDate } from 'src/app/functions/diffDate';
   styleUrls: ['./view-cvh.component.scss'],
 })
 export class ViewCvhComponent implements OnInit {
-  cvh!: ClinicVisitEntry[];
-  entryDate!: Date;
+  cvh!: any[];
 
+  headers = [
+    '#',
+    'Last Clinic Visit Date',
+    'Next Appointment Date',
+    'IIT Status',
+    'Comment',
+    'Facility',
+    'Date Transferred',
+  ];
   constructor(
     public modalRef: MdbModalRef<ViewCvhComponent>,
-    private afs: AngularFirestore
+    public statusServ: StatusService
   ) {}
 
-  ngOnInit(): void {
-    console.log(this.cvh, this.entryDate);
-  }
-
-  toDate(date: any) {
-    if (date) return date?.toDate();
-  }
+  ngOnInit(): void {}
 }

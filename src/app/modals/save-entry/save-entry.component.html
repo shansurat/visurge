@@ -1,0 +1,21 @@
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">Save {{ UAN }}</h5>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modalRef.close()"
+  ></button>
+</div>
+<div class="modal-body">
+  <div class="note note-danger">Under Development</div>
+  <div class="note note-warning">Will show a summary of changes.</div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="modalRef.close()">
+    Cancel
+  </button>
+  <button type="button" class="btn btn-primary" (click)="modalRef.close(true)">
+    Save {{ UAN }}
+  </button>
+</div>

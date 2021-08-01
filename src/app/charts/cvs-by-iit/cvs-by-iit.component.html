@@ -1,6 +1,26 @@
 <div class="card">
-  <div class="card-header text-uppercase text-light bg-primary">
-    Clinic Visit Status by IIT
+  <div class="card-header text-uppercase">
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="text-primary">Clinic Visit Status by IIT</div>
+      <div class="btn-group btn-group-sm" role="group">
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="showAll()"
+          [ngClass]="{ active: showAllFormControl.value }"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="showAll(false)"
+          [ngClass]="{ active: !showAllFormControl.value }"
+        >
+          Eligible Only
+        </button>
+      </div>
+    </div>
   </div>
 
   <div class="card-body">
@@ -12,28 +32,6 @@
         [labels]="cvsChartLabels"
         [options]="cvsChartOptions"
       ></canvas>
-    </div>
-  </div>
-  <div class="card-footer bg-primary">
-    <div class="d-flex justify-content-center">
-      <div class="btn-group btn-group-sm" role="group">
-        <button
-          type="button"
-          class="btn btn-light"
-          (click)="showAll()"
-          [ngClass]="{ active: showAllFormControl.value }"
-        >
-          All
-        </button>
-        <button
-          type="button"
-          class="btn btn-light"
-          (click)="showAll(false)"
-          [ngClass]="{ active: !showAllFormControl.value }"
-        >
-          Eligible Only
-        </button>
-      </div>
     </div>
   </div>
 </div>

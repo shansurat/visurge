@@ -93,7 +93,7 @@
                     mdbDropdownToggle
                     class="text-info"
                     role="button"
-                    (click)="genLinelist($event, 'pregnant')"
+                    (click)="genLinelist($event, 'pmtct')"
                     ><i class="fas fa-info-circle"></i
                   ></a>
                   <ul
@@ -122,7 +122,9 @@
                   "
                 >
                   <h1 class="mb-0">
-                    {{ (entriesServ.pregnant$ | async)?.length }}
+                    {{
+                      (entriesServ.allByPMTCT$ | async)?.eligible?.yes?.length
+                    }}
                   </h1>
                 </div>
               </div>
@@ -132,8 +134,10 @@
                   role="progressbar"
                   [ngStyle]="{
                     width:
-                      (((entriesServ.pregnant$ | async)?.length || 0) /
-                        ((entriesServ.all$ | async)?.length || 1)) *
+                      (((entriesServ.allByPMTCT$ | async)?.eligible?.yes
+                        ?.length || 0) /
+                        ((entriesServ.allByPMTCT$ | async)?.eligible?.yes
+                          ?.length || 1)) *
                         100 +
                       '%'
                   }"
@@ -310,18 +314,18 @@
           <eligible-by-time></eligible-by-time>
         </div>
         <div class="col-12 col-md-6">
-          <cvs-by-iit></cvs-by-iit>
+          <eligible-by-time-expected></eligible-by-time-expected>
         </div>
         <div class="col-12 col-md-6">
-          <eligible-by-time-expected></eligible-by-time-expected>
+          <cvs-by-iit></cvs-by-iit>
         </div>
         <div class="col-12 col-md-6">
           <eligible-by-age></eligible-by-age>
         </div>
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-8">
           <eligible-by-sex></eligible-by-sex>
         </div>
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-4">
           <eligible-by-pmtct></eligible-by-pmtct>
         </div>
       </div>

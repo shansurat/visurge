@@ -50,6 +50,8 @@ export class EligibleByTimeComponent implements OnInit {
     dataLabelsPlugin: true,
 
     responsive: true,
+    maintainAspectRatio: false,
+
     plugins: {
       datalabels: {
         anchor: 'end',
@@ -61,6 +63,9 @@ export class EligibleByTimeComponent implements OnInit {
     },
     scales: {
       x: {
+        grid: {
+          display: false,
+        },
         ticks: {
           autoSkip: false,
           maxRotation: 90,

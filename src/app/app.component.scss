@@ -31,6 +31,10 @@ nav {
   height: 100vh;
 }
 
+#main-container {
+  width: 100%;
+}
+
 #content-container,
 #sidenav-content-container {
   height: (calc(100vh -70px));

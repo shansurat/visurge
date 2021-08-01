@@ -34,6 +34,7 @@
           #viralLoadValue
           min="0"
           (keypress)="$event.code.includes('Digit')"
+          autocomplete="off"
         />
         <label mdbLabel class="form-label" for="value">Viral Load Value</label>
       </mdb-form-control>
@@ -53,6 +54,7 @@
           id="dateSampleCollectedInput"
           formControlName="dateSampleCollected"
           (click)="dateSampleCollectedDatePicker.open()"
+          autocomplete="off"
         />
         <label mdbLabel for="dateSampleCollectedInput" class="form-label"
           >Date Sample Collected</label

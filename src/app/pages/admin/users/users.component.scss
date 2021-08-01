@@ -1,16 +1,19 @@
-#wrapper {
+#users-wrapper {
   height: 100%;
   overflow: hidden;
-}
-#main-container {
-  overflow-y: auto;
-}
+  #main-container {
+    overflow-y: auto;
+  }
 
-.datatable table td {
-  padding: 0.5rem 1.4rem;
-  vertical-align: middle;
-}
+  .datatable table td {
+    padding: 0.5rem 1.4rem;
+    vertical-align: middle;
+  }
 
-.datatable tbody tr:last-child {
-  height: unset;
+  .datatable tbody tr:last-child {
+    height: unset;
+  }
+  .datatable-pagination {
+    padding: 0 !important;
+  }
 }

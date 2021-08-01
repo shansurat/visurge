@@ -1,0 +1,74 @@
+<div class="modal-header">
+  <h5 class="modal-title">Viral Load History</h5>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modalRef.close()"
+  ></button>
+</div>
+<div class="modal-body p-0">
+  <div class="datatable">
+    <div class="datatable-inner position-relative h-100 w-100" mdbScrollbar>
+      <table
+        class="table datatable-table"
+        mdbTable
+        mdbTableSort="mdbTableSort"
+        #table="mdbTable"
+        #sort="mdbTableSort"
+        [dataSource]="vlh"
+        [sort]="sort"
+        [pagination]="pagination"
+        [fixedHeader]="true"
+        [striped]="true"
+        [sm]="true"
+      >
+        <thead class="datatable-header">
+          <tr>
+            <th
+              *ngFor="let header of headers"
+              [mdbTableSortHeader]="header"
+              scope="col"
+            >
+              {{ header }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let vl of vlh; index as i">
+            <th>{{ !i ? "Most Current VL" : i + 1 }}</th>
+            <td>
+              <span
+                class="badge"
+                [ngClass]="{
+                  'bg-danger': (vl?.value || 0) >= 1000,
+                  'bg-primary': !vl.value || vl.value < 1000
+                }"
+              >
+                {{ (vl?.value || 0) >= 1000 ? "High" : "Low" }}
+                Viral Load</span
+              >
+            </td>
+            <td>
+              {{ vl.value || "Below Detection Level" }}
+            </td>
+            <td>
+              {{ vl.dateSampleCollected | date: "longDate" }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal-footer p-0"
+  [ngClass]="{ 'visually-hidden': vlh.length <= 5 }"
+>
+  <mdb-table-pagination
+    [entries]="5"
+    [entriesOptions]="[5, 10, 20]"
+    #pagination
+  ></mdb-table-pagination>
+</div>

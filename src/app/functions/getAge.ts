@@ -1,6 +1,8 @@
 import { Age } from '../interfaces/age';
 
 export function getAge(birthDate: Date) {
+  if (!birthDate) return null;
+
   let today = new Date();
   let y = today.getFullYear() - birthDate.getFullYear();
   let m = today.getMonth() - birthDate.getMonth();
@@ -18,16 +20,16 @@ export function getAge(birthDate: Date) {
 
   if (m === 0 && today.getDate() < birthDate.getDate()) y--;
 
-  return { years: y, months: m, days: d } as Age;
+  return { year: y, month: m, day: d } as Age;
 }
 
 export function ageToText(age: Age, rounded: boolean = false): string {
-  const { years, months, days } = age;
+  const { year, month, day } = age;
 
   if (rounded) {
-    if (years) return `${years} year${years > 0 ? 's' : ''} old`;
-    if (months) return `${years} month${months > 0 ? 's' : ''} old`;
-    if (days) return `${years} day${days > 0 ? 's' : ''} old`;
+    if (year) return `${year} year${year > 0 ? 's' : ''} old`;
+    if (month) return `${year} month${month > 0 ? 's' : ''} old`;
+    if (day) return `${year} day${day > 0 ? 's' : ''} old`;
   }
   return '';
 }

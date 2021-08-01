@@ -13,6 +13,7 @@ import { AuthService } from './services/auth.service';
 import firebase from 'firebase/app';
 import { PushNotification } from './interfaces/push-notification';
 import { PushNotificationService } from './services/push-notification.service';
+import { LayoutService } from './services/layout.service';
 
 @Component({
   selector: 'app-root',
@@ -54,7 +55,8 @@ export class AppComponent {
     private router: Router,
     public authServ: AuthService,
     private afs: AngularFirestore,
-    private pushNotifServ: PushNotificationService
+    private pushNotifServ: PushNotificationService,
+    public layoutServ: LayoutService
   ) {
     this.notifs = pushNotifServ.pushNotifs$;
   }

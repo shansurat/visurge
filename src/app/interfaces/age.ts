@@ -3,7 +3,7 @@ interface _Age {
 }
 
 export interface Age extends _Age {
-  years?: number;
-  months?: number;
-  days?: number;
+  year?: number;
+  month?: number;
+  day?: number;
 }

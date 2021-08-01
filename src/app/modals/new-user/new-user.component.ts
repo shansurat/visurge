@@ -40,20 +40,9 @@ export class NewUserComponent implements OnInit {
         [NewUserValidators.usernameExistence(this.afs)],
       ],
       password: ['', [Validators.required]],
-      admin: '',
+      admin: [''],
       enabled: [true],
       facility: ['', [Validators.required]],
-    });
-
-    this.newUserFormGroup.get('admin')?.valueChanges.subscribe((admin) => {
-      if (admin) {
-        this.newUserFormGroup.get('facility')?.reset();
-        this.newUserFormGroup.get('facility')?.clearValidators();
-      } else {
-        this.newUserFormGroup
-          .get('facility')
-          ?.setValidators([Validators.required]);
-      }
     });
   }
 

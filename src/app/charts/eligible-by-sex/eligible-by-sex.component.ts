@@ -1,12 +1,9 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
-import { FormControl } from '@angular/forms';
-import { Chart } from 'chart.js';
 import { MdbChartDirective } from 'mdb-angular-ui-kit/charts';
-import { combineLatest, interval, Observable } from 'rxjs';
-import { distinctUntilChanged, map } from 'rxjs/operators';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { draw } from 'patternomaly';
+import { hexToRGB } from 'src/app/functions/colors';
 import { EntriesService } from 'src/app/services/entries.service';
+
 @Component({
   selector: 'eligible-by-sex',
   templateUrl: './eligible-by-sex.component.html',
@@ -15,7 +12,7 @@ import { EntriesService } from 'src/app/services/entries.service';
 export class EligibleBySexComponent implements OnInit, AfterViewInit {
   @ViewChild('chart') mdbChart!: MdbChartDirective;
 
-  eligibilityChartDatasets: any[] = [
+  eligibilityChartDatasetsForMale: any[] = [
     {
       data: [],
       fill: true,
@@ -24,7 +21,7 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
     },
   ];
 
-  eligibilityChartDatasets_Bar: any[] = [
+  eligibilityChartDatasetsForFemale: any[] = [
     {
       data: [],
       fill: true,
@@ -33,19 +30,26 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
     },
   ];
 
-  eligibilityChartLabels: string[] = ['Male', 'Female'];
+  eligibilityChartDatasetsForSex: any[] = [
+    {
+      label: 'Male',
+      data: [],
+      fill: true,
+      fillColor: '#fff',
+      backgroundColor: ['#1266F1', '#F93154'],
+    },
+    {
+      label: 'Female',
+      data: [],
+      fill: true,
+      fillColor: '#fff',
+      backgroundColor: ['#1266F1', '#F93154'],
+    },
+  ];
+
+  eligibilityChartLabels: string[] = ['Eligible', 'Ineligible'];
 
   eligibilityChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-  };
-
-  eligibilityChartOptions_Bar = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -59,43 +63,64 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.entriesServ.allBySex$.subscribe((allBySex) => {
-      this.eligibilityChartDatasets = [
+      this.eligibilityChartDatasetsForMale = [
         {
           data: [
             allBySex.eligible.male.length,
-            allBySex.eligible.female.length,
+            allBySex.ineligible.male.length,
           ],
           fill: true,
           fillColor: '#fff',
-          backgroundColor: ['#1266F1', '#F93154'],
+          backgroundColor: [
+            draw('diagonal-right-left', hexToRGB('#2196F3', 0.3)),
+            '#2196F3',
+          ],
         },
       ];
 
-      this.eligibilityChartDatasets_Bar = [
+      this.eligibilityChartDatasetsForFemale = [
         {
-          label: ['Eligible'],
           data: [
-            allBySex.eligible.male.length,
             allBySex.eligible.female.length,
+            allBySex.ineligible.female.length,
           ],
           fill: true,
           fillColor: '#fff',
-          backgroundColor: ['#1266F1', '#F93154'],
+          backgroundColor: [
+            draw('diagonal-right-left', hexToRGB('#F44336', 0.3)),
+            '#F44336',
+          ],
         },
+      ];
+
+      this.eligibilityChartDatasetsForSex = [
         {
           label: ['Ineligible'],
-
           data: [
             allBySex.ineligible.male.length,
             allBySex.ineligible.female.length,
           ],
           fill: true,
           fillColor: '#fff',
-          backgroundColor: ['rgba(18,102,241,.3)', 'rgba(249,49,84,.3)'],
+          backgroundColor: ['#2196F3', '#F44336'],
+        },
+        {
+          label: ['Eligible'],
+
+          data: [
+            allBySex.eligible.male.length,
+            allBySex.eligible.female.length,
+          ],
+          fill: true,
+          fillColor: '#fff',
+          backgroundColor: [
+            draw('diagonal-right-left', hexToRGB('#2196F3', 0.3)),
+            draw('diagonal-right-left', hexToRGB('#F44336', 0.3)),
+          ],
         },
       ];
 
-      this.eligibilityChartLabels = ['Male', 'Female'];
+      this.eligibilityChartLabels = ['Eligible', 'Ineligible'];
     });
   }
 

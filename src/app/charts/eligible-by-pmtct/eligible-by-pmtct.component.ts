@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
+import { draw } from 'patternomaly';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { hexToRGB } from 'src/app/functions/colors';
 import { EntriesService } from 'src/app/services/entries.service';
 
 @Component({
@@ -15,32 +17,18 @@ export class EligibleByPMTCTComponent implements OnInit {
       data: [],
       fill: true,
       fillColor: '#fff',
-      backgroundColor: ['#1266F1', '#F93154'],
+      backgroundColor: [
+        '#3F51B5',
+        draw('diagonal-right-left', hexToRGB('#3F51B5', 0.3)),
+      ],
     },
   ];
 
-  eligibilityChartDatasets_Bar: any[] = [
-    {
-      data: [],
-      fill: true,
-      fillColor: '#fff',
-      backgroundColor: ['#1266F1', '#F93154'],
-    },
-  ];
-
-  eligibilityChartLabels: string[] = ['Yes', 'No'];
+  eligibilityChartLabels: string[] = [];
 
   eligibilityChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-  };
-
-  eligibilityChartOptions_Bar = {
+    rotation: -90,
+    circumference: 180,
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -54,37 +42,12 @@ export class EligibleByPMTCTComponent implements OnInit {
 
   ngOnInit() {
     this.entriesServ.allByPMTCT$.subscribe((allByPMTCT) => {
-      this.eligibilityChartDatasets = [
-        {
-          data: [allByPMTCT.eligible.yes.length, allByPMTCT.eligible.no.length],
-          fill: true,
-          fillColor: '#fff',
-          backgroundColor: ['#1266F1', '#F93154'],
-        },
+      this.eligibilityChartDatasets[0].data = [
+        allByPMTCT.ineligible.yes.length,
+        allByPMTCT.eligible.yes.length,
       ];
 
-      this.eligibilityChartDatasets_Bar = [
-        {
-          label: ['Ineligible'],
-          data: [allByPMTCT.eligible.yes.length, allByPMTCT.eligible.no.length],
-          fill: true,
-          fillColor: '#fff',
-          backgroundColor: ['#1266F1', '#F93154'],
-        },
-        {
-          label: ['Eligible'],
-
-          data: [
-            allByPMTCT.ineligible.yes.length,
-            allByPMTCT.ineligible.no.length,
-          ],
-          fill: true,
-          fillColor: '#fff',
-          backgroundColor: ['rgba(18,102,241,.3)', 'rgba(249,49,84,.3)'],
-        },
-      ];
-
-      this.eligibilityChartLabels = ['Yes', 'No'];
+      this.eligibilityChartLabels = ['Ineligible', 'Eligible'];
     });
   }
 }

@@ -1,1 +1,62 @@
-<p>settings works!</p>
+<div id="settings-wrapper" class="d-flex">
+  <div
+    class="d-flex flex-column position-relative flex-fill"
+    style="max-width: 100%"
+  >
+    <div id="main-container" class="p-4 flex-fill d-flex flex-column">
+      <div class="container-fluid mb-3">
+        <mdb-tabs [pills]="true" [vertical]="true">
+          <mdb-tab title="Profile"
+            ><ng-container *ngTemplateOutlet="profileSettings"></ng-container>
+          </mdb-tab>
+          <mdb-tab title="Account">Tab content 2</mdb-tab>
+          <mdb-tab title="Entry Form">Tab content 3</mdb-tab>
+        </mdb-tabs>
+      </div>
+      <!-- <div class="container-fluid flex-fill" [ngStyle]="{ overflow: 'hidden' }">
+        <div class="card h-100"></div>
+      </div> -->
+    </div>
+  </div>
+</div>
+
+<ng-template #profileSettings>
+  <div class="card">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-6">
+          <div class="row g-3">
+            <div class="col-12">
+              <mdb-form-control>
+                <input
+                  mdbInput
+                  type="text"
+                  id="fullName"
+                  class="form-control"
+                />
+                <label mdbLabel class="form-label" for="fullName"
+                  >Full Name</label
+                >
+              </mdb-form-control>
+            </div>
+            <div class="col-12">
+              <mdb-form-control>
+                <input
+                  mdbInput
+                  type="text"
+                  id="username"
+                  class="form-control"
+                />
+                <label mdbLabel class="form-label" for="username"
+                  >Username</label
+                >
+              </mdb-form-control>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6"></div>
+      </div>
+    </div>
+  </div>
+</ng-template>

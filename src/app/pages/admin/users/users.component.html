@@ -1,4 +1,4 @@
-<div id="wrapper" class="d-flex">
+<div id="users-wrapper" class="d-flex">
   <div
     class="d-flex flex-column position-relative flex-fill"
     style="max-width: 100%"
@@ -6,7 +6,7 @@
     <div id="main-container" class="p-4 flex-fill d-flex flex-column">
       <div class="container-lg mb-3">
         <div class="card">
-          <div class="card-body">
+          <div class="card-header">
             <div class="d-flex align-items-center">
               <mdb-form-control>
                 <input mdbInput type="text" id="filter" class="form-control" />
@@ -35,7 +35,9 @@
                   {{ (usersServ.users$ | async)?.length || 0 }} Users
                 </h4>
               </div>
-              <div></div>
+              <div>
+                <mdb-table-pagination #pagination></mdb-table-pagination>
+              </div>
             </div>
           </div>
           <div
@@ -164,10 +166,6 @@
                 </table>
               </div>
             </div>
-          </div>
-
-          <div class="card-footer">
-            <mdb-table-pagination #pagination></mdb-table-pagination>
           </div>
         </div>
       </div>

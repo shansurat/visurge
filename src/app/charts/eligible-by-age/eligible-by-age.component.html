@@ -1,53 +1,12 @@
 <div class="card h-100">
-  <div class="card-header text-uppercase text-light bg-primary">Age</div>
-
+  <div class="card-header text-uppercase text-primary">Eligible By Age</div>
   <div class="card-body">
-    <div class="row g-3">
-      <!-- <div class="col-12">
-        <div
-          class="progress rounded"
-          [ngStyle]="{ height: '35px' }"
-          *ngIf="entriesServ.age$ | async"
-        >
-          <ng-container *ngFor="let l of labels">
-            <div
-              class="progress-bar"
-              role="progressbar"
-              [ngStyle]="{
-                width:
-                  (((entriesServ.age$ | async).eligible[l.label]?.length || 0) /
-                    ((entriesServ.eligible$ | async)?.length || 0)) *
-                    100 +
-                  '%',
-
-                'background-color': l.color
-              }"
-              *ngIf="(this.entriesServ.age$ | async).eligible[l.label]"
-            >
-              {{ l.label }} ({{
-                (((entriesServ.age$ | async).eligible[l.label]?.length || 0) /
-                  ((entriesServ.eligible$ | async)?.length || 0)) *
-                  100 | number: "1.0-2"
-              }}%)
-            </div>
-          </ng-container>
-        </div>
-      </div> -->
-
-      <div class="col-12">
-        <canvas
-          mdbChart
-          [type]="'bar'"
-          [datasets]="datasets"
-          [labels]="chartLabels"
-          [options]="options"
-        ></canvas>
-
-        <div class="text-muted mt-1" [ngStyle]="{ 'font-size': '.7em' }">
-          *Bars with the solid color are <b>Eligible</b>, otherwise
-          <b>Ineligible.</b>
-        </div>
-      </div>
-    </div>
+    <canvas
+      mdbChart
+      [type]="'bar'"
+      [datasets]="datasets"
+      [labels]="chartLabels"
+      [options]="options"
+    ></canvas>
   </div>
 </div>

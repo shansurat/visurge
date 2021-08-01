@@ -1,28 +1,118 @@
-<div id="wrapper" class="d-flex">
+<div id="database-wrapper" class="d-flex">
   <div
     class="d-flex flex-column position-relative flex-fill"
     style="max-width: 100%"
   >
     <div id="main-container" class="p-4 flex-fill d-flex flex-column">
       <div class="container-fluid mb-3">
-        <div class="d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center">
-            <mdb-form-control>
-              <input mdbInput type="text" id="form1" class="form-control" />
-              <label mdbLabel class="form-label" for="form1">Filter</label>
-            </mdb-form-control>
+        <div class="card">
+          <div class="card-header">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary btn-floating"
+                  [ngClass]="{
+                    'btn-outline-primary': !(advancedFilter | async),
+                    'btn-primary': (advancedFilter | async)
+                  }"
+                  (click)="advancedFilter.next(!advancedFilter.getValue())"
+                >
+                  <i
+                    class="fas fa-angle-double-down"
+                    [ngStyle]="{
+                      transition: 'transform 0.3s',
+                      transform:
+                        (advancedFilter | async) ? 'rotate(180deg)' : 'none'
+                    }"
+                  ></i>
+                </button>
+
+                <mdb-form-control
+                  class="ms-3"
+                  *ngIf="!(advancedFilter | async)"
+                  [@zoomInEnter]
+                  [@zoomOutLeave]
+                >
+                  <input
+                    mdbInput
+                    type="text"
+                    class="form-control form-control-sm"
+                    placeholder="Filter"
+                    [formControl]="filterFormControl"
+                    (keyup)="search()"
+                  />
+                </mdb-form-control>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-success me-3">
+                  Export Entries
+                </button>
+                <button
+                  class="btn btn-sm btn-secondary me-3"
+                  (click)="openImportEntriesModal()"
+                  *ngIf="authServ.isAdmin$ | async"
+                >
+                  Import Entries
+                </button>
+                <button class="btn btn-sm btn-primary" routerLink="/entry-form">
+                  Add New Entry
+                </button>
+              </div>
+            </div>
           </div>
-          <div>
-            <button
-              class="btn btn-secondary me-3"
-              (click)="openImportEntriesModal()"
-              *ngIf="authServ.isAdmin$ | async"
-            >
-              Import Entries
-            </button>
-            <button class="btn btn-primary" routerLink="/entry-form">
-              Add New Entry
-            </button>
+          <div
+            class="card-footer"
+            *ngIf="advancedFilter | async"
+            [@zoomInEnter]
+          >
+            <div>
+              <div class="d-flex">
+                <div class="input-group input-group-sm">
+                  <div class="input-group-text">
+                    <input
+                      class="form-check-input mt-0"
+                      type="checkbox"
+                      value=""
+                      aria-label="Checkbox for following text input"
+                    />
+                  </div>
+                  <div class="input-group-text">Entry Date</div>
+                  <mdb-form-control>
+                    <input
+                      mdbInput
+                      [mdbDatepicker]="entryDateFrom"
+                      type="text"
+                      class="form-control form-control-sm"
+                      id="exampleDatepicker"
+                      (click)="entryDateFrom.open()"
+                    />
+                    <label mdbLabel for="exampleDatepicker" class="form-label"
+                      >From</label
+                    >
+                    <mdb-datepicker
+                      #entryDateFrom="mdbDatepicker"
+                    ></mdb-datepicker>
+                  </mdb-form-control>
+                  <mdb-form-control>
+                    <input
+                      mdbInput
+                      [mdbDatepicker]="entryDateTo"
+                      type="text"
+                      class="form-control form-control-sm"
+                      id="exampleDatepicker"
+                      (click)="entryDateTo.open()"
+                    />
+                    <label mdbLabel for="exampleDatepicker" class="form-label"
+                      >To</label
+                    >
+                    <mdb-datepicker
+                      #entryDateTo="mdbDatepicker"
+                    ></mdb-datepicker>
+                  </mdb-form-control>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -38,7 +128,15 @@
                   {{ (entriesServ.eligible$ | async)?.length || 0 }} ELIGIBLE
                 </div>
               </div>
-              <div></div>
+              <div>
+                <mdb-table-pagination
+                  #pagination
+                  [ngClass]="{
+                    'visually-hidden':
+                      ((entriesServ.all$ | async)?.length || 0) < 10
+                  }"
+                ></mdb-table-pagination>
+              </div>
             </div>
           </div>
           <div
@@ -60,7 +158,7 @@
                 style="position: relative; width: 100%; height: 100%"
               >
                 <table
-                  class="table table-sm datatable-table"
+                  class="table datatable-table"
                   mdbTable
                   mdbTableSort
                   [fixedHeader]="true"
@@ -68,7 +166,13 @@
                   #sort="mdbTableSort"
                   [dataSource]="(entriesServ.all$ | async) || []"
                   [pagination]="pagination"
+                  [responsive]="true"
                   [sort]="sort"
+                  [filterFn]="
+                    (advancedFilter | async) ? advancedFilterFn : filterFn
+                  "
+                  [sm]="true"
+                  [striped]="true"
                 >
                   <thead class="datatable-header">
                     <tr>
@@ -85,10 +189,22 @@
                   <tbody class="datatable-body">
                     <tr *ngFor="let data of table.data" scope="row">
                       <td>
+                        <!-- {{ data?.entryDate }} -->
                         {{ data?.entryDate?.toDate() | date: "longDate" }}
                       </td>
                       <td>
-                        {{ data?.facilityName }}
+                        <ng-container *ngIf="data?.facility; else noFacility">
+                          {{
+                            (
+                              facilitiesServ.getFacilityByCode(data.facility)
+                              | async
+                            )?.site
+                          }}
+                        </ng-container>
+
+                        <ng-template #noFacility>
+                          <div class="badge badge-danger">Not provided</div>
+                        </ng-template>
                       </td>
                       <td>
                         <div class="badge badge-info">
@@ -102,77 +218,25 @@
                         {{ data?.sex | titlecase }}
                       </td>
                       <td>
-                        <ng-container *ngIf="data?.age; else birthdateKnown"
-                          >{{
-                            data?.age?.years
-                              ? data.age.years
-                              : data?.age?.months
-                              ? data?.age?.months
-                              : data.age?.days
-                          }}
-                          {{
-                            data?.age?.years
-                              ? "years"
-                              : data?.age?.months
-                              ? "months"
-                              : "days"
-                          }}
-                          old</ng-container
+                        <ng-container
+                          *ngIf="
+                            getAge(data.birthdate?.toDate()) as age;
+                            else noBirthdate
+                          "
                         >
-                        <ng-template #birthdateKnown>
-                          <ng-container
-                            *ngIf="
-                              getAge(data?.birthdate?.toDate())?.years ||
-                                getAge(data?.birthdate?.toDate())?.months;
-                              else daysOnly
-                            "
-                          >
-                            {{
-                              getAge(data?.birthdate?.toDate())?.years
-                                ? getAge(data?.birthdate?.toDate())?.years +
-                                  " year"
-                                : ""
-                            }}{{
-                              getAge(data?.birthdate?.toDate())?.months || 0 > 1
-                                ? "s"
-                                : ""
-                            }}
-                            {{
-                              getAge(data?.birthdate?.toDate())?.years &&
-                              getAge(data?.birthdate?.toDate())?.months
-                                ? " and "
-                                : ""
-                            }}
-                            {{
-                              getAge(data?.birthdate?.toDate())?.months
-                                ? getAge(data?.birthdate?.toDate())?.months +
-                                  " month"
-                                : ""
-                            }}{{
-                              getAge(data?.birthdate?.toDate())?.months || 0 > 1
-                                ? "s"
-                                : ""
-                            }}</ng-container
-                          >
-                          <ng-template #daysOnly>
-                            Approx.
-                            {{
-                              getAge(data?.birthdate?.toDate())?.days
-                                ? getAge(data?.birthdate?.toDate())?.days +
-                                  " day"
-                                : ""
-                            }}{{
-                              getAge(data?.birthdate?.toDate())?.days || 0 > 1
-                                ? "s"
-                                : ""
-                            }}
-                          </ng-template>
-
+                          {{ ageToText(age, true) }}
+                        </ng-container>
+                        <ng-template #noBirthdate>
+                          {{ data?.age.age }} {{ data?.age.unit
+                          }}{{ data?.age.age > 1 ? "s " : " " }}
                           old
                         </ng-template>
                       </td>
-                      <td>{{ data?.phoneNumber }}</td>
-
+                      <td>
+                        <ng-container *ngIf="data?.phoneNumber; else unknown">
+                          {{ data?.phoneNumber }}
+                        </ng-container>
+                      </td>
                       <td>
                         <div
                           class="badge me-3"
@@ -207,19 +271,37 @@
                       </td>
                       <td>{{ data?.hvl | titlecase }}</td>
                       <td>
-                        {{
-                          data?.eac3Completed == null
-                            ? "N/A"
-                            : (data?.eac3Completed | titlecase)
-                        }}
+                        <ng-container
+                          *ngIf="
+                            data?.eac3Completed as eac3Completed;
+                            else notApplicable
+                          "
+                        >
+                          {{ eac3Completed | titlecase }}
+                        </ng-container>
                       </td>
                       <td>
-                        {{
-                          data?.eac3CompletionDate == null
-                            ? "N/A"
-                            : (data?.eac3CompletionDate?.toDate()
-                              | date: "longDate")
-                        }}
+                        <ng-container
+                          *ngIf="
+                            data?.eac3CompletionDate as eac3Date;
+                            else notApplicable
+                          "
+                        >
+                          {{ eac3Date.toDate() | date: "longDate" }}
+                        </ng-container>
+                      </td>
+                      <td>
+                        {{ !!data?.pendingStatusDate ? "Yes" : "No" }}
+                      </td>
+                      <td>
+                        <ng-container
+                          *ngIf="
+                            data?.pendingStatusDate as pendingDate;
+                            else notApplicable
+                          "
+                        >
+                          {{ pendingDate.toDate() | date: "longDate" }}
+                        </ng-container>
                       </td>
                       <td>
                         <div
@@ -236,29 +318,63 @@
                           }}
                         </div>
                       </td>
-                      <td>
-                        <button
-                          type="button"
-                          class="btn btn-primary btn-sm"
-                          (click)="loadEntry(data?.uniqueARTNumber)"
-                        >
-                          Edit
-                        </button>
+                      <td class="actions">
+                        <div class="d-flex">
+                          <button
+                            type="button"
+                            class="btn btn-primary btn-rounded btn-sm me-3"
+                            (click)="viewVLH(data?.vlh)"
+                            [disabled]="!data?.vlh.length"
+                            mdbTooltip="{{
+                              data?.vlh.length || 'No'
+                            }} viral load{{ data?.vlh.length > 1 ? 's' : '' }}."
+                          >
+                            VLH
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-primary btn-rounded btn-sm me-3"
+                            (click)="viewCVH(data?.cvh)"
+                            mdbTooltip="{{
+                              data?.vlh.length || 'No'
+                            }} clinic visit{{
+                              data?.cvh.length > 1 ? 's' : ''
+                            }}."
+                          >
+                            CVH
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-success btn-floating btn-sm me-3"
+                            (click)="generateReport(data?.uniqueARTNumber)"
+                            mdbTooltip="Generate Report"
+                            mdbRipple
+                          >
+                            <i class="fas fa-book"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-primary btn-floating btn-sm me-3"
+                            (click)="loadEntry(data?.uniqueARTNumber)"
+                            mdbTooltip="Edit"
+                            mdbRipple
+                          >
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-danger btn-floating btn-sm"
+                            mdbTooltip="Delete"
+                            mdbRipple
+                            disabled
+                          >
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
                 </table>
-              </div>
-            </div>
-          </div>
-
-          <div class="card-footer">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <button class="btn btn-success">Export Entries</button>
-              </div>
-              <div>
-                <mdb-table-pagination #pagination></mdb-table-pagination>
               </div>
             </div>
           </div>
@@ -267,3 +383,11 @@
     </div>
   </div>
 </div>
+
+<ng-template #notApplicable>
+  <div class="badge badge-warning">Not Applicable</div>
+</ng-template>
+
+<ng-template #unknown>
+  <div class="badge badge-dark">Unknown</div>
+</ng-template>

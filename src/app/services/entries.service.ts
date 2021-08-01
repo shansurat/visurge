@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
+import { AngularFireFunctions } from '@angular/fire/functions';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { distinct, distinctUntilChanged, map } from 'rxjs/operators';
 import { getRegimenByCode } from '../functions/getRegimenByCode';
@@ -55,12 +56,12 @@ export class EntriesService {
 
   constructor(
     private afs: AngularFirestore,
-    private statusServ: StatusService
+    private statusServ: StatusService,
+    private fns: AngularFireFunctions
   ) {
     afs
       .collection('entries')
       .valueChanges()
-
       .subscribe((entries) => {
         this.all$.next(entries as any[]);
 
@@ -257,14 +258,32 @@ export class EntriesService {
       '50+': filterEntriesByAge(entries, undefined, 50),
     };
   }
+
+  // Get Individual Entry
+
+  public getEntry$(UAN: string) {
+    return this.all$.pipe(
+      map((all) => all.find((entry) => entry.uniqueARTNumber == UAN))
+    );
+  }
+
+  public getEntryId$(UAN: string) {
+    return this.getEntry$(UAN).pipe(map((entry: any) => entry.id));
+  }
 }
 
 function filterEntriesByAge(entries: any[], age1?: number, age2?: number) {
-  if (!age2) return entries.filter((entry: any) => !entry.age?.years);
+  if (!age2) return entries.filter((entry: any) => entry.age.unit != 'year');
 
-  if (!age1) return entries.filter((entry: any) => entry.age?.years >= 50);
+  if (!age1)
+    return entries.filter(
+      (entry: any) => entry.age.unit != 'year' && entry.age.age >= 50
+    );
 
   return entries.filter(
-    (entry: any) => entry.age?.years >= age1 && entry.age?.years <= age2
+    (entry: any) =>
+      entry.age.unit == 'year' &&
+      entry.age?.age >= age1 &&
+      entry.age?.age <= age2
   );
 }

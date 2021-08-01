@@ -6,7 +6,7 @@
           <div class="row g-3">
             <div class="col-12">
               <div class="card">
-                <div class="card-body">
+                <div class="card-header">
                   <div class="row justify-content-between">
                     <div class="col-5">
                       <mdb-form-control>
@@ -53,7 +53,7 @@
               </div>
             </div>
 
-            <div class="col-12" *ngIf="selectedEntry$ | async">
+            <div class="col-12" *ngIf="selectedEntry$ | async as entry">
               <div class="card" [ngStyle]="{ overflow: 'hidden' }">
                 <div class="card-body p-0">
                   <div class="printContainer bg-light h-100">
@@ -93,24 +93,20 @@
                       <div class="row">
                         <div class="col-4">
                           <h5>
-                            {{
-                              (selectedEntry$ | async).entryDate.toDate()
-                                | date: "longDate"
-                            }}
+                            {{ entry.entryDate?.toDate() | date: "longDate" }}
                           </h5>
                           <div class="small">Entry Date</div>
                         </div>
                         <div class="col-4">
                           <h5>
-                            {{ (selectedEntry$ | async).uniqueARTNumber }}
+                            {{ entry.uniqueARTNumber }}
                           </h5>
                           <div class="small">Unique ART Number</div>
                         </div>
                         <div class="col-4">
                           <h5>
                             {{
-                              (selectedEntry$ | async).ARTStartDate.toDate()
-                                | date: "longDate"
+                              entry.ARTStartDate?.toDate() | date: "longDate"
                             }}
                           </h5>
                           <div class="small">ART Start Date</div>
@@ -121,33 +117,31 @@
                       <div class="row">
                         <div class="col-4">
                           <h5>
-                            {{ (selectedEntry$ | async).sex | titlecase }}
+                            {{ entry.sex | titlecase }}
                           </h5>
                           <div class="small">Sex</div>
                         </div>
                         <div class="col-4">
                           <h5>
-                            {{
-                              (selectedEntry$ | async).age
-                                ? (selectedEntry$ | async).age
-                                : ageToText(
-                                    getAge(
-                                      (
-                                        selectedEntry$ | async
-                                      ).birthdate.toDate()
-                                    ),
-                                    true
-                                  )
-                            }}
+                            <ng-container
+                              *ngIf="
+                                getAge(entry.birthdate?.toDate()) as age;
+                                else noBirthdate
+                              "
+                            >
+                              {{ ageToText(age, true) }}
+                            </ng-container>
+                            <ng-template #noBirthdate>
+                              {{ entry?.age.age }} {{ entry?.age.unit
+                              }}{{ entry?.age.age > 1 ? "s " : " " }}
+                              old
+                            </ng-template>
                           </h5>
                           <div class="small">Age</div>
                         </div>
-                        <div
-                          class="col-4"
-                          *ngIf="(selectedEntry$ | async).phoneNumber"
-                        >
+                        <div class="col-4" *ngIf="entry.phoneNumber">
                           <h5>
-                            {{ (selectedEntry$ | async).phoneNumber }}
+                            {{ entry.phoneNumber }}
                           </h5>
                           <div class="small">Phone Number</div>
                         </div>
@@ -158,17 +152,10 @@
                       <div class="row">
                         <div class="col-8">
                           <h5>
-                            {{
-                              getRegimenByCode((selectedEntry$ | async).regimen)
-                                .regimen
-                            }}
+                            {{ getRegimenByCode(entry.regimen).regimen }}
 
                             <div class="badge badge-primary ms-3">
-                              {{
-                                getRegimenByCode(
-                                  (selectedEntry$ | async).regimen
-                                ).ageCategory
-                              }}
+                              {{ getRegimenByCode(entry.regimen).ageCategory }}
                             </div>
                           </h5>
                           <div class="small">Regimen</div>
@@ -176,9 +163,7 @@
                         <div class="col-4">
                           <h5>
                             {{
-                              (
-                                selectedEntry$ | async
-                              ).regimenStartTransDate.toDate()
+                              entry.regimenStartTransDate?.toDate()
                                 | date: "longDate"
                             }}
                           </h5>
@@ -189,25 +174,18 @@
                       <hr />
 
                       <!-- PMTCT Info -->
-                      <ng-container
-                        *ngIf="(selectedEntry$ | async).sex == 'male'"
-                      >
+                      <ng-container *ngIf="entry.sex == 'male'">
                         <div class="row">
                           <div class="col-8">
                             <h5>
-                              {{ (selectedEntry$ | async).pmtct | titlecase }}
+                              {{ entry.pmtct | titlecase }}
                             </h5>
                             <div class="small">Pregnant/Breastfeeding?</div>
                           </div>
-                          <div
-                            class="col-4"
-                            *ngIf="(selectedEntry$ | async).pmtct == 'yes'"
-                          >
+                          <div class="col-4" *ngIf="entry.pmtct == 'yes'">
                             <h5>
                               {{
-                                (
-                                  selectedEntry$ | async
-                                ).pmtctEnrollStartDate.toDate()
+                                entry.pmtctEnrollStartDate?.toDate()
                                   | date: "longDate"
                               }}
                             </h5>
@@ -222,32 +200,24 @@
                       <div class="row">
                         <div class="col-4">
                           <h5>
-                            {{ (selectedEntry$ | async).hvl | titlecase }}
+                            {{ entry.hvl | titlecase }}
                           </h5>
                           <div class="small">High Viral Load</div>
                         </div>
-                        <div
-                          class="col-4"
-                          *ngIf="(selectedEntry$ | async).hvl == 'yes'"
-                        >
+                        <div class="col-4" *ngIf="entry.hvl == 'yes'">
                           <h5>
-                            {{
-                              (selectedEntry$ | async).eac3Completed | titlecase
-                            }}
+                            {{ entry.eac3Completed | titlecase }}
                           </h5>
                           <div class="small">EAC-3 Completed</div>
                         </div>
                         <div
                           class="col-4"
-                          *ngIf="
-                            (selectedEntry$ | async)?.eac3Completed == 'yes'
-                          "
+                          *ngIf="entry?.eac3Completed == 'yes'"
                         >
                           <h5>
                             {{
-                              (
-                                selectedEntry$ | async
-                              ).eac3CompletionDate.toDate() | date: "longDate"
+                              entry.eac3CompletionDate?.toDate()
+                                | date: "longDate"
                             }}
                           </h5>
                           <div class="small">EAC-3 Completion Date</div>
@@ -281,18 +251,16 @@
                               </tr>
                             </thead>
                             <tbody>
-                              <tr
-                                *ngFor="let cv of (selectedEntry$ | async).cvh"
-                              >
+                              <tr *ngFor="let cv of entry.cvh">
                                 <td>
                                   {{
-                                    cv.lastClinicVisitDate.toDate()
+                                    cv.lastClinicVisitDate?.toDate()
                                       | date: "longDate"
                                   }}
                                 </td>
                                 <td>
                                   {{
-                                    cv.nextAppointmentDate.toDate()
+                                    cv.nextAppointmentDate?.toDate()
                                       | date: "longDate"
                                   }}
                                 </td>
@@ -301,7 +269,7 @@
                                 <td>
                                   {{
                                     cv?.dateTransferred
-                                      ? (cv?.dateTransferred.toDate()
+                                      ? (cv?.dateTransferred?.toDate()
                                         | date: "longDate")
                                       : "N/A"
                                   }}
@@ -313,12 +281,29 @@
                       </div>
 
                       <hr />
-
+                      <ng-container *ngIf="entry.sex == 'male'">
+                        <div class="row">
+                          <div class="col-8">
+                            <h5>
+                              {{ entry?.pendingStatusDate ? "Yes" : "No" }}
+                            </h5>
+                            <div class="small">Have Pending Viral Load?</div>
+                          </div>
+                          <div class="col-4" *ngIf="entry?.pendingStatusDate">
+                            <h5>
+                              {{
+                                entry.pendingStatusDate?.toDate()
+                                  | date: "longDate"
+                              }}
+                            </h5>
+                            <div class="small">Pending Status Date</div>
+                          </div>
+                        </div>
+                        <hr />
+                      </ng-container>
                       <!-- Viral Load History -->
 
-                      <ng-container
-                        *ngIf="(selectedEntry$ | async).vlh?.length"
-                      >
+                      <ng-container *ngIf="entry.vlh?.length">
                         <div class="row">
                           <div class="col-12">
                             <h5 class="text-center">Viral Load History</h5>
@@ -332,12 +317,7 @@
                                 </tr>
                               </thead>
                               <tbody>
-                                <tr
-                                  *ngFor="
-                                    let vl of (selectedEntry$ | async).vlh;
-                                    index as i
-                                  "
-                                >
+                                <tr *ngFor="let vl of entry.vlh; index as i">
                                   <th>{{ !i ? "Most Current VL" : i + 1 }}</th>
                                   <td>
                                     <span
@@ -361,7 +341,7 @@
                                   </td>
                                   <td>
                                     {{
-                                      vl.dateSampleCollected.toDate()
+                                      vl.dateSampleCollected?.toDate()
                                         | date: "longDate"
                                     }}
                                   </td>
@@ -378,9 +358,7 @@
               </div>
             </div>
           </div>
-
-          <div></div
-        ></mdb-tab>
+        </mdb-tab>
         <mdb-tab title="Weekly">Tab content 2</mdb-tab>
         <mdb-tab title="Monthly">Tab content 2</mdb-tab>
       </mdb-tabs>

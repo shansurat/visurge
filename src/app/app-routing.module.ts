@@ -13,6 +13,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DatabaseComponent } from './pages/database/database.component';
 import { EntriesComponent } from './pages/entries/entries.component';
 import { EntryFormComponent } from './pages/entry-form/entry-form.component';
+import { IndividualComponent } from './pages/report/individual/individual.component';
 import { ReportComponent } from './pages/report/report.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { SupportComponent } from './pages/support/support.component';
@@ -45,6 +46,7 @@ const routes: Routes = [
     path: 'report',
     component: ReportComponent,
     canActivate: [AuthGuard],
+    children: [{ path: 'individual', component: IndividualComponent }],
   },
   {
     path: 'support',

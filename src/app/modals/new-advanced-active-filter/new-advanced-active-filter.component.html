@@ -1,0 +1,157 @@
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">New Filter</h5>
+  <button type="button" class="btn-close" (click)="modalRef.close()"></button>
+</div>
+<div class="modal-body">
+  <div class="d-flex flex-column">
+    <div [ngClass]="{ 'mb-3': headerFormControl.value }">
+      <mdb-form-control>
+        <mdb-select [formControl]="headerFormControl">
+          <mdb-option *ngFor="let header of headers" [value]="header">{{
+            header
+          }}</mdb-option>
+        </mdb-select>
+        <label mdbLabel class="form-label">Field</label>
+      </mdb-form-control>
+    </div>
+    <div>
+      <ng-container [ngSwitch]="headerFormControl.value">
+        <!-- Text Fields -->
+        <ng-container *ngSwitchCase="'Unique ART Number'">
+          <ng-container *ngTemplateOutlet="text"></ng-container>
+        </ng-container>
+        <ng-container *ngSwitchCase="'Phone Number'">
+          <ng-container *ngTemplateOutlet="text"></ng-container>
+        </ng-container>
+        <ng-container *ngSwitchCase="'Facility'">
+          <ng-container *ngTemplateOutlet="text"></ng-container>
+        </ng-container>
+        <ng-container *ngSwitchCase="'Regimen'">
+          <ng-container *ngTemplateOutlet="text"></ng-container>
+        </ng-container>
+        <!-- Selec Fields -->
+        <ng-container *ngSwitchCase="'Sex'">
+          <ng-container *ngTemplateOutlet="sex"></ng-container>
+        </ng-container>
+        <ng-container *ngSwitchCase="'Eligibility'">
+          <ng-container *ngTemplateOutlet="eligibility"></ng-container>
+        </ng-container>
+        <!-- Yes Or No Fields -->
+        <ng-container *ngSwitchCase="'Pregnant/Breastfeeding'">
+          <ng-container *ngTemplateOutlet="yesOrNo"></ng-container>
+        </ng-container>
+        <ng-container *ngSwitchCase="'High Viral Load'">
+          <ng-container *ngTemplateOutlet="yesOrNo"></ng-container>
+        </ng-container>
+        <ng-container *ngSwitchCase="'Pending Status'">
+          <ng-container *ngTemplateOutlet="yesOrNo"></ng-container>
+        </ng-container>
+        <ng-container *ngSwitchCase="'EAC-3 Completed'">
+          <ng-container *ngTemplateOutlet="yesOrNo"></ng-container>
+        </ng-container>
+
+        <!-- Dates -->
+        <ng-container *ngFor="let header_date of headers_dates">
+          <ng-container *ngSwitchCase="header_date">
+            <ng-container *ngTemplateOutlet="date"></ng-container>
+          </ng-container>
+        </ng-container>
+      </ng-container>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="modalRef.close()">
+    Discard
+  </button>
+  <button type="button" class="btn btn-primary" (click)="addFilter()">
+    Add Filter
+  </button>
+</div>
+
+<ng-template #text>
+  <mdb-form-control>
+    <input
+      mdbInput
+      class="form-control"
+      type="text"
+      [formControl]="valueFormControl"
+    />
+    <label mdbLabel class="form-label">Value</label>
+  </mdb-form-control>
+</ng-template>
+
+<ng-template #facility>
+  <mdb-form-control>
+    <input
+      mdbInput
+      class="form-control"
+      type="text"
+      [formControl]="valueFormControl"
+    />
+    <label mdbLabel class="form-label">Value</label>
+  </mdb-form-control>
+</ng-template>
+
+<ng-template #sex>
+  <mdb-form-control>
+    <mdb-select [formControl]="valueFormControl">
+      <mdb-option value="male">Male</mdb-option>
+      <mdb-option value="female">Female</mdb-option>
+    </mdb-select>
+    <label mdbLabel class="form-label">Value</label>
+  </mdb-form-control>
+</ng-template>
+
+<ng-template #eligibility>
+  <mdb-form-control>
+    <mdb-select [formControl]="valueFormControl">
+      <mdb-option value="eligible">Eligible</mdb-option>
+      <mdb-option value="ineligible">Ineligible</mdb-option>
+    </mdb-select>
+    <label mdbLabel class="form-label">Value</label>
+  </mdb-form-control>
+</ng-template>
+
+<ng-template #yesOrNo>
+  <mdb-form-control>
+    <mdb-select [formControl]="valueFormControl">
+      <mdb-option value="yes">Yes</mdb-option>
+      <mdb-option value="no">No</mdb-option>
+    </mdb-select>
+    <label mdbLabel class="form-label">Value</label>
+  </mdb-form-control>
+</ng-template>
+
+<ng-template #date>
+  <div class="row g-3">
+    <div class="col-12">
+      <mdb-form-control>
+        <mdb-select [formControl]="typeFormControl">
+          <mdb-option value="before">Before</mdb-option>
+          <mdb-option value="after">After</mdb-option>
+          <mdb-option value="">Exact</mdb-option>
+        </mdb-select>
+        <label mdbLabel class="form-label">Value</label>
+      </mdb-form-control>
+    </div>
+    <div class="col-12">
+      <mdb-form-control>
+        <input
+          autocomplete="off"
+          mdbInput
+          [mdbDatepicker]="datePicker"
+          type="text"
+          class="form-control"
+          id="date"
+          [formControl]="valueFormControl"
+          placeholder="dd, mmm, yyyy"
+          (click)="datePicker.open()"
+        />
+        <label mdbLabel for="date" class="form-label">Value</label>
+
+        <mdb-datepicker #datePicker format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+    </div>
+  </div>
+</ng-template>

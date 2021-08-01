@@ -34,6 +34,7 @@ import { MdbTabsModule } from 'mdb-angular-ui-kit/tabs';
 import { MdbTimepickerModule } from 'mdb-angular-ui-kit/timepicker';
 import { MdbTooltipModule } from 'mdb-angular-ui-kit/tooltip';
 import { MdbValidationModule } from 'mdb-angular-ui-kit/validation';
+
 import { AuthComponent } from './pages/auth/auth.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ReportComponent } from './pages/report/report.component';
@@ -92,6 +93,12 @@ import { EditFacilityComponent } from './modals/edit-facility/edit-facility.comp
 import { SupportComponent } from './pages/support/support.component';
 import { AbsoluteValuePipe } from './pipes/absolute-value.pipe';
 import { EligibleByTimeExpectedComponent } from './charts/eligible-by-time-expected/eligible-by-time-expected.component';
+import { NewAdvancedActiveFilterComponent } from './modals/new-advanced-active-filter/new-advanced-active-filter.component';
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { SaveEntryComponent } from './modals/save-entry/save-entry.component';
+import { IndividualComponent } from './pages/report/individual/individual.component';
+import { ViewVlhComponent } from './modals/view-vlh/view-vlh.component';
+import { AdvancedFiltersComponent } from './pages/database/advanced-filters/advanced-filters.component';
 
 @NgModule({
   declarations: [
@@ -139,6 +146,11 @@ import { EligibleByTimeExpectedComponent } from './charts/eligible-by-time-expec
     SupportComponent,
     AbsoluteValuePipe,
     EligibleByTimeExpectedComponent,
+    NewAdvancedActiveFilterComponent,
+    SaveEntryComponent,
+    IndividualComponent,
+    ViewVlhComponent,
+    AdvancedFiltersComponent,
   ],
   imports: [
     BrowserModule,
@@ -182,6 +194,12 @@ import { EligibleByTimeExpectedComponent } from './charts/eligible-by-time-expec
     AngularFirestoreModule.enablePersistence(),
     AngularFireFunctionsModule,
     NgxChartsModule,
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: environment.production,
+      // Register the ServiceWorker as soon as the app is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
   providers: [
     {

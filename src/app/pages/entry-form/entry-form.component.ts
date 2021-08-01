@@ -1,8 +1,8 @@
 import {
   AfterContentChecked,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  OnDestroy,
   OnInit,
   ViewEncapsulation,
 } from '@angular/core';
@@ -15,46 +15,37 @@ import {
 } from '@angular/forms';
 import { MdbModalService } from 'mdb-angular-ui-kit/modal';
 import { MdbNotificationService } from 'mdb-angular-ui-kit/notification';
-import {
-  of,
-  Subject,
-  Subscription,
-  timer,
-  Observable,
-  combineLatest,
-  BehaviorSubject,
-} from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged,
   map,
   mergeMap,
-  share,
+  pairwise,
 } from 'rxjs/operators';
-import { UserLoadedAlertComponent } from 'src/app/alerts/user-loaded-alert/user-loaded-alert.component';
-import { ClinicVisitEntry } from 'src/app/interfaces/clinic-visit-entry';
-import { UserEntry } from 'src/app/interfaces/user-entry';
-import { ViralLoadEntry } from 'src/app/interfaces/viral-load-entry';
-import { EditVlComponent } from 'src/app/modals/edit-vl/edit-vl.component';
-import { NewVlComponent } from 'src/app/modals/new-vl/new-vl.component';
-import { ViewCvhComponent } from 'src/app/modals/view-cvh/view-cvh.component';
-import { regimens, regimensByGroup } from '../../constants/regimens';
-import firebase from 'firebase/app';
-import { UserUpdatedAlertComponent } from 'src/app/alerts/user-updated-alert/user-updated-alert.component';
-import { facilities } from 'src/app/constants/facilities';
-import { clinicComments } from 'src/app/constants/clinicComments';
+import { _DisposeViewRepeaterStrategy } from '@angular/cdk/collections';
+import { ActivatedRoute } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
-
+import { clinicComments } from 'src/app/constants/clinicComments';
+import { ClinicVisitEntry } from 'src/app/interfaces/clinic-visit-entry';
+import { EditVlComponent } from 'src/app/modals/edit-vl/edit-vl.component';
 import { EligibilityStatus } from 'src/app/interfaces/eligibility-status';
-import { PushNotificationService } from 'src/app/services/push-notification.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { EntriesService } from 'src/app/services/entries.service';
-
-import { slideInRightAnimation } from 'mdb-angular-ui-kit/animations';
-import { getAge } from 'src/app/functions/getAge';
-import { Age } from 'src/app/interfaces/age';
 import { FacilitiesService } from 'src/app/services/facilities.service';
+import { getAge } from 'src/app/functions/getAge';
+import { NewVlComponent } from 'src/app/modals/new-vl/new-vl.component';
+import { PushNotificationService } from 'src/app/services/push-notification.service';
+import { regimens, regimensByGroup } from '../../constants/regimens';
+import { slideInRightAnimation } from 'mdb-angular-ui-kit/animations';
 import { StatusService } from 'src/app/services/status.service';
+import { distinctUntilChangedObj } from 'src/app/functions/observable-functions';
+import { UserUpdatedAlertComponent } from 'src/app/alerts/user-updated-alert/user-updated-alert.component';
+import { ViewCvhComponent } from 'src/app/modals/view-cvh/view-cvh.component';
+import { ViralLoadEntry } from 'src/app/interfaces/viral-load-entry';
+import firebase from 'firebase/app';
+import { timestampToDateForObj } from 'src/app/functions/timestampToDate';
+import { SaveEntryComponent } from 'src/app/modals/save-entry/save-entry.component';
+import { deepCopyObj } from 'src/app/functions/deepCopyObj';
 
 @Component({
   selector: 'app-entry-form',
@@ -63,57 +54,44 @@ import { StatusService } from 'src/app/services/status.service';
   encapsulation: ViewEncapsulation.None,
   animations: [slideInRightAnimation()],
 })
-export class EntryFormComponent
-  implements OnInit, AfterContentChecked, OnDestroy
-{
-  ageUnits = ['years', 'months', 'days'];
-  selectedAgeUnit = 'years';
-  age: Age = {};
+export class EntryFormComponent implements OnInit, AfterContentChecked {
+  ageUnits = ['year', 'month', 'day'];
 
   isLoading!: boolean;
   entriesAutocomplete$!: Observable<any[]>;
 
-  newEntry: boolean = true;
-
-  time = new Date();
-  rxTime = new Date();
-  intervalId!: any;
-  timeSubscription!: Subscription;
+  isEntryNew: boolean = true;
 
   // Status
   eligibilityStatus!: EligibilityStatus | null;
   iit!: string | null;
   nextViralLoadSampleCollectionDate!: Date | null;
+  entryDate!: Date | undefined;
 
   // Constants
   regimens = regimens;
   regimensByGroup = regimensByGroup;
   clinicComments = clinicComments;
-  facilities = facilities;
-
-  facilityName = 'South Sudan';
 
   // Arrays
-  vlh: ViralLoadEntry[] = [];
-  cvh!: Observable<ClinicVisitEntry[]>;
-
-  entryDate!: Date;
+  vlh$ = new BehaviorSubject([] as ViralLoadEntry[]);
+  cvh: ClinicVisitEntry[] = [];
 
   // FormControls
   uniqueARTNumberFormControl!: FormControl;
   entryFormGroup!: FormGroup;
   clinicVisitFormGroup!: FormGroup;
   birthdateKnownCheckboxFormControl = new FormControl();
-  ageFormControl = new FormControl();
   noViralLoadHasBeenDoneFormControl: FormControl = new FormControl();
   pendingStatusFormControl: FormControl = new FormControl();
   phoneNumberFormControl: FormControl = new FormControl();
 
-  currentErr: Subject<any> = new Subject();
+  UAN$ = new BehaviorSubject('');
 
-  vlhUpdated: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  today = new Date();
 
-  maxDate = new Date();
+  loadedEntry$: BehaviorSubject<any> = new BehaviorSubject(null);
+  canShowStatus = new BehaviorSubject(true);
 
   miniDashboardShown!: boolean;
 
@@ -121,42 +99,24 @@ export class EntryFormComponent
 
   constructor(
     private activatedRoute: ActivatedRoute,
+    private afs: AngularFirestore,
     private cdref: ChangeDetectorRef,
     private fb: FormBuilder,
     private modalServ: MdbModalService,
-    private afs: AngularFirestore,
     private notifServ: MdbNotificationService,
     private pushNotifServ: PushNotificationService,
-    public entriesServ: EntriesService,
+    private statusServ: StatusService,
     public authServ: AuthService,
-    public facilitiesServ: FacilitiesService,
-    private statusServ: StatusService
+    public entriesServ: EntriesService,
+    public facilitiesServ: FacilitiesService
   ) {
-    let today = new Date();
-    this.maxDate.setDate(today.getDate() + 1);
-
-    this.intervalId = setInterval(() => {
-      this.time = new Date();
-    }, 1000);
-
-    // Using RxJS Timer
-    this.timeSubscription = timer(0, 1000)
-      .pipe(
-        map(() => new Date()),
-        share()
-      )
-      .subscribe((time) => {
-        this.rxTime = time;
-      });
-  }
-
-  ngOnInit(): void {
-    this.isLoading = true;
+    this.today.setDate(new Date().getDate() + 1);
 
     // Unique ART Number Form Control initialization
     this.uniqueARTNumberFormControl = new FormControl('', [
       Validators.required,
-      EntryFormValidators.UANValidity(),
+      Validators.maxLength(5),
+      Validators.minLength(5),
     ]);
 
     // Entry Form Group initialization
@@ -164,6 +124,10 @@ export class EntryFormComponent
       sex: ['', [Validators.required]],
       phoneNumber: [''],
       birthdate: [''],
+      age: this.fb.group({
+        age: ['', [Validators.required, Validators.min(0)]],
+        unit: ['year', [Validators.required]],
+      }),
       ARTStartDate: ['', [Validators.required]],
       regimen: ['', [Validators.required]],
       regimenStartTransDate: ['', [Validators.required]],
@@ -175,6 +139,14 @@ export class EntryFormComponent
       pendingStatusDate: [''],
     });
 
+    this.authServ.isAdmin$.subscribe((isAdmin) => {
+      isAdmin
+        ? this.authServ.userData$.subscribe((userData) =>
+            this.entryFormGroup.get('facility')?.setValue(userData.facility)
+          )
+        : this.entryFormGroup.get('facility')?.disable();
+    });
+
     // Clinic Visit Form Group initialization
     this.clinicVisitFormGroup = this.fb.group({
       lastClinicVisitDate: [''],
@@ -184,178 +156,173 @@ export class EntryFormComponent
       dateTransferred: [''],
     });
 
-    let UAN$ = this.uniqueARTNumberFormControl.valueChanges.pipe(
-      debounceTime(250),
-      distinctUntilChanged()
+    this.entriesAutocomplete$ = combineLatest(
+      this.UAN$,
+      this.entriesServ.all$
+    ).pipe(
+      map(([UAN, all]) =>
+        all.filter((entry) =>
+          entry.uniqueARTNumber.split('/')[2].includes(UAN.split('/')[2])
+        )
+      )
     );
+  }
+
+  ngOnInit(): void {
+    // combineLatest(
+    //   this.entryFormGroup.statusChanges.pipe(distinctUntilChangedObj()),
+    //   this.clinicVisitFormGroup.statusChanges.pipe(distinctUntilChangedObj())
+    // )
+    //   .pipe(
+    //     map(([entryFormStatus, clinicVisitFormStatus]) => {
+    //       console.log({ entryFormStatus });
+    //       console.log({ clinicVisitFormStatus });
+
+    //       this.canShowStatus.next(
+    //         entryFormStatus == 'VALID' && clinicVisitFormStatus == 'VALID'
+    //       );
+    //     })
+    //   )
+    //   .subscribe();
+
+    combineLatest(
+      this.uniqueARTNumberFormControl.valueChanges.pipe(
+        debounceTime(250),
+        distinctUntilChanged()
+      ),
+      this.authServ.currentFacility$
+    )
+      .pipe(
+        map(([num, facility]) =>
+          this.UAN$.next(`${facility.state}/${facility.code}/${num}`)
+        )
+      )
+      .subscribe();
 
     // Entries Autocomplete for UAN
-    this.entriesAutocomplete$ = UAN$.pipe(
-      mergeMap(async (UAN: string) => {
-        return (
-          await this.afs.collection('entries').get().toPromise()
-        ).docs.filter((entry) =>
-          (entry.data() as UserEntry).uniqueARTNumber.includes(
-            UAN?.toUpperCase()
-          )
-        );
-      })
-    );
 
-    // Birthday listeners
-    this.birthdateKnownCheckboxFormControl.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        map((known) => {
-          if (known) {
-            this.entryFormGroup
-              .get('birthdate')
-              ?.setValidators([Validators.required]);
-            this.entryFormGroup.get('birthdate')?.enable();
+    this.UAN$.pipe(
+      mergeMap((UAN) => this.entriesServ.getEntry$(UAN))
+    ).subscribe((entry) => this.loadedEntry$.next(entry));
 
-            this.ageFormControl.reset();
-            this.ageFormControl.clearValidators();
-            this.ageFormControl.disable();
-          } else {
-            this.entryFormGroup.get('birthdate')?.reset();
-            this.entryFormGroup.get('birthdate')?.clearValidators();
-            this.entryFormGroup.get('birthdate')?.disable();
-
-            this.ageFormControl.reset();
-            this.ageFormControl.setValidators([Validators.required]);
-            this.ageFormControl.enable();
-          }
-        })
-      )
-      .subscribe();
-
-    this.entryFormGroup
-      .get('birthdate')
-      ?.valueChanges.pipe(
-        distinctUntilChanged(),
-        map((birthdate) => {
-          console.log('VALUE UPDATED', birthdate);
-
-          this.updateAge();
-
-          const { years, months, days } = this.age;
-
-          console.log(this.age);
-          if (years) {
-            this.selectedAgeUnit = 'years';
-            return this.ageFormControl.setValue(years);
-          } else if (months) {
-            this.selectedAgeUnit = 'months';
-            return this.ageFormControl.setValue(months);
-          } else {
-            this.selectedAgeUnit = 'days';
-            return this.ageFormControl.setValue(days);
-          }
-        })
-      )
-      .subscribe();
-
-    // Realtime updating Eligibility and Next Viral Load Sample Collection Date
-    this.entryFormGroup.valueChanges.subscribe(() => {
-      this.updateEligibilityStatus();
-    });
-    this.noViralLoadHasBeenDoneFormControl.valueChanges.subscribe(() => {
-      this.updateEligibilityStatus();
-    });
-
-    this.vlhUpdated.subscribe((val) => {
-      if (this.vlh[0]?.value >= 1000) {
-        this.entryFormGroup.get('hvl')?.setValue('yes');
-      }
-
-      this.updateEligibilityStatus();
-    });
-
-    this.ageFormControl.valueChanges.subscribe(() => {
-      this.updateAge();
-      this.updateEligibilityStatus();
-    });
-
-    // Realtime updating IIT Status
-    this.clinicVisitFormGroup.valueChanges
-      .pipe(distinctUntilChanged())
-      .subscribe((cv: ClinicVisitEntry) => {
-        this.iit = this.statusServ.getIITStatus(cv.nextAppointmentDate);
+    // Realtime Updating
+    this.clinicVisitFormGroup
+      .get('nextAppointmentDate')
+      ?.valueChanges.pipe(distinctUntilChanged())
+      .subscribe((nextAppointmentDate) => {
+        if (nextAppointmentDate)
+          this.iit = this.statusServ.getIITStatus(nextAppointmentDate);
       });
 
+    // Realtime updating Eligibility and Next Viral Load Sample Collection Date
+    this.noViralLoadHasBeenDoneFormControl.valueChanges.subscribe(() =>
+      this.updateEligibilityStatus()
+    );
+
+    // Birthdate listeners
+
+    // Birthdate checkbox listener
+    this.birthdateKnownCheckboxFormControl.valueChanges
+      .pipe(
+        map((birthdateKnown) => {
+          if (birthdateKnown) this.ageUnitFormControl.disable();
+          else {
+            this.ageUnitFormControl.enable();
+            this.entryFormGroup.get('birthdate')?.reset();
+          }
+        })
+      )
+      .subscribe();
+
+    // Birthdate listener
+    const bdListener$ = this.entryFormGroup.get('birthdate')?.valueChanges.pipe(
+      distinctUntilChanged(),
+      map((birthdate) => {
+        if (birthdate) {
+          const age = getAge(birthdate);
+          if (age) {
+            const unit = age.year ? 'year' : age.month ? 'month' : 'day';
+            this.ageFormGroup.setValue({
+              age: age[unit] || 0,
+              unit,
+            });
+            console.log('LOADED!', birthdate);
+          }
+        }
+      })
+    );
+    let bdSubscription = bdListener$?.subscribe();
+
+    // Realtime updating IIT Status
+
+    // Viral Load Entries Listener
+    const vlListener$ = this.vlh$.pipe(
+      map((vlh) => {
+        if (vlh.length) {
+          if (!vlh[0].value || vlh[0].value < 1000) {
+            this.entryFormGroup.get('hvl')?.setValue('no');
+            this.entryFormGroup.get('hvl')?.disable();
+          } else this.entryFormGroup.get('hvl')?.setValue('yes');
+        }
+        this.updateEligibilityStatus();
+      })
+    );
+    let vlSubscription = vlListener$.subscribe();
+
+    //
+    //
+    // FORM LISTENERS START
+    //
+    //
     // Sex field listener
-    const sex$ = this.entryFormGroup.get('sex')?.valueChanges.pipe(
+    const sexListener$ = this.sexFormControl.valueChanges.pipe(
       distinctUntilChanged(),
       map((sex: string) => {
         if (sex == 'male') {
-          this.entryFormGroup.get('pmtct')?.setValue('no');
-          this.entryFormGroup.get('pmtct')?.disable();
+          this.pmtctFormControl.setValue('no');
+          this.pmtctFormControl.disable();
         } else {
-          this.entryFormGroup.get('pmtct')?.enable();
-          this.entryFormGroup.get('pmtct')?.reset();
+          this.pmtctFormControl.enable();
+          this.pmtctFormControl.reset();
         }
       })
     );
-    let sexSubscription = sex$?.subscribe();
+    let sexSubscription = sexListener$?.subscribe();
 
     // PMTCT field listener
-    const pmtct$ = this.entryFormGroup.get('pmtct')?.valueChanges.pipe(
+    const pmtctListener$ = this.pmtctFormControl.valueChanges.pipe(
       distinctUntilChanged(),
       map((pmtct: string) => {
-        if (pmtct == 'yes') {
-          this.entryFormGroup.get('pmtctEnrollStartDate')?.enable();
-          this.entryFormGroup
-            .get('pmtctEnrollStartDate')
-            ?.setValidators([Validators.required]);
-        } else {
-          this.entryFormGroup.get('pmtctEnrollStartDate')?.clearValidators();
-          this.entryFormGroup.get('pmtctEnrollStartDate')?.reset();
-          this.entryFormGroup.get('pmtctEnrollStartDate')?.disable();
-        }
+        if (pmtct == 'no') this.pmtctDateFormControl.reset();
       })
     );
-    let pmtctSubscription = pmtct$?.subscribe();
+    let pmtctSubscription = pmtctListener$?.subscribe();
 
     // HVL field listener
-    const hvl$ = this.entryFormGroup.get('hvl')?.valueChanges.pipe(
+    const hvlListener$ = this.hvlFormControl.valueChanges.pipe(
       distinctUntilChanged(),
       map((hvl) => {
         if (hvl == 'yes') {
-          this.entryFormGroup.get('eac3Completed')?.enable();
-          this.entryFormGroup
-            .get('eac3Completed')
-            ?.setValidators([Validators.required]);
+          this.eac3FormControl.enable();
           this.noViralLoadHasBeenDoneFormControl.reset();
           this.noViralLoadHasBeenDoneFormControl.disable();
         } else {
-          this.entryFormGroup.get('eac3Completed')?.clearValidators();
-          this.entryFormGroup.get('eac3Completed')?.reset();
-          this.entryFormGroup.get('eac3Completed')?.disable();
           this.noViralLoadHasBeenDoneFormControl.enable();
+          this.eac3FormControl.reset();
+          this.eac3FormControl.disable();
         }
       })
     );
-    let hvlSubscription = hvl$?.subscribe();
+    let hvlSubscription = hvlListener$?.subscribe();
 
     // EAC-3 Completed field listener
-    const eac3Completed$ = this.entryFormGroup
-      .get('eac3Completed')
-      ?.valueChanges.pipe(
-        distinctUntilChanged(),
-        map((eac3Completed) => {
-          if (eac3Completed == 'yes') {
-            this.entryFormGroup.get('eac3CompletionDate')?.enable();
-            this.entryFormGroup
-              .get('eac3CompletionDate')
-              ?.setValidators([Validators.required]);
-          } else {
-            this.entryFormGroup.get('eac3CompletionDate')?.clearValidators();
-            this.entryFormGroup.get('eac3CompletionDate')?.reset();
-            this.entryFormGroup.get('eac3CompletionDate')?.disable();
-          }
-        })
-      );
-    let eac3CompletedSubscription = eac3Completed$?.subscribe();
+    const eac3CompletedListener$ = this.eac3FormControl?.valueChanges.pipe(
+      distinctUntilChanged(),
+      map((eac3Completed) => {
+        if (eac3Completed != 'yes') this.eac3DateFormControl.reset();
+      })
+    );
+    let eac3CompletedSubscription = eac3CompletedListener$?.subscribe();
 
     // Clinic Visit Comment field listener
     this.clinicVisitFormGroup.get('clinicVisitComment')?.valueChanges.pipe(
@@ -379,169 +346,39 @@ export class EntryFormComponent
       .pipe(
         distinctUntilChanged(),
         map((pendingStatus) => {
-          const pendingStatusDate =
-            this.entryFormGroup.get('pendingStatusDate');
-          if (pendingStatus) {
-            pendingStatusDate?.setValidators([Validators.required]);
-          } else {
-            pendingStatusDate?.reset();
-            pendingStatusDate?.clearValidators();
-          }
+          if (!pendingStatus)
+            this.entryFormGroup.get('pendingStatusDate')?.reset();
         })
       )
       .subscribe();
 
-    this.phoneNumberFormControl.valueChanges.pipe(
-      distinctUntilChanged(),
-      map((phoneNumber) => {
-        const phoneNumberInput = this.entryFormGroup.get('phoneNumber');
-        if (phoneNumber) {
-          phoneNumberInput?.setValidators([Validators.required]);
-        } else {
-          phoneNumberInput?.reset();
-          phoneNumberInput?.clearValidators();
-        }
-      })
-    );
-    // Selected entry observable
-    const selectedUserEntry$ = UAN$.pipe(
-      mergeMap((uniqueARTNumber: string): any => {
-        return uniqueARTNumber
-          ? this.afs.collection('entries').doc(UANToId(uniqueARTNumber)).get()
-          : of(null);
-      }),
-      map((entry: any) => {
-        return entry?.exists ? entry.data() : null;
-      })
-    );
+    // Phone Number Listener
+    this.phoneNumberFormControl.valueChanges
+      .pipe(
+        distinctUntilChanged(),
+        map((phoneNumber) => {
+          if (!phoneNumber) this.entryFormGroup.get('phoneNumber')?.reset();
+        })
+      )
+      .subscribe();
+    //
+    //
+    // FORM LISTENERS END
+    //
+    //
 
-    // Realtime loading of existing entry
-    selectedUserEntry$.subscribe((res: UserEntry | any) => {
-      sexSubscription?.unsubscribe();
-      pmtctSubscription?.unsubscribe();
-      hvlSubscription?.unsubscribe();
-      eac3CompletedSubscription?.unsubscribe();
+    this.loadedEntry$.pipe(distinctUntilChangedObj()).subscribe((entry) => {
+      // bdSubscription?.unsubscribe();
+      this.isEntryNew = !entry;
+      !!entry ? this.loadEntry(entry) : this.resetEntryForm();
 
-      if (res) {
-        this.newEntry = false;
-
-        let { uniqueARTNumber, vlh, entryDate, cvh, eligibility, iit, age } =
-          res;
-        this.entryDate = entryDate.toDate();
-        this.eligibilityStatus = eligibility;
-        this.iit = iit;
-
-        delete res.uniqueARTNumber;
-        delete res.cvh;
-        delete res.vlh;
-        delete res.eligibility;
-
-        res.ARTStartDate = res.ARTStartDate.toDate();
-        res.birthdate = res.birthdate?.toDate();
-        res.regimenStartTransDate = res.regimenStartTransDate.toDate();
-        res.pmtctEnrollStartDate = res.pmtctEnrollStartDate?.toDate();
-        res.eac3CompletionDate = res.eac3CompletionDate?.toDate();
-        res.pendingStatusDate = res.pendingStatusDate?.toDate();
-
-        this.entryFormGroup.reset();
-        this.entryFormGroup.patchValue(res);
-
-        // Disabling some form fields
-        if (res.sex == 'male') this.entryFormGroup.get('pmtct')?.disable();
-        if (res.pmtct == 'no')
-          this.entryFormGroup.get('pmtctEnrollStartDate')?.disable();
-        if (res.hvl == 'no')
-          this.entryFormGroup.get('eac3Completed')?.disable();
-        else {
-          this.noViralLoadHasBeenDoneFormControl.reset();
-          this.noViralLoadHasBeenDoneFormControl.disable();
-        }
-        if (res.eac3Completed == 'no')
-          this.entryFormGroup.get('eac3CompletionDate')?.disable();
-
-        if (!res.birthdate) {
-          if (age.years) {
-            this.ageFormControl.setValue(age.years);
-            this.selectedAgeUnit = 'years';
-          } else if (age.months) {
-            this.ageFormControl.setValue(age.months);
-            this.selectedAgeUnit = 'months';
-          } else if (age.days) {
-            this.ageFormControl.setValue(age.days);
-            this.selectedAgeUnit = 'days';
-          }
-        }
-
-        // Seting Regimen
-        this.entryFormGroup.get('regimen')?.setValue(res.regimen);
-
-        // Setting Clinic Visit History
-        if (cvh?.length) {
-          let cur = cvh[cvh.length - 1];
-          cur.lastClinicVisitDate = cur.lastClinicVisitDate.toDate();
-          cur.nextAppointmentDate = cur.nextAppointmentDate?.toDate();
-
-          if (cur.dateTransferred) {
-            cur.dateTransferred = cur.dateTransferred?.toDate();
-          }
-          delete cur.iitStatus;
-          this.clinicVisitFormGroup.setValue(cur);
-        }
-
-        this.cvh = cvh;
-
-        // Setting Viral Load Entries
-        this.noViralLoadHasBeenDoneFormControl.setValue(!vlh.length);
-        if (vlh.length) this.noViralLoadHasBeenDoneFormControl.disable();
-
-        vlh.forEach((entry: any) => {
-          entry.dateSampleCollected = entry?.dateSampleCollected?.toDate();
-        });
-        this.vlh = vlh;
-
-        this.pendingStatusFormControl.setValue(res.pendingStatusDate);
-        this.birthdateKnownCheckboxFormControl.setValue(res.birthdate);
-        this.phoneNumberFormControl.setValue(res.phoneNumber);
-
-        // Pushing notification
-        this.notifServ.open(UserLoadedAlertComponent, {
-          autohide: true,
-          data: { uniqueARTNumber: uniqueARTNumber.toUpperCase() },
-        });
-      } else {
-        // Setting form to input new entry
-        this.newEntry = true;
-        this.resetEntryForm();
-      }
-
-      sexSubscription = sex$?.subscribe();
-      pmtctSubscription = pmtct$?.subscribe();
-      hvlSubscription = hvl$?.subscribe();
-      eac3CompletedSubscription = eac3Completed$?.subscribe();
+      // bdSubscription = bdListener$?.subscribe();
     });
-
-    combineLatest(
-      UAN$,
-      this.entryFormGroup.valueChanges.pipe(distinctUntilChanged()),
-      this.clinicVisitFormGroup.valueChanges.pipe(distinctUntilChanged())
-    ).pipe(
-      map(() => {
-        const uanErr = this.uniqueARTNumberFormControl.errors;
-        const entryErr = this.entryFormGroup.errors;
-        const cvErr = this.clinicVisitFormGroup.errors;
-
-        if (uanErr?.length) {
-          return this.currentErr.next(uanErr[0]);
-        } else if (entryErr?.length) return this.currentErr.next(entryErr[0]);
-        else if (cvErr?.length) return this.currentErr.next(cvErr[0]);
-
-        this.currentErr.next(null);
-      })
-    );
 
     // Setting the UAN param
     const activeUAN = this.activatedRoute.snapshot.paramMap.get('UAN');
-    if (activeUAN) this.uniqueARTNumberFormControl.setValue(activeUAN);
+    if (activeUAN)
+      this.uniqueARTNumberFormControl.setValue(activeUAN.split('/')[2]);
 
     this.isLoading = false;
   }
@@ -550,39 +387,128 @@ export class EntryFormComponent
     this.cdref.detectChanges();
   }
 
-  ngOnDestroy(): void {
-    clearInterval(this.intervalId);
-    if (this.timeSubscription) {
-      this.timeSubscription.unsubscribe();
-    }
-  }
+  loadEntry(entry: any) {
+    let {
+      entryDate,
+      pmtctEnrollStartDate,
+      ARTStartDate,
+      regimenStartTransDate,
+      eac3CompletionDate,
+      birthdate,
+      nextViralLoadSampleCollectionDate,
+      pendingStatusDate,
+      age,
+      vlh,
+      cvh,
+      ...data
+    } = entry;
 
-  updateAge() {
-    // Resetting Age
-    Object.keys(this.age).forEach((key) => {
-      this.age[key] = undefined;
+    this.entryDate = entryDate.toDate();
+    this.entryFormGroup.reset({
+      pmtctEnrollStartDate: pmtctEnrollStartDate?.toDate(),
+      ARTStartDate: ARTStartDate?.toDate(),
+      regimenStartTransDate: regimenStartTransDate?.toDate(),
+      eac3CompletionDate: eac3CompletionDate?.toDate(),
+      birthdate: birthdate?.toDate(),
+      nextViralLoadSampleCollectionDate:
+        nextViralLoadSampleCollectionDate?.toDate(),
+      pendingStatusDate: pendingStatusDate?.toDate(),
+      ...data,
     });
 
-    if (this.birthdateKnownCheckboxFormControl.value) {
-      if (this.entryFormGroup.get('birthdate')?.value)
-        this.age = getAge(this.entryFormGroup.get('birthdate')?.value);
-    } else if (this.ageFormControl.value) {
-      this.age[this.selectedAgeUnit] = this.ageFormControl.value;
-    }
+    if (birthdate) {
+      this.entryFormGroup.get('birthdate')?.setValue(birthdate.toDate());
+      const age = getAge(entry.birthdate.toDate());
+      if (age) {
+        const unit = age.year ? 'year' : age.month ? 'month' : 'day';
+        this.ageFormGroup.setValue({
+          age: age[unit] || 0,
+          unit,
+        });
+      }
+    } else this.ageFormGroup.patchValue(age);
+
+    // Converting all Timestamp objects in CVH to Date objects
+    const _cvh = (cvh as ClinicVisitEntry[])
+      ?.map((cv) => {
+        const _cv = timestampToDateForObj(cv);
+        delete _cv.iitStatus;
+        return _cv;
+      })
+      ?.sort(
+        (a: any, b: any) =>
+          b.nextAppointmentDate?.getTime() - a.nextAppointmentDate?.getTime()
+      );
+
+    this.cvh = _cvh;
+
+    this.clinicVisitFormGroup.reset(cvh[cvh.length - 1]);
+
+    // Setting Viral Load Entries
+    this.noViralLoadHasBeenDoneFormControl.setValue(!vlh.length);
+    if (vlh.length) this.noViralLoadHasBeenDoneFormControl.disable();
+
+    const _vlh = (vlh as any[]).map((vl) => timestampToDateForObj(vl));
+    this.vlh$.next(_vlh);
+
+    // Setting checkboxes
+    this.pendingStatusFormControl.setValue(entry.pendingStatusDate);
+    this.birthdateKnownCheckboxFormControl.setValue(entry.birthdate);
+    this.phoneNumberFormControl.setValue(entry.phoneNumber);
+  }
+
+  get ageFormGroup(): FormGroup {
+    return this.entryFormGroup.get('age') as FormGroup;
+  }
+
+  get ageFormControl(): FormControl {
+    return this.ageFormGroup.get('age') as FormControl;
+  }
+
+  get ageUnitFormControl(): FormControl {
+    return this.ageFormGroup.get('unit') as FormControl;
+  }
+
+  get sexFormControl(): FormControl {
+    return this.entryFormGroup.get('sex') as FormControl;
+  }
+
+  get pmtctFormControl(): FormControl {
+    return this.entryFormGroup.get('pmtct') as FormControl;
+  }
+  get pmtctDateFormControl(): FormControl {
+    return this.entryFormGroup.get('pmtctEnrollStartDate') as FormControl;
+  }
+
+  get hvlFormControl(): FormControl {
+    return this.entryFormGroup.get('hvl') as FormControl;
+  }
+
+  get eac3FormControl(): FormControl {
+    return this.entryFormGroup.get('eac3Completed') as FormControl;
+  }
+
+  get eac3DateFormControl(): FormControl {
+    return this.entryFormGroup.get('eac3CompletionDate') as FormControl;
   }
 
   updateEligibilityStatus() {
     this.eligibilityStatus = this.statusServ.getEligibilityStatus({
-      age: this.age,
+      entryDate: this.entryDate,
       ...this.entryFormGroup.getRawValue(),
-      vlh: this.vlh,
+      vlh: this.vlh$.getValue(),
     });
 
     this.nextViralLoadSampleCollectionDate = this.statusServ.getNextVLDate({
-      age: this.age,
       ...this.entryFormGroup.getRawValue(),
-      vlh: this.vlh,
+      vlh: this.vlh$.getValue(),
     });
+  }
+
+  updateIITStatus() {
+    this.iit = this.statusServ.getIITStatus(
+      this.clinicVisitFormGroup.get('nextAppointmentDate')?.value as Date
+    );
   }
 
   strToInt(text: string) {
@@ -590,122 +516,122 @@ export class EntryFormComponent
   }
 
   resetEntryForm() {
+    this.entryDate = undefined;
     this.entryFormGroup.reset();
-    this.entryFormGroup.get('pmtct')?.enable();
-    this.entryFormGroup.get('pmtctEnrollStartDate')?.enable();
-    this.entryFormGroup.get('eac3Completed')?.enable();
-    this.entryFormGroup.get('eac3CompletionDate')?.enable();
-    this.noViralLoadHasBeenDoneFormControl.enable();
     this.pendingStatusFormControl.reset();
     this.birthdateKnownCheckboxFormControl.reset();
     this.phoneNumberFormControl.reset();
-    this.ageFormControl.reset();
-    this.selectedAgeUnit = 'years';
+    this.ageFormGroup.reset();
     this.clinicVisitFormGroup.reset();
-    this.vlh = [];
-    this.entryDate = this.time;
+    this.cvh = [];
+    this.vlh$.next([]);
+    this.nextViralLoadSampleCollectionDate = null;
   }
 
   saveEntryForm() {
-    const uniqueARTNumber = this.uniqueARTNumberFormControl.value.toUpperCase();
+    const UAN = this.UAN$.getValue();
 
-    const _entryVal = this.entryFormGroup.getRawValue();
-
-    let age: any = {};
-    age[this.selectedAgeUnit] = this.ageFormControl.value;
-
-    let _data = {
-      ..._entryVal,
-      vlh: this.vlh,
-      eligibility: this.eligibilityStatus,
-      iit: this.iit,
-      nextViralLoadSampleCollectionDate: this.nextViralLoadSampleCollectionDate,
-      age: this.birthdateKnownCheckboxFormControl.value
-        ? getAge(_entryVal.birthdate)
-        : age,
-    };
-
-    let data = this.newEntry
-      ? {
-          ..._data,
-          uniqueARTNumber,
-          entryDate: this.entryDate,
-          facilityName: this.facilityName,
-        }
-      : _data;
-
-    Object.keys(data).forEach((key) => {
-      if (data[key] == undefined) data[key] = null;
+    const saveEntryModalRef = this.modalServ.open(SaveEntryComponent, {
+      modalClass: 'modal-dialog-centered',
+      data: {
+        UAN,
+      },
     });
 
-    let userRef = this.afs.collection('entries').doc(UANToId(uniqueARTNumber));
+    saveEntryModalRef.onClose.subscribe((save: boolean) => {
+      if (save) {
+        this.isLoading = true;
 
-    userRef.set(data, { merge: true }).then(() => {
-      userRef.get().subscribe((val) => {
-        const cvh = (val.data() as UserEntry)?.cvh;
-        const newCV = this.clinicVisitFormGroup.value as ClinicVisitEntry;
+        const id = this.isEntryNew
+          ? UANToId(UAN)
+          : this.loadedEntry$.getValue().id;
+        const facility = this.authServ.currentFacility$.getValue().code;
+        const _entryVal = this.entryFormGroup.getRawValue();
+        let _data = {
+          facility,
+          ..._entryVal,
+          vlh: this.vlh$.getValue(),
+          eligibility: this.eligibilityStatus,
+          iit: this.iit,
+          nextViralLoadSampleCollectionDate:
+            this.nextViralLoadSampleCollectionDate,
+        };
 
-        let cur;
-
-        if (cvh?.length) {
-          cur = cvh[cvh.length - 1];
-
-          if (cur == newCV) return;
-        }
-
-        userRef
-          .update({
-            cvh: firebase.firestore.FieldValue.arrayUnion({
-              ...newCV,
-              iitStatus: this.statusServ.getIITStatus(
-                newCV.nextAppointmentDate
-              ),
-            }),
-          })
-          .then(() => {
-            if (
-              this.clinicVisitFormGroup
-                .get('clinicVisitComment')
-                ?.value?.includes('Transfer')
-            ) {
-              this.pushNotifServ.addPushNotif({
-                message: `${uniqueARTNumber} ${
-                  this.clinicVisitFormGroup.get('clinicVisitComment')?.value
-                } ${
-                  this.clinicVisitFormGroup.get('facility')?.value
-                }`.toUpperCase(),
-                unread: true,
-                dateCreated: new Date(),
-              });
+        let data = this.isEntryNew
+          ? {
+              id,
+              ..._data,
+              uniqueARTNumber: UAN,
+              entryDate: firebase.firestore.FieldValue.serverTimestamp(),
             }
+          : _data;
 
-            this.notifServ.open(UserUpdatedAlertComponent, {
-              data: { uniqueARTNumber: uniqueARTNumber.toUpperCase() },
-              autohide: true,
-            });
+        Object.keys(data).forEach((key) => {
+          if (data[key] == undefined) data[key] = null;
+        });
 
-            this.uniqueARTNumberFormControl.reset();
-            this.resetEntryForm();
+        let userRef = this.afs.collection('entries').doc(id);
+
+        userRef.set(data, { merge: true }).then(() => {
+          this.notifServ.open(UserUpdatedAlertComponent, {
+            data: { uniqueARTNumber: UAN },
+            autohide: true,
           });
-      });
+
+          this.uniqueARTNumberFormControl.reset();
+          this.isLoading = false;
+        });
+
+        this.saveClinicVisitForm();
+      }
     });
   }
 
-  pendingStatusUpdated(val: boolean) {
-    if (!val) this.entryFormGroup.get('pendingStatusDate')?.reset();
+  saveClinicVisitForm() {
+    this.isLoading = true;
+    const UAN = this.UAN$.getValue();
+    const id = this.isEntryNew ? UANToId(UAN) : this.loadedEntry$.getValue().id;
+
+    this.afs
+      .collection('entries')
+      .doc(id)
+      .set(
+        {
+          cvh: firebase.firestore.FieldValue.arrayUnion(
+            this.clinicVisitFormGroup.value
+          ),
+        },
+        { merge: true }
+      )
+      .then((res) => {
+        if (
+          this.clinicVisitFormGroup
+            .get('clinicVisitComment')
+            ?.value?.includes('Transfer')
+        ) {
+          this.pushNotifServ.addPushNotif({
+            message: `${UAN} ${
+              this.clinicVisitFormGroup.get('clinicVisitComment')?.value
+            } ${
+              this.clinicVisitFormGroup.get('facility')?.value
+            }`.toUpperCase(),
+            unread: true,
+            dateCreated: new Date(),
+          });
+        }
+        this.isLoading = false;
+      });
   }
 
   // Viral Load Functions
   openNewVLModal() {
     let newVLModalRef = this.modalServ.open(NewVlComponent, {
-      modalClass: 'modal-dialog-centered modal-lg',
+      modalClass: 'modal-dialog-centered modal-sm',
     });
 
     newVLModalRef.onClose.subscribe((vlEntry) => {
       if (vlEntry) {
-        this.vlh.push(vlEntry);
-        this.sortVLH();
-
+        this.vlh$.next(this.sortVLH([...this.vlh$.getValue(), vlEntry]));
         this.noViralLoadHasBeenDoneFormControl.reset();
         this.noViralLoadHasBeenDoneFormControl.disable();
       }
@@ -714,50 +640,44 @@ export class EntryFormComponent
 
   openEditVLModal(i: number) {
     let editVLModalRef = this.modalServ.open(EditVlComponent, {
-      modalClass: 'modal-dialog-centered modal-lg',
-      data: { vl: this.vlh[i] },
+      modalClass: 'modal-dialog-centered modal-sm',
+      data: { vl: this.vlh$.getValue()[i] },
     });
 
     editVLModalRef.onClose.subscribe((vlEntry) => {
       if (vlEntry) {
-        this.vlh[i] = vlEntry;
-        this.sortVLH();
+        const vlh = this.vlh$.getValue();
+        vlh[i] = vlEntry;
+        this.vlh$.next(this.sortVLH(vlh));
       }
     });
   }
 
   removeVL(i: number) {
-    this.vlh.splice(i, 1);
-    this.vlhUpdated.next(true);
-
-    if (!this.vlh.length) {
-      this.noViralLoadHasBeenDoneFormControl.enable();
-    }
+    const vlh = this.vlh$.getValue();
+    vlh.splice(i, 1);
+    if (vlh.length) this.noViralLoadHasBeenDoneFormControl.enable();
+    this.vlh$.next(vlh);
   }
 
-  sortVLH() {
-    this.vlh.sort(
+  sortVLH(vlh: ViralLoadEntry[]) {
+    return vlh.sort(
       (x, y) =>
         y.dateSampleCollected.valueOf() - x.dateSampleCollected.valueOf()
     );
-    this.vlhUpdated.next(true);
   }
 
   // Clinic Visit Functions
   viewCVH() {
-    this.afs
-      .collection('entries')
-      .doc(UANToId(this.uniqueARTNumberFormControl.value))
-      .get()
-      .subscribe((res) => {
-        this.modalServ.open(ViewCvhComponent, {
-          data: {
-            cvh: (res.data() as UserEntry).cvh,
-            entryDate: this.entryDate,
-          },
-          modalClass: 'modal-dialog-centered modal-xl modal-fullscreen-md-down',
-        });
-      });
+    this.modalServ.open(ViewCvhComponent, {
+      data: {
+        cvh: this.cvh,
+        cv: this.clinicVisitFormGroup.value,
+        isNewCV: this.clinicVisitFormGroup.pristine,
+      },
+      modalClass:
+        'modal-dialog-centered modal-lg modal-fullscreen-md-down modal-dialog-scrollable',
+    });
   }
 }
 

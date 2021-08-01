@@ -4,7 +4,7 @@
 </div>
 <div class="modal-body">
   <div [formGroup]="editVLFormGroup" class="row g-3 align-items-center">
-    <div class="col-12 col-lg-4">
+    <div class="col-12">
       <div class="form-check">
         <input
           mdbCheckbox
@@ -19,7 +19,7 @@
       </div>
     </div>
     <div
-      class="col-12 col-lg-4"
+      class="col-12"
       [ngClass]="{
         'visually-hidden': editVLFormGroup?.get('undetectableViralLoad')?.value
       }"
@@ -43,7 +43,7 @@
         Viral Load
       </div>
     </div>
-    <div class="col-12 col-lg-4">
+    <div class="col-12">
       <mdb-form-control tabindex="1">
         <input
           mdbInput

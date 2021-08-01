@@ -14,6 +14,8 @@
 
 body {
   background-color: rgba(18, 102, 241, 0.1);
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* width */
@@ -31,7 +33,7 @@ body {
 ::-webkit-scrollbar-thumb {
   background: rgba(18, 102, 241, 0.5);
   &:hover {
-    background: rgba(18, 102, 241, 1);
+    background: rgb(171, 198, 241);
   }
 }
 
@@ -71,6 +73,20 @@ input[type="number"] {
   }
 }
 
-.dropdown-menu {
+.dropdown-menu,
+.card {
   overflow: hidden;
+}
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 300px,
+  md: 500px,
+  lg: 800px,
+  xl: 1200px,
+  xxl: 1400px,
+);
+
+.input-group {
+  flex-wrap: nowrap !important;
 }

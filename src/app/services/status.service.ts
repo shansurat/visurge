@@ -41,7 +41,7 @@ export class StatusService {
     eac3Completed = eac3Completed == 'yes';
     hvl = hvl == 'yes';
 
-    const isAdult: boolean = Object.keys(age)[0] == 'years' && age.years >= 19;
+    const isAdult: boolean = Object.keys(age)[0] == 'year' && age.year >= 19;
 
     const today = new Date();
     const artDiff = diffDate(today, ARTStartDate);
@@ -87,7 +87,7 @@ export class StatusService {
 
     const mostCurrentVLDate = l ? vlh[0]?.dateSampleCollected : null;
 
-    const isAdult: boolean = (age?.years || 0) >= 19;
+    const isAdult: boolean = (age?.year || 0) >= 19;
 
     // Setting the latest date
     let latestDate;

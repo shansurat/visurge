@@ -32,9 +32,23 @@ export class CvsByIitComponent implements OnInit {
 
   cvsChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false,
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false,
+          },
+        },
+        y: {
+          ticks: {
+            min: 0,
+            precision: 0,
+          },
+        },
       },
     },
   };

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { MdbModalService } from 'mdb-angular-ui-kit/modal';
@@ -17,6 +17,7 @@ import { FacilitiesService } from 'src/app/services/facilities.service';
   selector: 'app-facilities',
   templateUrl: './facilities.component.html',
   styleUrls: ['./facilities.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class FacilitiesComponent implements OnInit {
   @ViewChild('table') table!: MdbTableDirective<Facility>;

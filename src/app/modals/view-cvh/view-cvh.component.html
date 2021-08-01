@@ -1,5 +1,5 @@
 <div class="modal-header">
-  <h5 class="modal-title" id="exampleModalLabel">Clinic Visit History</h5>
+  <h5 class="modal-title">Clinic Visit History</h5>
   <button
     type="button"
     class="btn-close"
@@ -7,53 +7,76 @@
     (click)="modalRef.close()"
   ></button>
 </div>
-<div class="modal-body">
-  <div class="table-responsive">
-    <table class="table" *ngIf="cvh?.length; else noCVH">
-      <thead>
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">Last Clinic Visit Date</th>
-          <th scope="col">Next Appointment Date</th>
-          <th scope="col">IIT Status</th>
-          <th scope="col">Comment</th>
-          <th scope="col">Facility</th>
-          <th scope="col">Date Transferred</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let cv of cvh; index as i">
-          <td>{{ i + 1 }}</td>
-          <td>{{ toDate(cv.lastClinicVisitDate) | date: "longDate" }}</td>
-          <td>{{ toDate(cv.nextAppointmentDate) | date: "longDate" }}</td>
-          <td>
-            <span
-              class="badge"
-              [ngClass]="{
-                'bg-success': cv?.iitStatus == 'active',
-                'bg-primary': cv?.iitStatus == 'iit-1',
-                'bg-warning': cv?.iitStatus == 'iit-2-3',
-                'bg-danger':
-                  cv?.iitStatus == 'iit-4-6' || cv?.iitStatus == 'iit-6+'
-              }"
-              >{{ cv?.iitStatus | uppercase }}</span
+<div class="modal-body p-0">
+  <div class="datatable">
+    <div class="datatable-inner position-relative h-100 w-100" mdbScrollbar>
+      <table
+        class="table datatable-table"
+        mdbTable
+        mdbTableSort="mdbTableSort"
+        #table="mdbTable"
+        #sort="mdbTableSort"
+        [dataSource]="cvh"
+        [sort]="sort"
+        [pagination]="pagination"
+        [fixedHeader]="true"
+        [striped]="true"
+        [sm]="true"
+      >
+        <thead class="datatable-header">
+          <tr>
+            <th
+              *ngFor="let header of headers"
+              [mdbTableSortHeader]="header"
+              scope="col"
             >
-          </td>
-          <td>{{ cv.clinicVisitComment }}</td>
-          <td>{{ cv.facility || "N/A" }}</td>
-          <td>
-            {{
-              cv.dateTransferred
-                ? (toDate(cv.dateTransferred) | date: "longDate")
-                : "N/A"
-            }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              {{ header }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cv of table.data; index as i">
+            <ng-container
+              *ngTemplateOutlet="cvRow; context: {cv, i}"
+            ></ng-container>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-
-  <ng-template #noCVH>
-    <div class="note note-warning">Nothing to show.</div>
-  </ng-template>
 </div>
+
+<div
+  class="modal-footer p-0"
+  [ngClass]="{ 'visually-hidden': cvh.length <= 5 }"
+>
+  <mdb-table-pagination
+    [entries]="5"
+    [entriesOptions]="[5, 10, 20]"
+    #pagination
+  ></mdb-table-pagination>
+</div>
+
+<ng-template #cvRow let-cv="cv" let-i="i">
+  <td>{{ i + 1 }}</td>
+  <td>{{ cv.lastClinicVisitDate | date: "longDate" }}</td>
+  <td>{{ cv.nextAppointmentDate | date: "longDate" }}</td>
+  <td *ngIf="statusServ.getIITStatus(cv.nextAppointmentDate) as iit">
+    <span
+      class="badge text-uppercase"
+      [ngClass]="{
+        'badge-success': iit == 'active',
+        'badge-primary': iit == 'iit <= 1',
+        'badge-warning': iit == 'iit <= 3',
+        'badge-danger': iit == 'iit > 3',
+        'badge-dark': iit == 'pending' || !iit
+      }"
+      >{{ (iit || "pending").replace("<=", "≤").replace("> 3", "3⁺") }}</span
+    >
+  </td>
+  <td>{{ cv.clinicVisitComment }}</td>
+  <td>{{ cv.facility || "N/A" }}</td>
+  <td>
+    {{ cv.dateTransferred ? (cv.dateTransferred | date: "longDate") : "N/A" }}
+  </td>
+</ng-template>
