@@ -1,8 +1,9 @@
-<div class="card h-100">
-  <div class="card-header text-uppercase text-success">Next Viral Load</div>
-
-  <div class="card-body">
-    <div class="d-flex align-items-center justify-content-center h-100">
+<div class="card h-100" [ngStyle]="{ 'min-height': '350px !important' }">
+  <div class="card-body d-flex flex-column">
+    <div class="mb-3">
+      <div class="lead">Next Viral Load</div>
+    </div>
+    <div class="flex-fill">
       <canvas
         mdbChart
         [type]="'line'"

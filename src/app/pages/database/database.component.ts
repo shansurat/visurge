@@ -1,3 +1,4 @@
+import { formatDate } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -22,12 +23,17 @@ import {
   MdbTableDirective,
   MdbTablePaginationComponent,
 } from 'mdb-angular-ui-kit/table';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { distinctUntilChanged, map, mergeMap, tap } from 'rxjs/operators';
+import { fields } from 'src/app/constants/entry-fields';
 import { diffDate } from 'src/app/functions/diffDate';
-import { ageToText, getAge } from 'src/app/functions/getAge';
+import { ageToFirestoreAge, ageToText, getAge } from 'src/app/functions/getAge';
 import { getRegimenByCode } from 'src/app/functions/getRegimenByCode';
+import { distinctUntilChangedObj } from 'src/app/functions/observable-functions';
 import { timestampToDateForObj } from 'src/app/functions/timestampToDate';
+import { Age } from 'src/app/interfaces/age';
+import { FirestoreAge } from 'src/app/interfaces/firestore-age';
+import { ExportEntriesComponent } from 'src/app/modals/export-entries/export-entries.component';
 import { ImportEntriesComponent } from 'src/app/modals/import-entries/import-entries.component';
 import { NewAdvancedActiveFilterComponent } from 'src/app/modals/new-advanced-active-filter/new-advanced-active-filter.component';
 import { ViewVlhComponent } from 'src/app/modals/view-vlh/view-vlh.component';
@@ -36,34 +42,9 @@ import { EntriesService } from 'src/app/services/entries.service';
 import { FacilitiesService } from 'src/app/services/facilities.service';
 import { ViewCVHService } from 'src/app/services/view-cvh.service';
 
-interface ActiveFilter {
+interface Field {
   header: string;
-  value: any;
-  type?: string;
-}
-
-const fields = [
-  { header: 'Entry Date', field: 'entryDate' },
-  { header: 'Facility', field: 'facility' },
-  { header: 'Unique ART Number', field: 'uniqueARTNumber' },
-  { header: 'ART Start Date', field: 'ARTStartDate' },
-  { header: 'Sex', field: 'sex' },
-  { header: 'Age', field: 'age' },
-  { header: 'Phone Number', field: 'phoneNumber' },
-  { header: 'Regimen', field: 'regimen' },
-  { header: 'Start/ Transition Date', field: 'regimenStartTransDate' },
-  { header: 'Pregnant/Breastfeeding', field: 'pmtct' },
-  { header: 'PMTCT Enrollment Start Date', field: 'pmtctEnrollStartDate' },
-  { header: 'High Viral Load', field: 'hvl' },
-  { header: 'EAC-3 Completed', field: 'eac3Completed' },
-  { header: 'EAC-3 Completion Date', field: 'eac3CompletionDate' },
-  { header: 'Pending Status', field: 'pendingStatus' },
-  { header: 'Pending Status Date', field: 'pendingStatusDate' },
-  { header: 'Eligibility', field: 'eligibility' },
-];
-
-function getFieldByHeader(header: string): string {
-  return fields.find((field) => field.header == header)?.field || '';
+  field: string;
 }
 
 @Component({
@@ -75,6 +56,10 @@ function getFieldByHeader(header: string): string {
 })
 export class DatabaseComponent implements OnInit, AfterViewInit {
   @ViewChild('table') table!: MdbTableDirective<any>;
+
+  tableIsLoading = false;
+
+  isAdvancedFiltersExpanded = false;
 
   config = {
     handlers: ['click-rail', 'drag-thumb', 'keyboard', 'wheel', 'touch'],
@@ -93,37 +78,23 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
 
   getRegimenByCode = getRegimenByCode;
 
-  headers = [
-    'Entry Date',
-    'Facility',
-    'Unique ART Number',
-    'ART Start Date',
-    'Sex',
-    'Age',
-    'Phone Number',
-    'Regimen',
-    'Start/ Transition Date',
-    'Pregnant/Breastfeeding',
-    'PMTCT Enrollment Start Date',
-    'High Viral Load',
-    'EAC-3 Completed',
-    'EAC-3 Completion Date',
-    'Pending Status',
-    'Pending Status Date',
-    'Eligibility',
-    'Actions',
-  ];
+  fields = fields;
 
   advancedFilter = new BehaviorSubject(false);
-
-  advancedActiveFilters$: BehaviorSubject<ActiveFilter[]> = new BehaviorSubject(
-    [] as ActiveFilter[]
-  );
+  advancedActiveFilters$: BehaviorSubject<any> = new BehaviorSubject({} as any);
 
   filterFormControl = new FormControl();
+  filter$: BehaviorSubject<string> = new BehaviorSubject('');
+  currentAdvancedFilters!: any;
+
+  entries$: BehaviorSubject<any[]> = new BehaviorSubject([] as any[]);
+
+  sortHeader$: BehaviorSubject<Field> = new BehaviorSubject(fields[0]);
+  sortIsAscending$: BehaviorSubject<boolean> = new BehaviorSubject(
+    true as boolean
+  );
 
   constructor(
-    private afs: AngularFirestore,
     private router: Router,
     private modalServ: MdbModalService,
     public authServ: AuthService,
@@ -137,14 +108,47 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
   ageToText = ageToText;
 
   ngOnInit(): void {
-    this.advancedActiveFilters$.subscribe((activeFilters) => {
-      if (activeFilters.length) this.advancedFilter.next(true);
-      this.advancedSearch(activeFilters);
-    });
-
-    this.advancedFilter.subscribe((val) => {
-      if (!val) this.search();
-    });
+    this.filterFormControl.valueChanges
+      .pipe(distinctUntilChanged())
+      .subscribe((filter) => this.filter$.next(filter));
+    combineLatest(
+      this.entriesServ.entries_formatted$,
+      this.advancedFilter,
+      this.filter$,
+      this.advancedActiveFilters$,
+      this.sortHeader$.pipe(distinctUntilChanged()),
+      this.sortIsAscending$.pipe(distinctUntilChanged())
+    )
+      .pipe(
+        tap(() => (this.tableIsLoading = true)),
+        map(
+          ([
+            entries,
+            mode,
+            filter,
+            advancedFilters,
+            sortHeader,
+            sortIsAscending,
+          ]) => {
+            this.tableIsLoading = true;
+            console.log({ sortHeader, sortIsAscending });
+            return this.sortEntries(
+              [
+                ...(mode
+                  ? this.filterEntries_Advanced(entries, advancedFilters)
+                  : this.filterEntries(entries, filter)),
+              ],
+              sortHeader.field,
+              sortIsAscending
+            );
+          }
+        ),
+        tap(() => (this.tableIsLoading = false))
+      )
+      .subscribe((entries) => {
+        console.log({ entries });
+        this.entries$.next(entries);
+      });
   }
 
   ngAfterViewInit() {
@@ -153,8 +157,25 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
 
     if (!!_activeFilters) {
       const activeFilters = JSON.parse(_activeFilters);
-      this.advancedActiveFilters$.next(activeFilters);
+      this.advancedFilter.next(true);
+      this.currentAdvancedFilters = activeFilters;
     }
+  }
+
+  get advancedActiveFiltersCount(): Observable<number> {
+    return this.advancedActiveFilters$.pipe(
+      map(
+        (filters) =>
+          Object.keys(filters).filter((key) => {
+            if (key.includes('Date'))
+              return !!filters[key]?.from || !!filters[key]?.from;
+            else if (key == 'facility' || key == 'regimen')
+              return !!(filters[key]?.value as any[])?.length;
+
+            return !!filters[key]?.length;
+          }).length
+      )
+    );
   }
 
   openImportEntriesModal() {
@@ -165,6 +186,17 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
     });
   }
 
+  openExportEntriesModal() {
+    const exportEntriesModalRef = this.modalServ.open(ExportEntriesComponent, {
+      modalClass: 'modal-dialog-centered',
+      ignoreBackdropClick: true,
+      keyboard: false,
+      data: { entries$: this.entries$ },
+    });
+
+    exportEntriesModalRef.onClose.subscribe((val) => console.log(val));
+  }
+
   loadEntry(UAN: string) {
     this.router.navigate(['/entry-form', { UAN }]);
   }
@@ -173,114 +205,185 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
     this.router.navigate(['/report', { UAN }]);
   }
 
-  search() {
-    this.table?.search(this.filterFormControl.value);
-  }
+  filterEntries(entries: any[], filter: string) {
+    if (!filter?.length) return [...entries];
 
-  advancedSearch(activeFilters: ActiveFilter[]) {
-    this.table?.search(JSON.stringify(activeFilters || ''));
-  }
+    filter = filter.toLowerCase();
 
-  filterFn(data: any, searchTerm: string): boolean {
-    if (!searchTerm) return true;
+    return entries.filter((entry) => {
+      return Object.keys(entry).some((key: any) => {
+        if (!entry[key]) return false;
 
-    // tslint:disable-next-line: prefer-const
-    let [phrase, columns] = searchTerm.split(' in:').map((str) => str.trim());
-    return Object.keys(data).some((key: any) => {
-      if (columns?.length) {
-        let result;
-        columns.split(',').forEach((column) => {
-          if (
-            column.toLowerCase().trim() === key.toLowerCase() &&
-            data[key].toLowerCase().includes(phrase.toLowerCase())
-          ) {
-            result = true;
-          }
-        });
-        return result;
-      }
-      if (data[key] && !columns?.length) {
-        return JSON.stringify(data)
-          .toLowerCase()
-          .includes(phrase.toLowerCase());
-      }
+        switch (key) {
+          case 'entryDate':
+          case 'pmtctEnrollStartDate':
+          case 'pendingStatusDate':
+          case 'regimenStartTransDate':
+          case 'ARTStartDate':
+          case 'eac3CompletionDate':
+            return formatDate(entry[key], 'longDate', 'en-US')
+              .toLowerCase()
+              .includes(filter);
+          case 'sex':
+          case 'pmtct':
+          case 'hvl':
+          case 'eac3Completed':
+          case 'uniqueARTNumber':
+            return entry[key].toLowerCase().includes(filter);
+          case 'pendingStatus':
+            console.log(
+              (!!entry.pendingStatusDate ? 'yes' : 'no').includes(filter)
+            );
+            return (!!entry.pendingStatusDate ? 'yes' : 'no').includes(filter);
+          case 'eligible':
+            return (entry.eligible ? 'yes' : 'no').includes(filter);
+          case 'phoneNumber':
+            return (entry[key] || 'unknown').includes(filter.toLowerCase());
+          // case 'facility':
+          //   return (
+          //     await this.facilitiesServ
+          //       .getFacilityByCode(entry[key])
+          //       .toPromise()
+          //   ).site.includes(filter.toLowerCase());
+          case 'regimen':
+            const reg = getRegimenByCode(entry[key]) as any;
+            return Object.keys(reg).some((regKey) =>
+              reg[regKey].toLowerCase().includes(filter)
+            );
+          case 'vlh':
+          case 'cvh':
+            return false;
 
-      return false;
+          default:
+            return false;
+        }
+      });
     });
   }
 
-  advancedFilterFn(data: any, searchTerm: string): boolean {
-    if (!searchTerm) return true;
+  filterEntries_Advanced(entries: any[], advancedFilters: any) {
+    return entries.filter((entry: any) => {
+      return Object.keys(advancedFilters).every((key) => {
+        if (!advancedFilters[key]) return true;
+        switch (key) {
+          // Date Fields
+          case 'entryDate':
+          case 'pmtctEnrollStartDate':
+          case 'pendingStatusDate':
+          case 'regimenStartTransDate':
+          case 'ARTStartDate':
+          case 'eac3CompletionDate':
+            if (entry[key]) {
+              if (advancedFilters[key].from || advancedFilters[key].to) {
+                const date = entry[key];
+                const from = new Date(advancedFilters[key].from);
+                const to = new Date(advancedFilters[key].to);
 
-    const activeFilters = JSON.parse(searchTerm) as ActiveFilter[];
+                return (
+                  (!!advancedFilters[key].from ? date >= from : true) &&
+                  (!!advancedFilters[key].to
+                    ? to.setDate(to.getDate() + 1) >= date
+                    : true)
+                );
+              }
+              return true;
+            }
+            return !(advancedFilters[key].from || advancedFilters[key].to);
+          // Normal Fields
+          case 'uniqueARTNumber':
+            return entry[key].includes(advancedFilters[key].toUpperCase());
+          case 'iit':
+            return advancedFilters[key].includes(entry[key]);
+          case 'sex':
+          case 'pmtct':
+          case 'hvl':
+          case 'eac3Completed':
+            return entry[key] == advancedFilters[key];
+          case 'pendingStatus':
+            return !!entry.pendingStatusDate == (advancedFilters[key] == 'yes');
+          case 'eligible':
+            return entry.eligible == (advancedFilters[key] == 'yes');
+          case 'phoneNumber':
+            if (advancedFilters[key] == 'unknown') return !entry[key];
+            return entry[key]?.includes(advancedFilters[key]);
 
-    return activeFilters.every((activeFilter) => {
-      const { header, value, type } = activeFilter;
-      const field = getFieldByHeader(header);
+          case 'facility':
+            const facilities = advancedFilters[key] as any[];
+            return facilities.length ? facilities.includes(entry[key]) : true;
 
-      switch (header) {
-        // Normal Fields
-        case 'Unique ART Number':
-          return data.uniqueARTNumber.includes(value);
-        case 'Sex':
-        case 'Pregnant/Breastfeeding':
-        case 'High Viral Load':
-        case 'EAC-3 Completed':
-          return data[field] == value;
-        case 'Pending Status':
-          return !!data.pendingStatusDate == (value == 'yes');
-        case 'Eligibility':
-          return data.eligibility.eligible == (value == 'eligible');
+          case 'regimen':
+            const regimens = advancedFilters[key] as any[];
+            return regimens.length ? regimens.includes(entry[key]) : true;
+          default:
+            return true;
+        }
+      });
+    });
+  }
 
-        // Date Fields
-        case 'Entry Date':
-        case 'PMTCT Enrollment Start Date':
-        case 'Pending Status Date':
-        case 'Start/ Transition Date':
-        case 'ART Start Date':
-          const date = data[field].toDate();
-          const valueDate = new Date(value);
-          switch (type) {
-            case 'after':
-              return date >= valueDate;
-            case 'before':
-              return date <= valueDate;
+  sortEntries(entries: any[], field: string, isAscending: boolean) {
+    const sortedEntriesByAscending = entries.sort((A, B) => {
+      switch (field) {
+        case 'age':
+          const age_A = (
+            A.birthdate
+              ? ageToFirestoreAge(getAge(A.birthdate) as Age)
+              : A[field]
+          ) as FirestoreAge;
+          const age_B = (
+            B.birthdate
+              ? ageToFirestoreAge(getAge(B.birthdate) as Age)
+              : B[field]
+          ) as FirestoreAge;
+
+          if (age_A.unit == age_B.unit) return age_A.age - age_B.age;
+          switch (age_A.unit) {
+            case 'year':
+              return 1;
+            case 'month':
+              return age_B.unit == 'day' ? 1 : -1;
             default:
-              return isSameDay(date, valueDate);
+              return -1;
           }
+
+        case 'sex':
+        case 'phoneNumber':
+        case 'regimen':
+        case 'pmtct':
+        case 'hvl':
+        case 'eac3Completed':
+        case 'iit':
+          return A[field].localeCompare(B[field]);
+        case 'pendingStatus':
+          if (A.pendingStatusDate && !B.pendingStatusDate) return 1;
+          else if (!A.pendingStatusDate && B.pendingStatusDate) return -1;
+          return 0;
+        case 'eligibility':
+          if (A.eligible && !B.eligible) return 1;
+          else if (!A.eligible && B.eligible) return -1;
+          return 0;
+
         default:
-          return false;
+          if (A[field] && !B[field]) return 1;
+          else if (!A[field] && B[field]) return -1;
+          else if (!A[field] && !B[field]) return 0;
+          return A[field] - B[field];
       }
     });
+
+    return isAscending
+      ? sortedEntriesByAscending
+      : sortedEntriesByAscending.reverse();
   }
 
-  openNewAdvancedActiveFilterModal() {
-    const newAdvancedActiveFilter = this.modalServ.open(
-      NewAdvancedActiveFilterComponent,
-      {
-        modalClass: 'modal-dialog-centered modal-sm',
-        data: {
-          currentActiveFilters: this.advancedActiveFilters$.getValue(),
-        },
-      }
-    );
-
-    newAdvancedActiveFilter.onClose.subscribe((newFilter) => {
-      if (newFilter) {
-        console.log(newFilter);
-        this.advancedActiveFilters$.next([
-          ...this.advancedActiveFilters$.getValue(),
-          newFilter,
-        ]);
-      }
-    });
+  sortByHeader(field: Field) {
+    if (this.sortHeader$.getValue() == field)
+      this.sortIsAscending$.next(!this.sortIsAscending$.getValue());
+    else this.sortHeader$.next(field);
   }
 
-  removeActiveFilter(filter: ActiveFilter) {
-    let _activeFilters = new Set(this.advancedActiveFilters$.getValue());
-    _activeFilters.delete(filter);
-
-    this.advancedActiveFilters$.next([..._activeFilters.values()]);
+  updateAdvancedFilters(val: any) {
+    this.advancedActiveFilters$.next(val);
   }
 
   viewVLH(vlh: any[]) {

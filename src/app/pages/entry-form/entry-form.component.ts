@@ -36,7 +36,11 @@ import { getAge } from 'src/app/functions/getAge';
 import { NewVlComponent } from 'src/app/modals/new-vl/new-vl.component';
 import { PushNotificationService } from 'src/app/services/push-notification.service';
 import { regimens, regimensByGroup } from '../../constants/regimens';
-import { slideInRightAnimation } from 'mdb-angular-ui-kit/animations';
+import {
+  slideInRightAnimation,
+  slideInRightEnterAnimation,
+  slideOutRightLeaveAnimation,
+} from 'mdb-angular-ui-kit/animations';
 import { StatusService } from 'src/app/services/status.service';
 import { distinctUntilChangedObj } from 'src/app/functions/observable-functions';
 import { UserUpdatedAlertComponent } from 'src/app/alerts/user-updated-alert/user-updated-alert.component';
@@ -46,13 +50,15 @@ import firebase from 'firebase/app';
 import { timestampToDateForObj } from 'src/app/functions/timestampToDate';
 import { SaveEntryComponent } from 'src/app/modals/save-entry/save-entry.component';
 import { deepCopyObj } from 'src/app/functions/deepCopyObj';
+import { AreYouSureComponent } from 'src/app/modals/are-you-sure/are-you-sure.component';
+import { fields } from 'src/app/constants/entry-fields';
 
 @Component({
   selector: 'app-entry-form',
   templateUrl: './entry-form.component.html',
   styleUrls: ['./entry-form.component.scss'],
   encapsulation: ViewEncapsulation.None,
-  animations: [slideInRightAnimation()],
+  animations: [slideInRightEnterAnimation(), slideOutRightLeaveAnimation()],
 })
 export class EntryFormComponent implements OnInit, AfterContentChecked {
   ageUnits = ['year', 'month', 'day'];
@@ -93,6 +99,10 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
   loadedEntry$: BehaviorSubject<any> = new BehaviorSubject(null);
   canShowStatus = new BehaviorSubject(true);
 
+  entryFormGroupError$: BehaviorSubject<string> = new BehaviorSubject('');
+  clinicVisitFormGroupError$: BehaviorSubject<string> = new BehaviorSubject('');
+  error$: BehaviorSubject<string> = new BehaviorSubject('');
+
   miniDashboardShown!: boolean;
 
   diffDate = diffDate;
@@ -121,6 +131,7 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
 
     // Entry Form Group initialization
     this.entryFormGroup = this.fb.group({
+      ARTStartDate: ['', [Validators.required]],
       sex: ['', [Validators.required]],
       phoneNumber: [''],
       birthdate: [''],
@@ -128,7 +139,6 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
         age: ['', [Validators.required, Validators.min(0)]],
         unit: ['year', [Validators.required]],
       }),
-      ARTStartDate: ['', [Validators.required]],
       regimen: ['', [Validators.required]],
       regimenStartTransDate: ['', [Validators.required]],
       pmtct: ['', [Validators.required]],
@@ -158,33 +168,22 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
 
     this.entriesAutocomplete$ = combineLatest(
       this.UAN$,
-      this.entriesServ.all$
+      this.entriesServ.all$,
+      this.authServ.currentFacility$
     ).pipe(
-      map(([UAN, all]) =>
-        all.filter((entry) =>
-          entry.uniqueARTNumber.split('/')[2].includes(UAN.split('/')[2])
-        )
-      )
+      map(([UAN, all, facility]) => {
+        return facility == undefined
+          ? []
+          : all.filter((entry) => {
+              return entry.uniqueARTNumber.includes(
+                UAN ? UAN : `${facility.state}/${facility.code}/`
+              );
+            });
+      })
     );
   }
 
   ngOnInit(): void {
-    // combineLatest(
-    //   this.entryFormGroup.statusChanges.pipe(distinctUntilChangedObj()),
-    //   this.clinicVisitFormGroup.statusChanges.pipe(distinctUntilChangedObj())
-    // )
-    //   .pipe(
-    //     map(([entryFormStatus, clinicVisitFormStatus]) => {
-    //       console.log({ entryFormStatus });
-    //       console.log({ clinicVisitFormStatus });
-
-    //       this.canShowStatus.next(
-    //         entryFormStatus == 'VALID' && clinicVisitFormStatus == 'VALID'
-    //       );
-    //     })
-    //   )
-    //   .subscribe();
-
     combineLatest(
       this.uniqueARTNumberFormControl.valueChanges.pipe(
         debounceTime(250),
@@ -200,7 +199,6 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
       .subscribe();
 
     // Entries Autocomplete for UAN
-
     this.UAN$.pipe(
       mergeMap((UAN) => this.entriesServ.getEntry$(UAN))
     ).subscribe((entry) => this.loadedEntry$.next(entry));
@@ -246,7 +244,6 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
               age: age[unit] || 0,
               unit,
             });
-            console.log('LOADED!', birthdate);
           }
         }
       })
@@ -261,7 +258,6 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
         if (vlh.length) {
           if (!vlh[0].value || vlh[0].value < 1000) {
             this.entryFormGroup.get('hvl')?.setValue('no');
-            this.entryFormGroup.get('hvl')?.disable();
           } else this.entryFormGroup.get('hvl')?.setValue('yes');
         }
         this.updateEligibilityStatus();
@@ -293,7 +289,9 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
     const pmtctListener$ = this.pmtctFormControl.valueChanges.pipe(
       distinctUntilChanged(),
       map((pmtct: string) => {
-        if (pmtct == 'no') this.pmtctDateFormControl.reset();
+        if (pmtct == 'no') {
+          this.pmtctDateFormControl.reset();
+        }
       })
     );
     let pmtctSubscription = pmtctListener$?.subscribe();
@@ -375,6 +373,50 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
       // bdSubscription = bdListener$?.subscribe();
     });
 
+    // Error Checker
+
+    combineLatest(this.entryFormGroup.valueChanges, this.vlh$)
+      .pipe(
+        map(([entry, vlh]): string => {
+          console.log({ entry, vlh });
+
+          for (let [field, value] of Object.entries(entry)) {
+            switch (field) {
+              case 'ARTStartDate':
+              case 'sex':
+              case 'regimen':
+              case 'regimenStartTransDate':
+              case 'pmtct':
+              case 'hvl':
+                console.log({ field, value });
+                if (!value)
+                  return `${
+                    fields.find((f) => f.field == field)?.header
+                  } is required.`;
+                break;
+
+              default:
+                break;
+            }
+          }
+
+          return '';
+        })
+      )
+      .subscribe((entryFormGroupError) => {
+        console.log({ entryFormGroupError });
+        this.entryFormGroupError$.next(entryFormGroupError);
+      });
+
+    combineLatest(
+      this.uniqueARTNumberFormControl.statusChanges.pipe(
+        distinctUntilChanged(),
+        map((isValidUAN) => isValidUAN == 'VALID')
+      ),
+      this.entryFormGroupError$,
+      this.clinicVisitFormGroupError$
+    );
+
     // Setting the UAN param
     const activeUAN = this.activatedRoute.snapshot.paramMap.get('UAN');
     if (activeUAN)
@@ -403,7 +445,7 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
       ...data
     } = entry;
 
-    this.entryDate = entryDate.toDate();
+    this.entryDate = entryDate?.toDate();
     this.entryFormGroup.reset({
       pmtctEnrollStartDate: pmtctEnrollStartDate?.toDate(),
       ARTStartDate: ARTStartDate?.toDate(),
@@ -493,6 +535,7 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
   }
 
   updateEligibilityStatus() {
+    console.log(this.entryFormGroup.getRawValue());
     this.eligibilityStatus = this.statusServ.getEligibilityStatus({
       entryDate: this.entryDate,
       ...this.entryFormGroup.getRawValue(),
@@ -654,10 +697,21 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
   }
 
   removeVL(i: number) {
-    const vlh = this.vlh$.getValue();
-    vlh.splice(i, 1);
-    if (vlh.length) this.noViralLoadHasBeenDoneFormControl.enable();
-    this.vlh$.next(vlh);
+    const areYouSureModalRef = this.modalServ.open(AreYouSureComponent, {
+      modalClass: 'modal-dialog-centered',
+      data: { title: 'Delete Viral Load Entry', context: `#${i + 1}` },
+      ignoreBackdropClick: true,
+      keyboard: false,
+    });
+
+    areYouSureModalRef.onClose.subscribe((yes) => {
+      if (yes) {
+        const vlh = this.vlh$.getValue();
+        vlh.splice(i, 1);
+        if (vlh.length) this.noViralLoadHasBeenDoneFormControl.enable();
+        this.vlh$.next(vlh);
+      }
+    });
   }
 
   sortVLH(vlh: ViralLoadEntry[]) {

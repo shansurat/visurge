@@ -1,12 +1,16 @@
 <div class="card h-100">
-  <div class="card-header text-uppercase text-primary">Eligible By Age</div>
-  <div class="card-body">
-    <canvas
-      mdbChart
-      [type]="'bar'"
-      [datasets]="datasets"
-      [labels]="chartLabels"
-      [options]="options"
-    ></canvas>
+  <div class="card-body d-flex flex-column">
+    <div class="mb-3">
+      <div class="lead">Eligible By Age</div>
+    </div>
+    <div class="flex-fill">
+      <canvas
+        mdbChart
+        [type]="'bar'"
+        [datasets]="datasets"
+        [labels]="chartLabels"
+        [options]="options"
+      ></canvas>
+    </div>
   </div>
 </div>

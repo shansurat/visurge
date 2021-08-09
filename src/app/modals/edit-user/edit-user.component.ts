@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import {
@@ -20,6 +20,7 @@ import { FacilitiesService } from 'src/app/services/facilities.service';
   selector: 'app-edit-user',
   templateUrl: './edit-user.component.html',
   styleUrls: ['./edit-user.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class EditUserComponent implements OnInit {
   isLoading!: boolean;
@@ -53,17 +54,7 @@ export class EditUserComponent implements OnInit {
       password: [user.password, [Validators.required, Validators.minLength(6)]],
       admin: [user.admin],
       facility: [user.facility],
-    });
-
-    this.editUserFormGroup.get('admin')?.valueChanges.subscribe((admin) => {
-      if (admin) {
-        this.editUserFormGroup.get('facility')?.reset();
-        this.editUserFormGroup.get('facility')?.clearValidators();
-      } else {
-        this.editUserFormGroup
-          .get('facility')
-          ?.setValidators([Validators.required]);
-      }
+      enabled: [user.enabled],
     });
   }
 

@@ -27,7 +27,6 @@ export class PushNotificationService {
     this.authServ.user$
       .pipe(
         mergeMap((user) => {
-          console.log(user?.uid);
           return this.afs
             .collection('users')
             .doc(user?.uid)
@@ -36,23 +35,18 @@ export class PushNotificationService {
             });
         })
       )
-      .subscribe((res) => {
-        console.log(res);
-      });
+      .subscribe((res) => {});
   }
 
   clearPushNotifs() {
     this.authServ.user$
       .pipe(
         mergeMap((user) => {
-          console.log(user?.uid);
           return this.afs.collection('users').doc(user?.uid).update({
             pushNotifs: [],
           });
         })
       )
-      .subscribe((res) => {
-        console.log(res);
-      });
+      .subscribe((res) => {});
   }
 }

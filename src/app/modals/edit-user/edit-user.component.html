@@ -10,7 +10,7 @@
   </div>
   <div [formGroup]="editUserFormGroup" *ngIf="!isLoading" class="row g-3">
     <div class="col-12">
-      <mdb-form-control class="mb-3">
+      <mdb-form-control>
         <input
           mdbInput
           type="text"
@@ -89,7 +89,7 @@
       </div>
     </div>
 
-    <div class="col-12" *ngIf="!isAdmin.checked">
+    <div class="col-12">
       <mdb-form-control>
         <mdb-select formControlName="facility" [filter]="true">
           <mdb-option
@@ -157,7 +157,9 @@
       editUserFormGroup.invalid ||
       (user.username == editUserFormGroup.value.username &&
         user.password == editUserFormGroup.value.password &&
-        user.admin == editUserFormGroup.value.admin)
+        user.admin == editUserFormGroup.value.admin &&
+        user.facility == editUserFormGroup.value.facility &&
+        user.enabled == editUserFormGroup.value.enabled)
     "
     (click)="editUser()"
   >

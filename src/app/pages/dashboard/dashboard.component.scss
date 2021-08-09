@@ -1,6 +1,10 @@
-#wrapper {
+#dashboard-wrapper {
   height: 100%;
   overflow: hidden;
+
+  .dropdown {
+    cursor: pointer;
+  }
 }
 
 #main-container {

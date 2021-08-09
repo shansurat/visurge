@@ -69,7 +69,7 @@
         'badge-primary': iit == 'iit <= 1',
         'badge-warning': iit == 'iit <= 3',
         'badge-danger': iit == 'iit > 3',
-        'badge-dark': iit == 'pending' || !iit
+        'badge-dark': !iit
       }"
       >{{ (iit || "pending").replace("<=", "≤").replace("> 3", "3⁺") }}</span
     >

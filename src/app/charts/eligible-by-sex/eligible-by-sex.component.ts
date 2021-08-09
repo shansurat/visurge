@@ -29,24 +29,6 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
       backgroundColor: ['#1266F1', '#F93154'],
     },
   ];
-
-  eligibilityChartDatasetsForSex: any[] = [
-    {
-      label: 'Male',
-      data: [],
-      fill: true,
-      fillColor: '#fff',
-      backgroundColor: ['#1266F1', '#F93154'],
-    },
-    {
-      label: 'Female',
-      data: [],
-      fill: true,
-      fillColor: '#fff',
-      backgroundColor: ['#1266F1', '#F93154'],
-    },
-  ];
-
   eligibilityChartLabels: string[] = ['Eligible', 'Ineligible'];
 
   eligibilityChartOptions = {
@@ -72,7 +54,7 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
           fill: true,
           fillColor: '#fff',
           backgroundColor: [
-            draw('diagonal-right-left', hexToRGB('#2196F3', 0.3)),
+            draw('diagonal', hexToRGB('#2196F3', 0.3), undefined, 5),
             '#2196F3',
           ],
         },
@@ -87,35 +69,8 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
           fill: true,
           fillColor: '#fff',
           backgroundColor: [
-            draw('diagonal-right-left', hexToRGB('#F44336', 0.3)),
+            draw('diagonal', hexToRGB('#F44336', 0.3), undefined, 5),
             '#F44336',
-          ],
-        },
-      ];
-
-      this.eligibilityChartDatasetsForSex = [
-        {
-          label: ['Ineligible'],
-          data: [
-            allBySex.ineligible.male.length,
-            allBySex.ineligible.female.length,
-          ],
-          fill: true,
-          fillColor: '#fff',
-          backgroundColor: ['#2196F3', '#F44336'],
-        },
-        {
-          label: ['Eligible'],
-
-          data: [
-            allBySex.eligible.male.length,
-            allBySex.eligible.female.length,
-          ],
-          fill: true,
-          fillColor: '#fff',
-          backgroundColor: [
-            draw('diagonal-right-left', hexToRGB('#2196F3', 0.3)),
-            draw('diagonal-right-left', hexToRGB('#F44336', 0.3)),
           ],
         },
       ];

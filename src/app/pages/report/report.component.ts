@@ -53,14 +53,11 @@ export class ReportComponent implements OnInit {
     );
     UAN$.pipe(
       mergeMap((UAN: string): any => {
-        console.log(UANToId(UAN));
         return UAN
           ? this.afs.collection('entries').doc(UANToId(UAN)).get()
           : of(null);
       }),
       map((entry: DocumentSnapshot<any> | any) => {
-        console.log(entry?.data());
-
         this.selectedEntry$.next(entry?.data());
       })
     ).subscribe();

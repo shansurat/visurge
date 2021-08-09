@@ -1,0 +1,582 @@
+<div
+  class="row g-3"
+  id="advanced-filters"
+  [formGroup]="advancedFilterFormGroup"
+>
+  <!--  Entry Date -->
+  <div class="input-group input-group-sm" formGroupName="entryDate">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="entryDateCB"
+        [formControl]="entryDateCB"
+      />
+    </span>
+    <span class="input-group-text">Entry Date</span>
+    <ng-container *ngIf="entryDateCB.value">
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="entryDateFrom"
+          type="text"
+          class="form-control form-control-sm"
+          id="entryDateFrom"
+          formControlName="from"
+          (click)="entryDateFrom.open()"
+        />
+        <label mdbLabel for="entryDateFrom" class="form-label">From</label>
+        <mdb-datepicker #entryDateFrom format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="entryDateTo"
+          type="text"
+          class="form-control form-control-sm"
+          id="entryDateTo"
+          formControlName="to"
+          (click)="entryDateTo.open()"
+        />
+        <label mdbLabel for="entryDateTo" class="form-label">To</label>
+        <mdb-datepicker #entryDateTo format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- Facility -->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="facilityCB"
+        [formControl]="facilityCB"
+      />
+    </span>
+    <span class="input-group-text">Facility</span>
+    <ng-container *ngIf="facilityCB.value">
+      <mdb-form-control>
+        <mdb-select
+          [filter]="true"
+          [multiple]="true"
+          formControlName="facility"
+          class="advancedFilterSelect"
+        >
+          <mdb-option
+            class="advancedFilterOption"
+            *ngFor="let facility of facilitiesServ.facilities$ | async"
+            [value]="facility.code"
+            [label]="facility.site"
+          >
+            <div class="d-flex align-items-center w-100 m-auto">
+              <span class="text-truncate">{{ facility.site }}</span>
+              <div class="flex-fill"></div>
+              <span class="badge bg-primary">{{ facility.state }}</span>
+            </div>
+          </mdb-option>
+        </mdb-select>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- Unique ART Number -->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="uanCB"
+        [formControl]="UANCB"
+      />
+    </span>
+    <span class="input-group-text">Unique ART Number</span>
+    <ng-container *ngIf="UANCB.value">
+      <mdb-form-control>
+        <input
+          mdbInput
+          type="text"
+          class="form-control form-control-sm text-uppercase"
+          id="uan"
+          formControlName="uniqueARTNumber"
+        />
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- ART Start Date -->
+  <div class="input-group input-group-sm" formGroupName="ARTStartDate">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="ARTDateCB"
+        [formControl]="ARTDateCB"
+      />
+    </span>
+    <span class="input-group-text">ART Start Date</span>
+    <ng-container *ngIf="ARTDateCB.value">
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="ARTDateFrom"
+          type="text"
+          class="form-control form-control-sm"
+          id="ARTDateFrom"
+          (click)="ARTDateFrom.open()"
+          formControlName="from"
+        />
+        <label mdbLabel for="ARTDateFrom" class="form-label">From</label>
+        <mdb-datepicker #ARTDateFrom format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="ARTDateTo"
+          type="text"
+          class="form-control form-control-sm"
+          id="ARTDateTo"
+          (click)="ARTDateTo.open()"
+          formControlName="to"
+        />
+        <label mdbLabel for="ARTDateTo" class="form-label">To</label>
+        <mdb-datepicker #ARTDateTo format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- Sex -->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="sex"
+        [formControl]="sexCB"
+      />
+    </span>
+    <span class="input-group-text">Sex</span>
+    <ng-container *ngIf="sexCB.value">
+      <mdb-form-control>
+        <mdb-select formControlName="sex" class="advancedFilterSelect">
+          <mdb-option value="male">Male</mdb-option>
+          <mdb-option value="female">Female</mdb-option>
+        </mdb-select>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- Phone Number -->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="uanCB"
+        [formControl]="phoneCB"
+      />
+    </span>
+    <span class="input-group-text">Phone Number</span>
+    <ng-container *ngIf="phoneCB.value">
+      <mdb-form-control>
+        <input
+          mdbInput
+          type="text"
+          class="form-control form-control-sm text-uppercase"
+          id="uan"
+          formControlName="phoneNumber"
+          [mdbAutocomplete]="phoneNumberAutocomplete"
+        />
+      </mdb-form-control>
+      <mdb-autocomplete #phoneNumberAutocomplete="mdbAutocomplete">
+        <mdb-option value="unknown"> UNKNOWN </mdb-option>
+      </mdb-autocomplete>
+    </ng-container>
+  </div>
+
+  <!-- Regimen -->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="regimenCB"
+        [formControl]="regimenCB"
+      />
+    </span>
+    <span class="input-group-text">Regimen</span>
+    <ng-container *ngIf="regimenCB.value">
+      <mdb-form-control>
+        <mdb-select
+          [filter]="true"
+          formControlName="regimen"
+          [multiple]="true"
+          class="advancedFilterSelect"
+        >
+          <mdb-option-group
+            *ngFor="let regimenGroup of regimensByGroup"
+            [label]="regimenGroup.name"
+          >
+            <mdb-option
+              class="advancedFilterOption"
+              *ngFor="let regimen of regimenGroup.regimens"
+              [value]="regimen.code"
+              label="{{ regimen.regimen }} ({{ regimenGroup.name }})"
+            >
+              <div
+                class="
+                  d-flex
+                  align-items-center
+                  justify-content-between
+                  w-100
+                  m-auto
+                "
+              >
+                <span class="text-truncate">{{ regimen.regimen }}</span>
+                <span class="badge bg-primary me-3">{{ regimen.code }}</span>
+              </div>
+            </mdb-option>
+          </mdb-option-group>
+        </mdb-select>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- Regimen Start Trans Date -->
+  <div class="input-group input-group-sm" formGroupName="regimenStartTransDate">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="regDateCB"
+        [formControl]="regDateCB"
+      />
+    </span>
+    <span class="input-group-text">Regimen Start/Transition Date</span>
+    <ng-container *ngIf="regDateCB.value">
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="regDateFrom"
+          type="text"
+          class="form-control form-control-sm"
+          id="regDateFrom"
+          (click)="regDateFrom.open()"
+          formControlName="from"
+        />
+        <label mdbLabel for="regDateFrom" class="form-label">From</label>
+        <mdb-datepicker #regDateFrom format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="regDateTo"
+          type="text"
+          class="form-control form-control-sm"
+          id="regDateTo"
+          (click)="regDateTo.open()"
+          formControlName="to"
+        />
+        <label mdbLabel for="regDateTo" class="form-label">To</label>
+        <mdb-datepicker #regDateTo format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- PMTCT -->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="pmtct"
+        [formControl]="pmtctCB"
+      />
+    </span>
+    <span class="input-group-text">Pregnant/ Breastfeeding</span>
+    <ng-container *ngIf="pmtctCB.value">
+      <mdb-form-control>
+        <mdb-select formControlName="pmtct" class="advancedFilterSelect">
+          <mdb-option value="yes">Yes</mdb-option>
+          <mdb-option value="no">No</mdb-option>
+        </mdb-select>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- PMTCT Enroll Start Date -->
+  <div class="input-group input-group-sm" formGroupName="pmtctEnrollStartDate">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="pmtctDateCB"
+        [formControl]="pmtctDateCB"
+      />
+    </span>
+    <span class="input-group-text">PMTCT Enrollment Start Date</span>
+    <ng-container *ngIf="pmtctDateCB.value">
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="pmtctDateFrom"
+          type="text"
+          class="form-control form-control-sm"
+          id="pmtctDateFrom"
+          (click)="pmtctDateFrom.open()"
+          formControlName="from"
+        />
+        <label mdbLabel for="pmtctDateFrom" class="form-label">From</label>
+        <mdb-datepicker #pmtctDateFrom format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="pmtctDateTo"
+          type="text"
+          class="form-control form-control-sm"
+          id="pmtctDateTo"
+          (click)="pmtctDateTo.open()"
+          formControlName="to"
+        />
+        <label mdbLabel for="pmtctDateTo" class="form-label">To</label>
+        <mdb-datepicker #pmtctDateTo format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- HVL -->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="hvl"
+        [formControl]="HVLCB"
+      />
+    </span>
+    <span class="input-group-text">High Viral Load</span>
+    <ng-container *ngIf="HVLCB.value">
+      <mdb-form-control>
+        <mdb-select formControlName="hvl" class="advancedFilterSelect">
+          <mdb-option value="yes">Yes</mdb-option>
+          <mdb-option value="no">No</mdb-option>
+        </mdb-select>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- EAC-3 Completed -->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="eac3Completed"
+        [formControl]="eac3CB"
+      />
+    </span>
+    <span class="input-group-text">EAC-3 Completed</span>
+    <ng-container *ngIf="eac3CB.value">
+      <mdb-form-control>
+        <mdb-select
+          formControlName="eac3Completed"
+          class="advancedFilterSelect"
+        >
+          <mdb-option value="yes">Yes</mdb-option>
+          <mdb-option value="no">No</mdb-option>
+        </mdb-select>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- EAC-3 Completion Date -->
+  <div class="input-group input-group-sm" formGroupName="eac3CompletionDate">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="eac3DateCB"
+        [formControl]="eac3DateCB"
+      />
+    </span>
+    <span class="input-group-text">EAC-3 Completion Date</span>
+    <ng-container *ngIf="eac3DateCB.value">
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="eac3DateFrom"
+          type="text"
+          class="form-control form-control-sm"
+          id="eac3DateFrom"
+          (click)="eac3DateFrom.open()"
+          formControlName="from"
+        />
+        <label mdbLabel for="eac3DateFrom" class="form-label">From</label>
+        <mdb-datepicker #eac3DateFrom format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="eac3DateTo"
+          type="text"
+          class="form-control form-control-sm"
+          id="eac3DateTo"
+          (click)="eac3DateTo.open()"
+          formControlName="to"
+        />
+        <label mdbLabel for="eac3DateTo" class="form-label">To</label>
+        <mdb-datepicker #eac3DateTo format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- Pending Status-->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="pendStatusCB"
+        [formControl]="pendCB"
+      />
+    </span>
+    <span class="input-group-text">Pending Status</span>
+    <ng-container *ngIf="pendCB.value">
+      <mdb-form-control>
+        <mdb-select
+          formControlName="pendingStatus"
+          class="advancedFilterSelect"
+        >
+          <mdb-option value="yes">Yes</mdb-option>
+          <mdb-option value="no">No</mdb-option>
+        </mdb-select>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- Pending Status Date -->
+  <div class="input-group input-group-sm" formGroupName="pendingStatusDate">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="pendDateCB"
+        [formControl]="pendDateCB"
+      />
+    </span>
+    <span class="input-group-text">Pending Status Date</span>
+    <ng-container *ngIf="pendDateCB.value">
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="pendDateFrom"
+          type="text"
+          class="form-control form-control-sm"
+          id="pendDateFrom"
+          (click)="pendDateFrom.open()"
+          formControlName="from"
+        />
+        <label mdbLabel for="pendDateFrom" class="form-label">From</label>
+        <mdb-datepicker #pendDateFrom format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+      <mdb-form-control>
+        <input
+          mdbInput
+          [mdbDatepicker]="pendDateTo"
+          type="text"
+          class="form-control form-control-sm"
+          id="pendDateTo"
+          (click)="pendDateTo.open()"
+          formControlName="to"
+        />
+        <label mdbLabel for="pendDateTo" class="form-label">To</label>
+        <mdb-datepicker #pendDateTo format="dd, mmm, yyyy"></mdb-datepicker>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- Eligible -->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="eligible"
+        [formControl]="eligibleCB"
+      />
+    </span>
+    <span class="input-group-text">Eligible</span>
+    <ng-container *ngIf="eligibleCB.value">
+      <mdb-form-control>
+        <mdb-select formControlName="eligible" class="advancedFilterSelect">
+          <mdb-option value="yes">Yes</mdb-option>
+          <mdb-option value="no">No</mdb-option>
+        </mdb-select>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+
+  <!-- IIT -->
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <input
+        mdbCheckbox
+        class="form-check-input"
+        type="checkbox"
+        id="eligible"
+        [formControl]="iitCB"
+      />
+    </span>
+    <span class="input-group-text">IIT Status</span>
+    <ng-container *ngIf="iitCB.value">
+      <mdb-form-control>
+        <mdb-select
+          formControlName="iit"
+          class="advancedFilterSelect"
+          [multiple]="true"
+        >
+          <mdb-option
+            *ngFor="let status of IITStatus"
+            [value]="status"
+            [label]="
+              status == 'active'
+                ? 'Active'
+                : status == 'iit <= 1'
+                ? 'IIT ≤ 1'
+                : status == 'iit <= 3'
+                ? 'IIT ≤ 3'
+                : 'IIT 3⁺'
+            "
+          >
+            {{
+              status == "active"
+                ? "Active"
+                : status == "iit <= 1"
+                ? "IIT ≤ 1"
+                : status == "iit <= 3"
+                ? "IIT ≤ 3"
+                : "IIT 3⁺"
+            }}
+          </mdb-option>
+        </mdb-select>
+      </mdb-form-control>
+    </ng-container>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+<div class="modal-header">
+  <h5 class="modal-title">{{ title }}</h5>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modalRef.close()"
+  ></button>
+</div>
+<div class="modal-body">
+  Are you sure to {{ title | lowercase }} {{ context }}?
+</div>
+<div class="modal-footer">
+  <button
+    type="button"
+    class="btn btn-light shadow-0"
+    (click)="modalRef.close()"
+  >
+    No
+  </button>
+  <button type="button" class="btn btn-danger" (click)="modalRef.close(true)">
+    Yes
+  </button>
+</div>

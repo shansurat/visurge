@@ -96,12 +96,7 @@
               }"
             ></i
           ></a>
-          <a
-            class="navbar-brand ms-3"
-            href="#"
-            *ngIf="sidenavHidden"
-            routerLink=""
-          >
+          <a class="navbar-brand ms-3" *ngIf="sidenavHidden" routerLink="">
             <span class="text-dark">Vi</span
             ><span class="text-primary">SURGE</span>
           </a>
@@ -279,3 +274,10 @@
     </div>
   </mdb-sidenav-content>
 </mdb-sidenav-layout>
+
+<mdb-loading [show]="loading" [fullscreen]="true">
+  <div class="loading-spinner">
+    <div class="spinner-border loading-icon" role="status"></div>
+    <span class="loading-text">Loading...</span>
+  </div>
+</mdb-loading>

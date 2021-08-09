@@ -31,9 +31,11 @@ export class EligibleByTimeExpectedComponent implements OnInit {
     label: 'Eligible',
     fill: true,
     fillColor: '#fff',
-    backgroundColor: 'rgba(0,183,74,.3)',
-    borderColor: '#00B74A',
-    pointBackGroundColor: 'rgba(0,0,0,0)',
+    backgroundColor: 'rgba(139,195,74,.3)',
+    pointBackgroundColor: '#8BC34A',
+    borderColor: '#8BC34A',
+    // borderWidth: 4,
+    pointHoverRadius: 8,
   };
 
   eligibilityChartDatasets = [
@@ -45,7 +47,7 @@ export class EligibleByTimeExpectedComponent implements OnInit {
 
   eligibilityChartLabels: string[] = [];
 
-  eligibilityChartOptions: ChartOptions = {
+  eligibilityChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
 
@@ -56,14 +58,20 @@ export class EligibleByTimeExpectedComponent implements OnInit {
     },
     scales: {
       x: {
+        grid: {
+          display: false,
+        },
         ticks: {
           autoSkip: false,
         },
       },
       y: {
+        grace: '5%',
+        beginAtZero: true,
         ticks: {
           precision: 0,
           stepSize: 1,
+          min: 0,
         },
       },
     },
@@ -77,13 +85,13 @@ export class EligibleByTimeExpectedComponent implements OnInit {
       .pipe(
         distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
         map((entries: any[]) => {
-          console.log('IM HERE');
           let i = 0;
           let entriesByMonth = [];
 
           while (i < 6) {
             const _day = new Date();
             const day = new Date(_day.setMonth(_day.getMonth() + i));
+
             entriesByMonth.push({
               eligible: entries.filter((entry) => {
                 const nextVLDate =
@@ -95,9 +103,7 @@ export class EligibleByTimeExpectedComponent implements OnInit {
                     entry.hvl == 'yes',
                     entry.eac3Completed == 'yes',
                     entry.vlh
-                  ).eligible &&
-                  diffDate(day, nextVLDate) >= 0 &&
-                  diffDate(entry.entryDate.toDate(), day) <= 0
+                  ).eligible && day.getMonth() == nextVLDate.getMonth()
                 );
               }),
               ineligible: entries.filter((entry) => {
@@ -110,7 +116,7 @@ export class EligibleByTimeExpectedComponent implements OnInit {
                     entry.hvl == 'yes',
                     entry.eac3Completed == 'yes',
                     entry.vlh
-                  ).eligible && diffDate(day, nextVLDate) >= 0
+                  ).eligible && day.getMonth() == nextVLDate.getMonth()
                 );
               }),
             });
@@ -122,17 +128,17 @@ export class EligibleByTimeExpectedComponent implements OnInit {
             (month: any) => month.eligible.length
           );
 
-          console.log(this.eligibilityChartDatasets[0].data);
-
           i = 0;
           this.eligibilityChartLabels = [];
           while (i < 6) {
             const date = new Date();
 
-            let m = date.getMonth() - i;
+            let m = date.getMonth() + i;
 
             if (m < 0) m += 12;
+            if (m >= 12) m -= 12;
 
+            console.log(m);
             this.eligibilityChartLabels.push(MONTHS[m]);
             i++;
           }

@@ -19,7 +19,7 @@ export class EligibleByPMTCTComponent implements OnInit {
       fillColor: '#fff',
       backgroundColor: [
         '#3F51B5',
-        draw('diagonal-right-left', hexToRGB('#3F51B5', 0.3)),
+        draw('diagonal', hexToRGB('#3F51B5', 0.3), undefined, 5),
       ],
     },
   ];

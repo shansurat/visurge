@@ -1,0 +1,31 @@
+#advanced-filters {
+  mdb-form-control {
+    width: 150px;
+  }
+
+  .input-group {
+    width: min-content !important;
+  }
+
+  .select-input {
+    font-size: 0.775rem !important;
+  }
+
+  .select-arrow {
+    top: 6px !important;
+  }
+}
+
+.advancedFilterOption {
+  .option-text {
+    width: 100%;
+    display: flex !important;
+    align-items: center !important;
+  }
+}
+
+.advancedFilterSelect {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}

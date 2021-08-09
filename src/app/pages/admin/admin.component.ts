@@ -56,7 +56,6 @@ export class AdminComponent implements OnInit {
       })
       .subscribe((uid) => {
         this.notifServ.open(UserDeletedAlertComponent, { autohide: true });
-        console.log('deleted');
       });
   }
 }

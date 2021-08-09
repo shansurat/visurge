@@ -1,7 +1,13 @@
-<div id="wrapper">
+<div id="auth-wrapper">
   <div class="container-fluid h-100">
     <div class="row h-100">
-      <div class="m-0 p-0 d-none col-sm-7 d-sm-block">
+      <div
+        class="m-0 p-0 d-none col-sm-7 col-lg-8 d-sm-block position-relative"
+      >
+        <!-- <div class="text-start position-absolute" style="top: 50px; left: 50px">
+          <div class="lead">Welcome to</div>
+          <div class="display-2 mb-2 text-light">ViSURGE</div>
+        </div> -->
         <div
           class="w-100 h-100"
           style="
@@ -16,93 +22,221 @@
         class="
           form-container
           container
-          d-flex
-          flex-column
           p-5
           m-auto
-          col-12 col-sm-5
+          col-12 col-sm-5 col-lg-4
           h-100
-          justify-content-center
           bg-light
+          d-flex
+          flex-column
+          justify-content-center
         "
-        [formGroup]="signInFormGroup"
       >
-        <app-logo></app-logo>
-        <mdb-form-control class="mb-3">
-          <input
-            autocomplete="off"
-            mdbInput
-            type="text"
-            id="username"
-            class="form-control"
-            formControlName="username"
-          />
-          <label mdbLabel class="form-label" for="username">Username</label>
-        </mdb-form-control>
-
-        <div
-          class="note note-danger mb-3"
-          *ngIf="
-            signInFormGroup.get('username')?.invalid &&
-            signInFormGroup.get('username')?.dirty
-          "
-        >
-          <ng-container
-            *ngIf="signInFormGroup.get('username')?.hasError('required')"
+        <div style="max-height: 600px" class="h-100">
+          <div
+            class="d-flex justify-content-between flex-column h-100"
+            [formGroup]="signInFormGroup"
           >
-            Username is <b>required</b>.
-          </ng-container>
+            <div class="text-end">
+              <div class="lead">Welcome to</div>
+              <div class="display-2 mb-2">
+                <span class="text-dark">Vi</span
+                ><span class="text-primary">SURGE</span>
+              </div>
+            </div>
 
-          <ng-container
-            *ngIf="signInFormGroup.get('username')?.hasError('notUsername')"
-          >
-            Username should only be alphanumeric (no special characters
-            allowed).
-          </ng-container>
+            <!-- <div class="w-100" style="height: 100px"></div> -->
 
-          <ng-container
-            *ngIf="
-              signInFormGroup.get('username')?.hasError('accountDoesNotExist')
-            "
-          >
-            An account with the username
-            <b> {{ signInFormGroup.get("username")?.value }}</b> does not exist.
-          </ng-container>
+            <div>
+              <h3 class="mb-0">Sign In</h3>
+              <div class="small text-muted mb-3">
+                Can't sign in?
+                <a class="link-primary" style="cursor: pointer"
+                  >Contact administrator.</a
+                >
+              </div>
+              <mdb-form-control>
+                <input
+                  autocomplete="off"
+                  mdbInput
+                  type="text"
+                  id="username"
+                  class="form-control form-control-lg mb-0"
+                  formControlName="username"
+                  [mdbValidate]="true"
+                />
+                <label mdbLabel class="form-label" for="username"
+                  >Username</label
+                >
+              </mdb-form-control>
 
-          <ng-container
-            *ngIf="
-              signInFormGroup.get('username')?.hasError('accountDisabled') &&
-              !signInFormGroup.get('username')?.hasError('accountDoesNotExist')
-            "
-          >
-            An account with the username
-            <b> {{ signInFormGroup.get("username")?.value }}</b> is disabled by
-            the administrator.
-          </ng-container>
+              <span
+                *ngIf="(username.statusChanges | async) == 'VALID'"
+                class="small my-1 text-success"
+              >
+                Welcome back, {{ username.value }}!
+              </span>
+
+              <!-- If Username is INVALID -->
+              <ng-container
+                *ngIf="
+                  (username.statusChanges | async) == 'INVALID' &&
+                  signInFormGroup.get('username')?.dirty
+                "
+              >
+                <span class="small my-1 text-danger"
+                  ><ng-container
+                    *ngIf="
+                      signInFormGroup.get('username')?.hasError('required')
+                    "
+                  >
+                    Username is <b>required</b>.
+                  </ng-container>
+                  <ng-container
+                    *ngIf="
+                      signInFormGroup.get('username')?.hasError('notUsername')
+                    "
+                  >
+                    Username should only be <b>alphanumeric</b> (no special
+                    characters allowed).
+                  </ng-container>
+
+                  <ng-container
+                    *ngIf="
+                      signInFormGroup.get('username')?.hasError('minlength')
+                    "
+                  >
+                    Username {{ signInFormGroup.get("username")?.value }} is
+                    <b>too short.</b>
+                  </ng-container>
+
+                  <ng-container
+                    *ngIf="
+                      signInFormGroup
+                        .get('username')
+                        ?.hasError('accountDoesNotExist')
+                    "
+                  >
+                    An account with the username
+                    <b> {{ signInFormGroup.get("username")?.value }}</b> does
+                    not exist.
+                  </ng-container>
+
+                  <ng-container
+                    *ngIf="
+                      signInFormGroup
+                        .get('username')
+                        ?.hasError('accountDisabled')
+                    "
+                  >
+                    I'm sorry, but account
+                    <b>{{ signInFormGroup.get("username")?.value }}</b> is
+                    <b>disabled</b>.
+                  </ng-container>
+                </span>
+              </ng-container>
+
+              <!-- If username is PENDING -->
+              <span
+                class="small my-1 text-dark"
+                *ngIf="(username.statusChanges | async) == 'PENDING'"
+              >
+                Checking username . . .
+              </span>
+
+              <div class="input-group input-group-lg mt-3">
+                <mdb-form-control class="flex-fill">
+                  <input
+                    autocomplete="off"
+                    mdbInput
+                    [type]="passwordIsHidden ? 'password' : 'text'"
+                    id="password"
+                    class="form-control form-control-lg mb-0"
+                    formControlName="password"
+                    [mdbValidate]="true"
+                  />
+                  <label mdbLabel class="form-label" for="password"
+                    >Password</label
+                  >
+                </mdb-form-control>
+                <button
+                  class="btn btn-light shadow-0 border"
+                  type="button"
+                  mdbRipple
+                  (click)="passwordIsHidden = !passwordIsHidden"
+                >
+                  <i
+                    class="fas fa-eye{{ passwordIsHidden ? '-slash' : '' }}"
+                  ></i>
+                </button>
+              </div>
+
+              <!-- If Password is INVALID -->
+              <div
+                class="
+                  small
+                  my-1
+                  d-flex
+                  align-items-center
+                  justify-content-between
+                "
+              >
+                <ng-container
+                  *ngIf="
+                    (password.statusChanges | async) == 'INVALID' &&
+                    signInFormGroup.get('password')?.dirty
+                  "
+                >
+                  <span class="text-danger"
+                    ><ng-container
+                      *ngIf="
+                        signInFormGroup.get('password')?.hasError('required')
+                      "
+                    >
+                      This password is <b>required</b>.
+                    </ng-container>
+
+                    <ng-container
+                      *ngIf="
+                        signInFormGroup.get('password')?.hasError('minlength')
+                      "
+                    >
+                      This password
+                      {{ signInFormGroup.get("password")?.value }} is
+                      <b>too short.</b>
+                    </ng-container>
+
+                    <ng-container
+                      *ngIf="
+                        signInFormGroup
+                          .get('password')
+                          ?.hasError('wrongPassword')
+                      "
+                    >
+                      Sorry, wrong password. Try again.
+                    </ng-container>
+                  </span>
+                </ng-container>
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-primary btn-lg my-3 w-100"
+                (click)="signIn()"
+                mdbRipple
+                [disabled]="
+                  (username.statusChanges | async) != 'VALID' &&
+                  (password.statusChanges | async) != 'VALID'
+                "
+              >
+                Sign In
+              </button>
+              <button type="button" class="btn btn-lg btn-light shadow-0 w-100">
+                Forgot Password
+              </button>
+            </div>
+          </div>
         </div>
-        <mdb-form-control class="mb-3">
-          <input
-            autocomplete="off"
-            mdbInput
-            type="password"
-            id="password"
-            class="form-control"
-            formControlName="password"
-          />
-          <label mdbLabel class="form-label" for="password">Password</label>
-        </mdb-form-control>
-
-        <button
-          type="button"
-          class="btn btn-primary mb-3"
-          (click)="signIn()"
-          mdbRipple
-        >
-          Sign In
-        </button>
-        <button type="button" class="btn btn-outline-primary">
-          Forgot Password
-        </button>
       </div>
     </div>
 

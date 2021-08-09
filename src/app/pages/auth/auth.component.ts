@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
+import { AngularFireFunctions } from '@angular/fire/functions';
 import {
   FormBuilder,
   FormControl,
@@ -7,8 +8,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
-import { debounceTime, map, mergeMap, take } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, take } from 'rxjs/operators';
 import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
@@ -21,43 +22,66 @@ export class AuthComponent implements OnInit {
 
   signInFormGroup!: FormGroup;
 
+  accountExistenceIsLoading = false;
+
+  passwordIsHidden = true;
+
   constructor(
     public authServ: AuthService,
     private fb: FormBuilder,
     private router: Router,
-    private afs: AngularFirestore
+    private afs: AngularFirestore,
+    private fns: AngularFireFunctions
   ) {}
 
   ngOnInit(): void {
     this.signInFormGroup = this.fb.group({
       username: [
         '',
-        [Validators.required, AuthValidators.usernameValidity()],
-        [
-          AuthValidators.accountExistence(this.afs),
-          AuthValidators.accountEnabled(this.afs),
-        ],
+        [Validators.required, Validators.minLength(6), this.usernameValidity()],
+        [this.accountCanSignIn()],
       ],
-      password: '',
+      password: ['', [Validators.required, Validators.minLength(6)]],
     });
+
+    this.username.statusChanges
+      .pipe(distinctUntilChanged())
+      .subscribe((status) => {
+        status == 'VALID' ? this.password.enable() : this.password.disable();
+      });
+  }
+
+  get username() {
+    return this.signInFormGroup.get('username') as FormControl;
+  }
+
+  get password() {
+    return this.signInFormGroup.get('password') as FormControl;
   }
 
   signIn() {
-    this.authServ.signIn(this.signInFormGroup.value).subscribe((res) => {
-      console.log(res);
-      console.log('Signed In');
-      this.router.navigate(['dashboard']);
-    });
+    console.log('SUBMITTING FORM!!!');
+    this.authServ
+      .signIn(this.signInFormGroup.value)
+      .toPromise()
+      .then(() => {
+        this.router.navigate(['dashboard']);
+      })
+      .catch(({ code, message }) => {
+        if (code == 'auth/wrong-password') {
+          this.password.setErrors({ wrongPassword: true });
+        }
+      });
   }
 
   signOut() {
     this.authServ.signOut();
   }
-}
 
-export class AuthValidators {
-  // Synchronous Validators
-  static usernameValidity() {
+  // Validators
+
+  // Synchronous
+  private usernameValidity() {
     return (control: FormControl) => {
       const username: string = control.value;
 
@@ -69,41 +93,13 @@ export class AuthValidators {
     };
   }
 
-  // Asynchronous Validators
-  static accountExistence(afs: AngularFirestore) {
-    return (control: FormControl) => {
-      const username: string = control.value;
-
-      return afs
-        .collection('users', (ref) => ref.where('username', '==', username))
-        .valueChanges()
+  private accountCanSignIn() {
+    return (control: FormControl) =>
+      this.fns
+        .httpsCallable('accountCanSignIn')(control.value)
         .pipe(
-          debounceTime(250),
-          take(1),
-          map((res) => {
-            return res.length ? null : { accountDoesNotExist: true };
-          })
+          distinctUntilChanged(),
+          map((res) => (res === true ? null : { [res]: true }))
         );
-    };
-  }
-
-  static accountEnabled(afs: AngularFirestore) {
-    return (control: FormControl) => {
-      const username: string = control.value;
-
-      return afs
-        .collection('users', (ref) =>
-          ref.where('username', '==', username).where('enabled', '==', true)
-        )
-        .valueChanges()
-        .pipe(
-          debounceTime(250),
-          take(1),
-          map((res) => {
-            console.log(res);
-            return res.length ? null : { accountDisabled: true };
-          })
-        );
-    };
   }
 }

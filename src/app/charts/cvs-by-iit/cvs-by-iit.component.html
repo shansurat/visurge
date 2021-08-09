@@ -1,37 +1,20 @@
 <div class="card">
-  <div class="card-header text-uppercase">
-    <div class="d-flex align-items-center justify-content-between">
-      <div class="text-primary">Clinic Visit Status by IIT</div>
-      <div class="btn-group btn-group-sm" role="group">
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="showAll()"
-          [ngClass]="{ active: showAllFormControl.value }"
-        >
-          All
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="showAll(false)"
-          [ngClass]="{ active: !showAllFormControl.value }"
-        >
-          Eligible Only
-        </button>
+  <div class="card-body d-flex flex-column">
+    <div class="mb-3">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="lead">Clinic Visit Status by IIT</div>
       </div>
     </div>
-  </div>
-
-  <div class="card-body">
-    <div class="d-flex align-items-center justify-content-center h-100">
-      <canvas
-        mdbChart
-        [type]="'bar'"
-        [datasets]="cvsChartDatasets"
-        [labels]="cvsChartLabels"
-        [options]="cvsChartOptions"
-      ></canvas>
+    <div class="flex-fill">
+      <div class="d-flex align-items-center justify-content-center h-100">
+        <canvas
+          mdbChart
+          [type]="'bar'"
+          [datasets]="cvsChartDatasets"
+          [labels]="cvsChartLabels"
+          [options]="cvsChartOptions"
+        ></canvas>
+      </div>
     </div>
   </div>
 </div>

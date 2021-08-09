@@ -1,0 +1,111 @@
+<div id="database-wrapper" class="d-flex">
+  <div
+    class="d-flex flex-column position-relative flex-fill"
+    style="max-width: 100%"
+  >
+    <div id="main-container" class="p-4 flex-fill d-flex flex-column">
+      <div class="container-fluid mb-3">
+        <div class="card"></div>
+      </div>
+
+      <div class="container-fluid flex-fill" [ngStyle]="{ overflow: 'hidden' }">
+        <div class="card h-100">
+          <div class="card-header">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center">
+                <h4 class="mb-0 me-3">23 Entries</h4>
+                <div class="badge badge-success">1 ELIGIBLE</div>
+              </div>
+              <div></div>
+            </div>
+          </div>
+          <div
+            class="card-body flex-fill p-0"
+            [ngStyle]="{ 'max-height': ' 100%', overflow: 'auto' }"
+          >
+            <div
+              class="datatable"
+              [ngStyle]="{
+                overflow: 'auto',
+                'max-height': '100%',
+                height: '100%'
+              }"
+            >
+              <div
+                class="datatable-inner"
+                mdbScrollbar
+                [config]="config"
+                style="position: relative; width: 100%; height: 100%"
+              >
+                <table
+                  class="table datatable-table"
+                  mdbTable
+                  mat-table
+                  matSort
+                  [fixedHeader]="true"
+                  #table="mdbTable"
+                  [dataSource]="(entriesServ.all$ | async) || []"
+                  [responsive]="true"
+                  [sm]="true"
+                  [striped]="true"
+                >
+                  <ng-container matColumnDef="Entry Date">
+                    <th mat-header-cell *matHeaderCellDef>No.</th>
+                    <td mat-cell *matCellDef="let element">
+                      {{ element.position }}
+                    </td>
+                  </ng-container>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #notApplicable>
+  <div class="badge badge-warning text-uppercase">Not Applicable</div>
+</ng-template>
+
+<ng-template #unknown>
+  <div class="badge badge-dark text-uppercase">Unknown</div>
+</ng-template>
+
+<ng-template #yesBadge>
+  <div class="badge badge-success text-uppercase">Yes</div>
+</ng-template>
+
+<ng-template #noBadge>
+  <div class="badge badge-danger text-uppercase">No</div>
+</ng-template>
+
+<ng-template #dateActiveFilter>
+  <div class="row g-3">
+    <mdb-form-control>
+      <input
+        mdbInput
+        [mdbDatepicker]="entryDateFrom"
+        type="text"
+        class="form-control form-control-sm"
+        id="exampleDatepicker"
+        (click)="entryDateFrom.open()"
+      />
+      <label mdbLabel for="exampleDatepicker" class="form-label">From</label>
+      <mdb-datepicker #entryDateFrom="mdbDatepicker"></mdb-datepicker>
+    </mdb-form-control>
+    <mdb-form-control>
+      <input
+        mdbInput
+        [mdbDatepicker]="entryDateTo"
+        type="text"
+        class="form-control form-control-sm"
+        id="exampleDatepicker"
+        (click)="entryDateTo.open()"
+      />
+      <label mdbLabel for="exampleDatepicker" class="form-label">To</label>
+      <mdb-datepicker #entryDateTo="mdbDatepicker"></mdb-datepicker>
+    </mdb-form-control>
+  </div>
+</ng-template>

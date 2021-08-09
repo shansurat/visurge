@@ -86,7 +86,6 @@ export class UsersComponent implements OnInit {
       .subscribe((uid) => {
         this.isLoading = false;
         this.notifServ.open(UserDeletedAlertComponent, { autohide: true });
-        console.log('deleted');
       });
   }
 

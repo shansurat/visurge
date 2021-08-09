@@ -70,7 +70,6 @@ export class NewFacilityValidators {
   static siteExistence(afs: AngularFirestore) {
     return (control: FormControl) => {
       const site: string = control.value;
-      console.log(site);
 
       return afs
         .collection('facilities', (ref) => ref.where('site', '==', site))
@@ -79,7 +78,6 @@ export class NewFacilityValidators {
           debounceTime(250),
           take(1),
           map((res) => {
-            console.log(res);
             return res.length ? { siteAlreadyExists: true } : null;
           })
         );

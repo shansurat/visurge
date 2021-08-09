@@ -1,6 +1,10 @@
-#wrapper {
+#auth-wrapper {
   height: 100%;
   overflow: auto;
+
+  .form-outline .form-control.form-control-lg ~ .form-label {
+    padding-top: 0.6rem;
+  }
 }
 
 #device-recognition {
@@ -10,14 +14,41 @@
   right: 0;
 }
 
-.mask-custom {
-  background: linear-gradient(
-    45deg,
-    rgba(25, 106, 241, 0.5),
-    rgba(178, 60, 253, 0.5) 100%
-  );
-}
+// .mask-custom {
+//   background: linear-gradient(
+//     45deg,
+//     rgba(25, 106, 241, 0.5),
+//     rgba(178, 60, 253, 0.5) 100%
+//   );
+// }
 
 .form-container {
   z-index: 2;
+}
+
+.mask-custom {
+  background: linear-gradient(
+    270deg,
+    rgba(55, 59, 66, 0.5),
+    rgba(178, 60, 253, 0.5),
+    rgba(103, 58, 183, 0.5),
+    rgba(63, 81, 181, 0.5),
+    rgba(33, 150, 243, 0.5),
+    rgba(156, 39, 176, 0.5)
+  );
+  background-size: 1200% 1200%;
+
+  animation: AnimationName 20s ease infinite;
+}
+
+@keyframes AnimationName {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }

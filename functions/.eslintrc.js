@@ -22,7 +22,11 @@ module.exports = {
   ],
   plugins: ["@typescript-eslint", "import"],
   rules: {
-    quotes: ["off"],
-    indent: ["off"],
+    "quote-props": 0,
+    "@typescript-eslint/no-unused-vars": 0,
+    "object-curly-spacing": 0,
+    "operator-linebreak": 0,
+    quotes: 0,
+    indent: 0,
   },
 };

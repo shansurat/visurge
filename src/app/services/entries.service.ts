@@ -6,6 +6,9 @@ import { distinct, distinctUntilChanged, map } from 'rxjs/operators';
 import { getRegimenByCode } from '../functions/getRegimenByCode';
 import { distinctUntilChangedObj } from '../functions/observable-functions';
 import { Age } from '../interfaces/age';
+import { FirestoreEntry } from '../interfaces/firestore-entry';
+import { UserEntry } from '../interfaces/user-entry';
+import { FacilitiesService } from './facilities.service';
 import { StatusService } from './status.service';
 
 interface BySex {
@@ -18,7 +21,7 @@ interface ByRegimen {
   TLE: any[];
 }
 
-interface ByPMTCT {
+interface YesOrNo {
   yes: any[];
   no: any[];
 }
@@ -27,6 +30,8 @@ interface ByPMTCT {
   providedIn: 'root',
 })
 export class EntriesService {
+  getRegimenByCode = getRegimenByCode;
+
   all$ = new BehaviorSubject([] as any[]);
 
   allBySex$: BehaviorSubject<{ eligible: BySex; ineligible: BySex }> =
@@ -39,25 +44,31 @@ export class EntriesService {
     {} as { eligible: ByRegimen; ineligible: ByRegimen }
   );
 
-  allByPMTCT$: BehaviorSubject<{ eligible: ByPMTCT; ineligible: ByPMTCT }> =
-    new BehaviorSubject({} as { eligible: ByPMTCT; ineligible: ByPMTCT });
+  allByPMTCT$: BehaviorSubject<{ eligible: YesOrNo; ineligible: YesOrNo }> =
+    new BehaviorSubject({} as { eligible: YesOrNo; ineligible: YesOrNo });
 
   eligible$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
   ineligible$: BehaviorSubject<any[]> = new BehaviorSubject([{}]);
 
   hvl$: BehaviorSubject<any[]> = new BehaviorSubject([] as any[]);
-  hvl_eac3_completed$: BehaviorSubject<any[]> = new BehaviorSubject(
-    [] as any[]
-  );
+  hvl_eac3_completed_count$: BehaviorSubject<number> = new BehaviorSubject(0);
   pregnant$: BehaviorSubject<any[]> = new BehaviorSubject([] as any[]);
-  pending$: BehaviorSubject<any[]> = new BehaviorSubject([] as any[]);
+  allByPending$: BehaviorSubject<{ eligible: YesOrNo; ineligible: YesOrNo }> =
+    new BehaviorSubject({} as any);
 
   age$: BehaviorSubject<any> = new BehaviorSubject({} as any);
+
+  entries_formatted$: BehaviorSubject<any[]> = new BehaviorSubject([] as any[]);
+
+  entries_formatted_count$: BehaviorSubject<any> = new BehaviorSubject(
+    {} as any
+  );
 
   constructor(
     private afs: AngularFirestore,
     private statusServ: StatusService,
-    private fns: AngularFireFunctions
+    private fns: AngularFireFunctions,
+    private facilitiesServ: FacilitiesService
   ) {
     afs
       .collection('entries')
@@ -69,16 +80,191 @@ export class EntriesService {
           entries.filter((entry: any) => entry?.pmtct == 'yes')
         );
 
-        this.pending$.next(
-          entries.filter((entry: any) => !!entry?.pendingStatusDate)
-        );
         this.hvl$.next(entries.filter((entry: any) => entry?.hvl == 'yes'));
-        this.hvl_eac3_completed$.next(
-          entries.filter(
-            (entry: any) => entry?.hvl == 'yes' && entry?.eac3Completed == 'yes'
-          )
-        );
       });
+
+    afs
+      .collection('entries')
+      .valueChanges()
+      .pipe(
+        map((entries: any[]) => {
+          return entries?.map((entry: FirestoreEntry) => {
+            let {
+              entryDate,
+              pmtctEnrollStartDate,
+              ARTStartDate,
+              regimenStartTransDate,
+              eac3CompletionDate,
+              birthdate,
+              nextViralLoadSampleCollectionDate,
+              pendingStatusDate,
+              pmtct,
+              hvl,
+              eac3Completed,
+              vlh,
+              cvh,
+              eligibility,
+              ...data
+            } = entry;
+
+            return {
+              ARTStartDate: ARTStartDate.toDate(),
+              birthdate: birthdate == undefined ? null : birthdate?.toDate(),
+              eac3CompletionDate:
+                eac3CompletionDate == undefined
+                  ? null
+                  : eac3CompletionDate?.toDate(),
+              entryDate: entryDate.toDate(),
+              pmtctEnrollStartDate:
+                pmtctEnrollStartDate == undefined
+                  ? null
+                  : pmtctEnrollStartDate?.toDate(),
+              regimenStartTransDate: regimenStartTransDate.toDate(),
+              nextViralLoadSampleCollectionDate:
+                nextViralLoadSampleCollectionDate.toDate(),
+              pendingStatusDate:
+                pendingStatusDate == undefined
+                  ? null
+                  : pendingStatusDate?.toDate(),
+              pmtct: !!pmtct ? pmtct : 'no',
+              hvl: !!hvl ? hvl : 'no',
+              eac3Completed: !!eac3Completed ? eac3Completed : 'no',
+              vlh: vlh.map((vl) => {
+                let { dateSampleCollected, ...vlData } = vl;
+                return {
+                  dateSampleCollected: dateSampleCollected.toDate(),
+                  ...vlData,
+                };
+              }),
+
+              cvh: cvh.map((cv) => {
+                let {
+                  lastClinicVisitDate,
+                  nextAppointmentDate,
+                  dateTransferred,
+                  ...cvData
+                } = cv;
+
+                return {
+                  lastClinicVisitDate:
+                    lastClinicVisitDate == undefined
+                      ? null
+                      : lastClinicVisitDate?.toDate(),
+                  nextAppointmentDate:
+                    nextAppointmentDate == undefined
+                      ? null
+                      : nextAppointmentDate?.toDate(),
+                  dateTransferred:
+                    dateTransferred == undefined
+                      ? null
+                      : dateTransferred?.toDate(),
+                  ...cvData,
+                };
+              }),
+              eligible: eligibility?.eligible,
+              ...data,
+            };
+          });
+        }, distinctUntilChangedObj())
+      )
+      .subscribe((entries_formatted) => {
+        console.log({ entries_formatted });
+        this.entries_formatted$.next(entries_formatted);
+      });
+
+    this.entries_formatted$
+      .pipe(
+        map((entries_formatted) => {
+          const entries_formatted__eligible = entries_formatted.filter(
+            (entry) => entry?.eligible
+          );
+
+          const entries_formatted__ineligible = entries_formatted.filter(
+            (entry) => entry?.eligible
+          );
+
+          return {
+            all: entries_formatted.length,
+            eligible: {
+              all: entries_formatted__eligible.length,
+              iit: {
+                active: entries_formatted__eligible.filter(
+                  (entry) => entry?.iit == 'active'
+                ).length,
+                'iit <= 1': entries_formatted__eligible.filter(
+                  (entry) => entry?.iit == 'iit <= 1'
+                ).length,
+                'iit <= 3': entries_formatted__eligible.filter(
+                  (entry) => entry?.iit == 'iit <= 3'
+                ).length,
+                'iit > 3': entries_formatted__eligible.filter(
+                  (entry) => entry?.iit == 'iit > 3'
+                ).length,
+                'transfer-out': entries_formatted__eligible.filter(
+                  (entry) =>
+                    entry?.cvh[entry.cvh.length - 1].clinicVisitComment ==
+                    'Transfer Out'
+                ).length,
+                'transfer-in': entries_formatted__eligible.filter(
+                  (entry) =>
+                    entry?.cvh[entry.cvh.length - 1].clinicVisitComment ==
+                    'Transfer In'
+                ).length,
+                dead: entries_formatted__eligible.filter(
+                  (entry) =>
+                    entry?.cvh[entry.cvh.length - 1].clinicVisitComment ==
+                    'Dead'
+                ).length,
+                'follow-up': entries_formatted__eligible.filter(
+                  (entry) =>
+                    entry?.cvh[entry.cvh.length - 1].clinicVisitComment ==
+                    'Lost-To-Follow-Up (IIT)'
+                ).length,
+              },
+            },
+            ineligible: {
+              all: entries_formatted__eligible.length,
+              iit: {
+                active: entries_formatted__ineligible.filter(
+                  (entry) => entry?.iit == 'active'
+                ).length,
+                'iit <= 1': entries_formatted__ineligible.filter(
+                  (entry) => entry?.iit == 'iit <= 1'
+                ).length,
+                'iit <= 3': entries_formatted__ineligible.filter(
+                  (entry) => entry?.iit == 'iit <= 3'
+                ).length,
+                'iit > 3': entries_formatted__ineligible.filter(
+                  (entry) => entry?.iit == 'iit > 3'
+                ).length,
+                'transfer-out': entries_formatted__ineligible.filter(
+                  (entry) =>
+                    entry?.cvh[entry.cvh.length - 1].clinicVisitComment ==
+                    'Transfer Out'
+                ).length,
+                'transfer-in': entries_formatted__ineligible.filter(
+                  (entry) =>
+                    entry?.cvh[entry.cvh.length - 1].clinicVisitComment ==
+                    'Transfer In'
+                ).length,
+                dead: entries_formatted__ineligible.filter(
+                  (entry) =>
+                    entry?.cvh[entry.cvh.length - 1].clinicVisitComment ==
+                    'Dead'
+                ).length,
+                'follow-up': entries_formatted__ineligible.filter(
+                  (entry) =>
+                    entry?.cvh[entry.cvh.length - 1].clinicVisitComment ==
+                    'Lost-To-Follow-Up (IIT)'
+                ).length,
+              },
+            },
+          };
+        })
+      )
+      .subscribe((entries_formatted_count) =>
+        this.entries_formatted_count$.next(entries_formatted_count)
+      );
 
     // All By Sex$
     this.all$
@@ -199,6 +385,7 @@ export class EntriesService {
       )
       .subscribe((ineligible) => this.ineligible$.next(ineligible));
 
+    // All By Age$
     this.all$
       .pipe(
         map((entries) => {
@@ -217,6 +404,53 @@ export class EntriesService {
         distinctUntilChangedObj()
       )
       .subscribe((age) => this.age$.next(age));
+
+    // Get Entries by Pending$
+    this.all$
+      .pipe(
+        map((entries) => {
+          const eligible = entries.filter(
+            (entry: any) => entry?.eligibility?.eligible
+          );
+          const ineligible = entries.filter(
+            (entry: any) => !entry?.eligibility?.eligible
+          );
+
+          return {
+            eligible: {
+              yes: this.getEntriesByPending(eligible).male,
+              no: this.getEntriesByPending(eligible).female,
+            },
+            ineligible: {
+              yes: this.getEntriesByPending(ineligible).male,
+              no: this.getEntriesByPending(ineligible).female,
+            },
+          };
+        }),
+        distinctUntilChangedObj()
+      )
+      .subscribe((allByPending) => {
+        this.allByPending$.next(
+          allByPending as { eligible: YesOrNo; ineligible: YesOrNo }
+        );
+      });
+
+    // HVL with EAC3 Completed Count
+    this.all$
+      .pipe(
+        map((entries) => {
+          return entries.filter(
+            (entry: any) =>
+              entry?.eligibility?.eligible &&
+              entry?.hvl == 'yes' &&
+              entry?.eac3Completed == 'yes'
+          ).length;
+        }),
+        distinctUntilChanged()
+      )
+      .subscribe((hvl_eac3_completed_count) => {
+        this.hvl_eac3_completed_count$.next(hvl_eac3_completed_count);
+      });
   }
 
   public getEntriesBySex(entries: any[]): BySex {
@@ -237,7 +471,7 @@ export class EntriesService {
     };
   }
 
-  public getEntriesByPMTCT(entries: any[]): ByPMTCT {
+  public getEntriesByPMTCT(entries: any[]): YesOrNo {
     return {
       yes: entries.filter((entry: any) => entry.pmtct == 'yes'),
       no: entries.filter((entry: any) => entry.pmtct != 'no'),
@@ -259,6 +493,13 @@ export class EntriesService {
     };
   }
 
+  public getEntriesByPending(entries: any[]) {
+    return {
+      male: entries.filter((entry: any) => !!entry?.pendingStatusDate),
+      female: entries.filter((entry: any) => !entry?.pendingStatusDate),
+    };
+  }
+
   // Get Individual Entry
 
   public getEntry$(UAN: string) {
@@ -269,6 +510,18 @@ export class EntriesService {
 
   public getEntryId$(UAN: string) {
     return this.getEntry$(UAN).pipe(map((entry: any) => entry.id));
+  }
+
+  public findEntries(
+    id: string,
+    filter = '',
+    sortOrder = 'asc',
+    pageNumber = [],
+    pageSize = 3
+  ): Observable<UserEntry[]> {
+    const findEntries = this.fns.httpsCallable('findEntries');
+
+    return findEntries('');
   }
 }
 

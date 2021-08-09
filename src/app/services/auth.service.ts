@@ -4,12 +4,13 @@ import { AngularFirestore } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { Router } from '@angular/router';
 import { BehaviorSubject, from, Observable } from 'rxjs';
-import { map, mergeMap } from 'rxjs/operators';
+import { distinctUntilChanged, map, mergeMap } from 'rxjs/operators';
 import firebase from 'firebase/app';
 import { UserData } from '../interfaces/user-data';
 import { User } from '../interfaces/user';
 import { FacilitiesService } from './facilities.service';
 import { Facility } from '../interfaces/facility';
+import { FormControl } from '@angular/forms';
 
 @Injectable({
   providedIn: 'root',
@@ -57,7 +58,7 @@ export class AuthService {
     this.userData$
       .pipe(
         mergeMap((userData) =>
-          this.facilitiesServ.getFacilityByCode(userData.facility)
+          this.facilitiesServ.getFacilityByCode(userData?.facility)
         ),
         map((facility) => this.currentFacility$.next(facility as Facility))
       )
@@ -72,8 +73,6 @@ export class AuthService {
     );
   }
   signOut() {
-    console.log('Signing out.');
-
     this.auth.signOut().then(() => {
       this.router.navigate(['auth']);
     });
@@ -84,4 +83,14 @@ export class AuthService {
       this.afs.collection('users').ref.where('username', '==', username).get()
     ).pipe(map((doc) => (doc.docs[0].data() as any)?.email));
   }
+
+  // accountExistence() {
+  //   return (control: FormControl) =>
+  //     this.fns
+  //       .httpsCallable('checkAccountExistence')(control.value)
+  //       .pipe(
+  //         distinctUntilChanged(),
+  //         map((res) => (res ? null : { accountDoesNotExist: true }))
+  //       );
+  // }
 }

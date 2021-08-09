@@ -45,7 +45,10 @@ import { AdminComponent } from './pages/admin/admin.component';
 import { firebaseConfig } from 'src/environments/firebaseConfig';
 import { AngularFireModule } from '@angular/fire';
 import { AngularFireAuthModule } from '@angular/fire/auth';
-import { AngularFirestoreModule } from '@angular/fire/firestore';
+import {
+  AngularFirestoreModule,
+  SETTINGS as FIRESTORE_SETTINGS,
+} from '@angular/fire/firestore';
 import { AngularFireFunctionsModule } from '@angular/fire/functions';
 
 import { USE_EMULATOR as USE_FUNCTIONS_EMULATOR } from '@angular/fire/functions';
@@ -73,7 +76,6 @@ import { ClinicVisitAddedComponent } from './alerts/clinic-visit-added/clinic-vi
 import { DatabaseComponent } from './pages/database/database.component';
 import { EligibleByTimeComponent } from './charts/eligible-by-time/eligible-by-time.component';
 import { NotificationsComponent } from './popovers/notifications/notifications.component';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { EligibleByRegimenComponent } from './charts/eligible-by-regimen/eligible-by-regimen.component';
 import { CvsByIitComponent } from './charts/cvs-by-iit/cvs-by-iit.component';
 import { EligibleByPMTCTComponent } from './charts/eligible-by-pmtct/eligible-by-pmtct.component';
@@ -86,7 +88,6 @@ import { ImportAndExportComponent } from './pages/admin/import-and-export/import
 import { ImportEntriesComponent } from './modals/import-entries/import-entries.component';
 import { EligibleByAgeComponent } from './charts/eligible-by-age/eligible-by-age.component';
 import { ImportEntriesPreviewComponent } from './modals/import-entries-preview/import-entries-preview.component';
-import { NgxPrintModule } from 'ngx-print';
 import { FacilitiesComponent } from './pages/admin/facilities/facilities.component';
 import { NewFacilityComponent } from './modals/new-facility/new-facility.component';
 import { EditFacilityComponent } from './modals/edit-facility/edit-facility.component';
@@ -99,6 +100,14 @@ import { SaveEntryComponent } from './modals/save-entry/save-entry.component';
 import { IndividualComponent } from './pages/report/individual/individual.component';
 import { ViewVlhComponent } from './modals/view-vlh/view-vlh.component';
 import { AdvancedFiltersComponent } from './pages/database/advanced-filters/advanced-filters.component';
+import { AreYouSureComponent } from './modals/are-you-sure/are-you-sure.component';
+import { DatabaseNgCdkComponent } from './pages/database-ng-cdk/database-ng-cdk.component';
+import { MiniDashboardComponent } from './pages/entry-form/mini-dashboard/mini-dashboard.component';
+
+import firebase from 'firebase/app';
+import { ViralLoadCoverageComponent } from './pages/dashboard/viral-load-coverage/viral-load-coverage.component';
+import { ExportEntriesComponent } from './modals/export-entries/export-entries.component';
+import { ExportEntriesPreviewComponent } from './modals/export-entries/export-entries-preview/export-entries-preview.component';
 
 @NgModule({
   declarations: [
@@ -151,6 +160,12 @@ import { AdvancedFiltersComponent } from './pages/database/advanced-filters/adva
     IndividualComponent,
     ViewVlhComponent,
     AdvancedFiltersComponent,
+    AreYouSureComponent,
+    DatabaseNgCdkComponent,
+    MiniDashboardComponent,
+    ViralLoadCoverageComponent,
+    ExportEntriesComponent,
+    ExportEntriesPreviewComponent,
   ],
   imports: [
     BrowserModule,
@@ -159,6 +174,7 @@ import { AdvancedFiltersComponent } from './pages/database/advanced-filters/adva
 
     FormsModule,
     ReactiveFormsModule,
+
     MdbAutocompleteModule,
     MdbCarouselModule,
     MdbChartModule,
@@ -187,17 +203,14 @@ import { AdvancedFiltersComponent } from './pages/database/advanced-filters/adva
     MdbTooltipModule,
     MdbValidationModule,
 
-    NgxPrintModule,
-
     AngularFireModule.initializeApp(firebaseConfig),
     AngularFireAuthModule,
-    AngularFirestoreModule.enablePersistence(),
+    AngularFirestoreModule.enablePersistence({
+      experimentalForceOwningTab: true,
+    }),
     AngularFireFunctionsModule,
-    NgxChartsModule,
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
-      // Register the ServiceWorker as soon as the app is stable
-      // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
@@ -205,6 +218,10 @@ import { AdvancedFiltersComponent } from './pages/database/advanced-filters/adva
     {
       provide: USE_FUNCTIONS_EMULATOR,
       useValue: environment.emulator ? ['localhost', 5001] : undefined,
+    },
+    {
+      provide: FIRESTORE_SETTINGS,
+      useValue: { cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED },
     },
   ],
   bootstrap: [AppComponent],

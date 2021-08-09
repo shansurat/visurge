@@ -4,14 +4,17 @@ import {
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
-import { NavigationEnd, Router } from '@angular/router';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+} from '@angular/router';
 import { MdbSidenavComponent } from 'mdb-angular-ui-kit/sidenav';
 import { Observable } from 'rxjs';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import { AuthService } from './services/auth.service';
-import firebase from 'firebase/app';
-import { PushNotification } from './interfaces/push-notification';
 import { PushNotificationService } from './services/push-notification.service';
 import { LayoutService } from './services/layout.service';
 
@@ -24,6 +27,7 @@ import { LayoutService } from './services/layout.service';
 })
 export class AppComponent {
   @ViewChild('sidenav') sidenav!: MdbSidenavComponent;
+  loading = false;
 
   sidenavHidden = true;
   sidenavCollapsed = false;
@@ -48,17 +52,34 @@ export class AppComponent {
   adminLinks = [
     { route: 'users', icon: 'fas fa-user' },
     { route: 'facilities', icon: 'fas fa-landmark' },
-    // { route: 'import-and-export', icon: 'fas fa-cloud-download-alt' },
   ];
 
   constructor(
     private router: Router,
     public authServ: AuthService,
-    private afs: AngularFirestore,
     private pushNotifServ: PushNotificationService,
     public layoutServ: LayoutService
   ) {
     this.notifs = pushNotifServ.pushNotifs$;
+    this.router.events.subscribe((event: any) => {
+      console.log(event);
+      switch (true) {
+        case event instanceof NavigationStart: {
+          this.loading = true;
+          break;
+        }
+
+        case event instanceof NavigationEnd:
+        case event instanceof NavigationCancel:
+        case event instanceof NavigationError: {
+          this.loading = false;
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    });
   }
 
   routeToLink(route: string) {

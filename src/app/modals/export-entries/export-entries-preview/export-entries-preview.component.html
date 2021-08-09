@@ -1,0 +1,138 @@
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">
+    Preview
+    <div class="badge badge-danger ms-3">Under Development</div>
+  </h5>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modalRef.close()"
+  ></button>
+</div>
+<div class="modal-body p-0">
+  <div class="datatable h-100 w-100">
+    <div class="datatable-inner position-relative" mdbScrollbar>
+      <table
+        class="table datatable-table"
+        mdbTable
+        mdbTableSort="mdbTableSort"
+        #table="mdbTable"
+        #sort="mdbTableSort"
+        [dataSource]="(data | async) || []"
+        [pagination]="pagination"
+      >
+        <thead class="datatable-header">
+          <tr>
+            <th
+              *ngFor="let header of headers"
+              [mdbTableSortHeader]="header.header"
+              scope="col"
+            >
+              {{ header.header }}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="datatable-body">
+          <tr *ngFor="let data of table.data" scope="row">
+            <td>
+              {{ data.entryDate | date: "longDate" }}
+            </td>
+            <td>
+              {{ data.facilityName }}
+            </td>
+            <td>
+              {{ data.uniqueARTNumber }}
+            </td>
+            <td>
+              {{ data.ARTStartDate | date: "longDate" }}
+            </td>
+            <td>
+              <div class="badge badge-dark">Not provided</div>
+            </td>
+            <td>
+              {{ data.age }}
+            </td>
+            <td>
+              <div class="badge badge-dark">Not provided</div>
+            </td>
+
+            <td>
+              <div
+                class="badge me-3"
+                [ngClass]="{
+                  'badge-primary':
+                    getRegimenByCode(data?.regimen)?.category == 'TLD',
+                  'badge-warning':
+                    getRegimenByCode(data?.regimen)?.category == 'TLE'
+                }"
+              >
+                {{ data?.regimen }}
+              </div>
+              <span>
+                {{ getRegimenByCode(data?.regimen)?.regimen }}
+              </span>
+            </td>
+            <td>
+              {{ data?.regimenStartTransDate | date: "longDate" }}
+            </td>
+            <td>{{ data?.pmtct | titlecase }}</td>
+            <td>
+              {{
+                data?.pmtctEnrollStartDate
+                  ? (data?.pmtctEnrollStartDate | date: "longDate")
+                  : "N/A"
+              }}
+            </td>
+            <td>{{ data?.hvl | titlecase }}</td>
+            <td>
+              {{
+                data?.eac3Completed ? (data?.eac3Completed | titlecase) : "N/A"
+              }}
+            </td>
+            <td>
+              {{
+                data?.eac3CompletionDate
+                  ? (data?.eac3CompletionDate | date: "longDate")
+                  : "N/A"
+              }}
+            </td>
+            <td>
+              <div
+                class="badge text-uppercase"
+                [ngClass]="{
+                  'badge-success': data?.eligibility?.eligible,
+                  'badge-danger': !data?.eligibility?.eligible
+                }"
+              >
+                {{ data?.eligibility?.eligible ? "eligible" : "ineligible" }}
+              </div>
+            </td>
+
+            <td>
+              <div
+                class="badge text-uppercase"
+                [ngClass]="{
+                  'badge-success': data?.iit == 'active',
+                  'badge-primary': data?.iit == 'iit <= 1',
+                  'badge-warning': data?.iit == 'iit <= 3',
+                  'badge-danger': data?.iit == 'iit > 3',
+                  'badge-dark': data?.iit == 'pending' || !data?.iit
+                }"
+              >
+                {{
+                  (data?.iit || "pending")
+                    .replace("<=", "≤")
+                    .replace("> 3", "3⁺")
+                }}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <mdb-table-pagination #pagination></mdb-table-pagination>
+</div>

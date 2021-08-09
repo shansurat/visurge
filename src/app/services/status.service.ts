@@ -4,6 +4,13 @@ import { diffDate } from '../functions/diffDate';
 import { incDate } from '../functions/incDate';
 import { EligibilityStatus } from '../interfaces/eligibility-status';
 
+export declare type IITStatus =
+  | 'active'
+  | 'iit <= 1'
+  | 'iit <= 3'
+  | 'iit > 3'
+  | null;
+
 const ELIGIBLE: EligibilityStatus = { eligible: true };
 const INELIGIBLE: EligibilityStatus = { eligible: false };
 
@@ -59,7 +66,7 @@ export class StatusService {
     return INELIGIBLE;
   }
 
-  public getIITStatus(nextAppointmentDate: any) {
+  public getIITStatus(nextAppointmentDate: any): IITStatus {
     const today = new Date();
     if (nextAppointmentDate) {
       let cvhDiffDate = diffDate(today, nextAppointmentDate) / 30;
@@ -68,7 +75,7 @@ export class StatusService {
       else if (cvhDiffDate > 1 && cvhDiffDate <= 3) return 'iit <= 3';
       else return 'iit > 3';
     }
-    return 'pending';
+    return null;
   }
 
   public getNextVLDate(val: any) {
@@ -87,17 +94,13 @@ export class StatusService {
 
     const mostCurrentVLDate = l ? vlh[0]?.dateSampleCollected : null;
 
-    const isAdult: boolean = (age?.year || 0) >= 19;
+    const isAdult: boolean = age.unit == 'year' && age.age >= 19;
 
-    // Setting the latest date
-    let latestDate;
-    if (mostCurrentVLDate) latestDate = mostCurrentVLDate;
-    else {
-      latestDate =
-        pmtct && diffDate(pmtctEnrollStartDate, regimenStartTransDate) >= 0
-          ? pmtctEnrollStartDate
-          : regimenStartTransDate;
-    }
+    let latestDate = [
+      mostCurrentVLDate,
+      pmtctEnrollStartDate,
+      regimenStartTransDate,
+    ].reduce((date1, date2) => (date1 > date2 ? date1 : date2));
 
     if (!latestDate) return null;
 
@@ -112,7 +115,12 @@ export class StatusService {
       !l
     ) {
       inc = 90;
-    } else if (l >= 2 && vlh[0].value < 1000 && vlh[1].value && isAdult) {
+    } else if (
+      l >= 2 &&
+      (vlh[0].undetectableViralLoad || vlh[0]?.value < 1000) &&
+      (vlh[1].undetectableViralLoad || vlh[1].value < 1000) &&
+      isAdult
+    ) {
       inc = 365;
     } else {
       inc = 180;

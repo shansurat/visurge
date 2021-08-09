@@ -35,6 +35,9 @@ export class EligibleByTimeComponent implements OnInit {
     fillColor: '#fff',
     backgroundColor: 'rgba(0,183,74,.3)',
     borderColor: '#00B74A',
+    // borderWidth: 4,
+    pointBackGroundColor: '#00B74A',
+    pointHoverRadius: 8,
   };
 
   eligibilityChartDatasets = [
@@ -73,6 +76,7 @@ export class EligibleByTimeComponent implements OnInit {
         },
       },
       y: {
+        grace: '5%',
         ticks: {
           min: 0,
           stepSize: 1,
@@ -93,29 +97,27 @@ export class EligibleByTimeComponent implements OnInit {
 
     const _eligibilityByDay$ = entriesServ.all$.pipe(
       map((entries: any[]) => {
-        let i = 12;
-        let entriesByDay = [];
+        const _day = new Date();
+        const days = dateRange(
+          new Date(_day.setDate(_day.getDate() - 12)),
+          new Date(),
+          1
+        );
 
-        while (i >= 0) {
-          let _day = new Date();
-          const day = new Date(_day.setDate(_day.getDate() - i));
-
-          entriesByDay.push({
+        return days.map((day, i) => {
+          return {
             day,
             entries: {
               eligible: entries.filter((entry) => {
                 const nextVLDate =
                   entry.nextViralLoadSampleCollectionDate?.toDate();
-
                 return (
                   statusServ.getEligibilityStatusByNextVLDate(
                     nextVLDate,
                     entry.hvl == 'yes',
                     entry.eac3Completed == 'yes',
                     entry.vlh
-                  ).eligible &&
-                  diffDate(day, nextVLDate) >= 0 &&
-                  diffDate(entry.entryDate.toDate(), day) <= 0
+                  ).eligible && isSameDay(day, nextVLDate)
                 );
               }),
               ineligible: entries.filter((entry) => {
@@ -128,15 +130,12 @@ export class EligibleByTimeComponent implements OnInit {
                     entry.hvl == 'yes',
                     entry.eac3Completed == 'yes',
                     entry.vlh
-                  ).eligible && diffDate(day, nextVLDate) >= 0
+                  ).eligible && isSameDay(day, nextVLDate)
                 );
               }),
             },
-          });
-
-          i--;
-        }
-        return entriesByDay;
+          };
+        });
       })
     );
 
@@ -151,11 +150,14 @@ export class EligibleByTimeComponent implements OnInit {
 
         while (i >= 0) {
           const _day = new Date();
+          const _day2 = new Date();
           const day = new Date(_day.setDate(_day.getDate() - i * 7));
+          const day2 = new Date(_day2.setDate(_day2.getDate() - (i + 1) * 7));
+
           entriesByWeek.push({
             eligible: entries.filter((entry) => {
               const nextVLDate =
-                entry.nextViralLoadSampleCollectionDate?.toDate();
+                entry.nextViralLoadSampleCollectionDate?.toDate() as Date;
 
               return (
                 statusServ.getEligibilityStatusByNextVLDate(
@@ -164,8 +166,8 @@ export class EligibleByTimeComponent implements OnInit {
                   entry.eac3Completed == 'yes',
                   entry.vlh
                 ).eligible &&
-                diffDate(day, nextVLDate) >= 0 &&
-                diffDate(entry.entryDate.toDate(), day) <= 0
+                diffDate(nextVLDate, day2) >= 0 &&
+                diffDate(day, nextVLDate) >= 0
               );
             }),
             ineligible: entries.filter((entry) => {
@@ -178,7 +180,9 @@ export class EligibleByTimeComponent implements OnInit {
                   entry.hvl == 'yes',
                   entry.eac3Completed == 'yes',
                   entry.vlh
-                ).eligible && diffDate(day, nextVLDate) >= 0
+                ).eligible &&
+                diffDate(day, nextVLDate) >= 0 &&
+                diffDate(entry.entryDate.toDate(), day) <= 0
               );
             }),
           });
@@ -201,6 +205,7 @@ export class EligibleByTimeComponent implements OnInit {
         while (i >= 0) {
           const _day = new Date();
           const day = new Date(_day.setMonth(_day.getMonth() - i));
+
           entriesByMonth.push({
             eligible: entries.filter((entry) => {
               const nextVLDate =
@@ -212,9 +217,7 @@ export class EligibleByTimeComponent implements OnInit {
                   entry.hvl == 'yes',
                   entry.eac3Completed == 'yes',
                   entry.vlh
-                ).eligible &&
-                diffDate(day, nextVLDate) >= 0 &&
-                diffDate(entry.entryDate.toDate(), day) <= 0
+                ).eligible && day.getMonth() == nextVLDate.getMonth()
               );
             }),
             ineligible: entries.filter((entry) => {
@@ -227,7 +230,7 @@ export class EligibleByTimeComponent implements OnInit {
                   entry.hvl == 'yes',
                   entry.eac3Completed == 'yes',
                   entry.vlh
-                ).eligible && diffDate(day, nextVLDate) >= 0
+                ).eligible && day.getMonth() == nextVLDate.getMonth()
               );
             }),
           });
@@ -278,9 +281,13 @@ export class EligibleByTimeComponent implements OnInit {
             while (i >= 0) {
               const date = new Date();
               date.setDate(date.getDate() - i * 7).toString();
+              const date2 = new Date();
+              date2.setDate(date2.getDate() - (i - 1) * 7 - 1).toString();
 
               this.eligibilityChartLabels.push(
-                `${MONTHS[date.getMonth()]} ${date.getDate()}`
+                `${MONTHS[date.getMonth()]} ${date.getDate()} - ${
+                  MONTHS[date2.getMonth()]
+                } ${date2.getDate()}`
               );
               i--;
             }
@@ -318,4 +325,17 @@ function isSameDay(first: Date, second: Date) {
     first.getMonth() === second.getMonth() &&
     first.getDate() === second.getDate()
   );
+}
+
+function dateRange(startDate: Date, endDate: Date, steps = 1) {
+  const dateArray = [];
+  let currentDate = new Date(startDate);
+
+  while (currentDate <= new Date(endDate)) {
+    dateArray.push(new Date(currentDate));
+    // Use UTC date to prevent problems with time zones and DST
+    currentDate.setUTCDate(currentDate.getUTCDate() + steps);
+  }
+
+  return dateArray;
 }

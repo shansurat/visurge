@@ -78,6 +78,10 @@ input[type="number"] {
   overflow: hidden;
 }
 
+.dropdown-menu {
+  cursor: pointer !important;
+}
+
 $grid-breakpoints: (
   xs: 0,
   sm: 300px,
@@ -89,4 +93,8 @@ $grid-breakpoints: (
 
 .input-group {
   flex-wrap: nowrap !important;
+}
+
+.select-dropdown {
+  width: min-content !important;
 }

@@ -5,7 +5,7 @@ export interface FirestoreEntry {
     age: number;
     unit: string;
   };
-  birthdate: firebase.firestore.Timestamp;
+  birthdate?: firebase.firestore.Timestamp;
   cvh: CVH[];
   eac3Completed?: string;
   eac3CompletionDate?: firebase.firestore.Timestamp;
@@ -17,12 +17,16 @@ export interface FirestoreEntry {
   pendingStatusDate?: firebase.firestore.Timestamp;
   phoneNumber: string;
   pmtct: string;
-  pmtctEnrollStartDate: firebase.firestore.Timestamp;
+  pmtctEnrollStartDate?: firebase.firestore.Timestamp;
   regimen: string;
   regimenStartTransDate: firebase.firestore.Timestamp;
   sex: string;
   uniqueARTNumber: string;
   vlh: VLH[];
+  eligibility: {
+    eligible: boolean;
+    note?: string;
+  };
 }
 
 interface CVH {

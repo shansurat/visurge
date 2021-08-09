@@ -17,7 +17,7 @@ const ageColors = [
   '#43A047',
 ];
 
-const patternType = 'diagonal-right-left';
+const patternType = 'diagonal';
 
 @Component({
   selector: 'eligible-by-age',
@@ -27,19 +27,19 @@ const patternType = 'diagonal-right-left';
 export class EligibleByAgeComponent implements OnInit {
   datasets = [
     {
-      label: 'Eligible',
+      label: 'Ineligible',
       data: [''],
       fill: true,
       fillColor: '#fff',
       backgroundColor: ageColors,
     },
     {
-      label: 'Ineligible',
+      label: 'Eligible',
       data: [''],
       fill: true,
       fillColor: '#fff',
       backgroundColor: ageColors.map((color, i) =>
-        draw(patternType, hexToRGB(color, 0.3))
+        draw(patternType, hexToRGB(color, 0.3), undefined, 5)
       ),
     },
   ];
@@ -71,18 +71,18 @@ export class EligibleByAgeComponent implements OnInit {
 
   constructor(public entriesServ: EntriesService) {
     entriesServ.age$.pipe(distinctUntilChangedObj()).subscribe((age) => {
-      console.log(age);
-      let e: any[] = [];
-      Object.values(age.eligible).forEach((entries: any) =>
-        e.push(entries.length)
-      );
-      this.datasets[0].data = e;
-
       let i: any[] = [];
       Object.values(age.ineligible).forEach((entries: any) =>
         i.push(entries.length)
       );
-      this.datasets[1].data = i;
+
+      this.datasets[0].data = i;
+
+      let e: any[] = [];
+      Object.values(age.eligible).forEach((entries: any) =>
+        e.push(entries.length)
+      );
+      this.datasets[1].data = e;
 
       this.chartLabels = [
         '<1',

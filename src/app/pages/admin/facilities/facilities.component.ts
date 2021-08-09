@@ -84,9 +84,7 @@ export class FacilitiesComponent implements OnInit {
       .collection('facilities')
       .doc(uid)
       .delete()
-      .then(() => {
-        console.log('Facility deleted.');
-      });
+      .then(() => {});
   }
 
   search(event: Event): void {

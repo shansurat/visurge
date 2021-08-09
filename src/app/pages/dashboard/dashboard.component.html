@@ -1,6 +1,6 @@
-<div id="wrapper" class="d-flex flex-column">
+<div id="dashboard-wrapper" class="d-flex flex-column">
   <div id="main-container" class="p-4 flex-fill">
-    <div class="container-lg">
+    <div class="container-fluid container-xxl">
       <div class="row g-3">
         <!-- Eligibility -->
         <div class="col-12 col-md-6 col-xl-3">
@@ -11,20 +11,27 @@
                   >Eligible for Viral Load
                 </small>
 
-                <div mdbDropdown>
-                  <a
+                <div mdbDropdown class="dropdown">
+                  <button
                     mdbDropdownToggle
-                    class="text-success"
-                    role="button"
-                    (click)="genLinelist($event, 'eligible')"
-                    ><i class="fas fa-info-circle"></i
-                  ></a>
+                    type="button"
+                    class="btn btn-light btn-sm shadow-0 btn-floating"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <i class="fas fa-info"></i>
+                  </button>
                   <ul
                     mdbDropdownMenu
                     class="dropdown-menu"
                     aria-labelledby="dropdownMenuLink"
                   >
-                    <li><a class="dropdown-item">Generate Linelist</a></li>
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        (click)="genLinelist($event, 'eligible')"
+                        >Generate Linelist</a
+                      >
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -88,20 +95,27 @@
                 <small class="text-muted text-truncate"
                   >Pregnant/BreastFeeding
                 </small>
-                <div mdbDropdown>
-                  <a
+                <div mdbDropdown class="dropdown">
+                  <button
                     mdbDropdownToggle
-                    class="text-info"
-                    role="button"
-                    (click)="genLinelist($event, 'pmtct')"
-                    ><i class="fas fa-info-circle"></i
-                  ></a>
+                    type="button"
+                    class="btn btn-light btn-sm shadow-0 btn-floating"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <i class="fas fa-info"></i>
+                  </button>
                   <ul
                     mdbDropdownMenu
                     class="dropdown-menu"
                     aria-labelledby="dropdownMenuLink"
                   >
-                    <li><a class="dropdown-item">Generate Linelist</a></li>
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        (click)="genLinelist($event, 'pmtct')"
+                        >Generate Linelist</a
+                      >
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -136,14 +150,13 @@
                     width:
                       (((entriesServ.allByPMTCT$ | async)?.eligible?.yes
                         ?.length || 0) /
-                        ((entriesServ.allByPMTCT$ | async)?.eligible?.yes
-                          ?.length || 1)) *
+                        (((entriesServ.allByPMTCT$ | async)?.eligible?.yes
+                          ?.length || 0) +
+                          ((entriesServ.allByPMTCT$ | async)?.ineligible?.yes
+                            ?.length || 0))) *
                         100 +
                       '%'
                   }"
-                  aria-valuenow="25"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
                 >
                   {{
                     r(
@@ -166,20 +179,27 @@
                 <small class="text-muted text-truncate"
                   >HVL W/ EAC-3 Completed
                 </small>
-                <div mdbDropdown>
-                  <a
+                <div mdbDropdown class="dropdown">
+                  <button
                     mdbDropdownToggle
-                    class="text-danger"
-                    role="button"
-                    (click)="genLinelist($event, 'hvl-with-eac3')"
-                    ><i class="fas fa-info-circle"></i
-                  ></a>
+                    type="button"
+                    class="btn btn-light btn-sm shadow-0 btn-floating"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <i class="fas fa-info"></i>
+                  </button>
                   <ul
                     mdbDropdownMenu
                     class="dropdown-menu"
                     aria-labelledby="dropdownMenuLink"
                   >
-                    <li><a class="dropdown-item">Generate Linelist</a></li>
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        (click)="genLinelist($event, 'hvl-with-eac3')"
+                        >Generate Linelist</a
+                      >
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -203,7 +223,7 @@
                   "
                 >
                   <h1 class="mb-0">
-                    {{ (entriesServ.hvl_eac3_completed$ | async)?.length }}
+                    {{ entriesServ.hvl_eac3_completed_count$ | async }}
                   </h1>
                 </div>
               </div>
@@ -211,8 +231,7 @@
                 <div
                   [ngStyle]="{
                     width:
-                      (((entriesServ.hvl_eac3_completed$ | async)?.length ||
-                        0) /
+                      (((entriesServ.hvl_eac3_completed_count$ | async) || 0) /
                         ((entriesServ.all$ | async)?.length || 1)) *
                         100 +
                       '%'
@@ -224,8 +243,7 @@
                 >
                   {{
                     r(
-                      (((entriesServ.hvl_eac3_completed$ | async)?.length ||
-                        0) /
+                      (((entriesServ.hvl_eac3_completed_count$ | async) || 0) /
                         ((entriesServ.all$ | async)?.length || 1)) *
                         100
                     )
@@ -235,27 +253,33 @@
             </div>
           </div>
         </div>
-
         <!-- Pending Results -->
         <div class="col-12 col-md-6 col-xl-3">
           <div class="card">
             <div class="card-header text-uppercase">
               <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted text-truncate">Pending Results </small>
-                <div mdbDropdown>
-                  <a
+                <div mdbDropdown class="dropdown">
+                  <button
                     mdbDropdownToggle
-                    class="text-warning"
-                    role="button"
-                    (click)="genLinelist($event, 'pending')"
-                    ><i class="fas fa-info-circle"></i
-                  ></a>
+                    type="button"
+                    class="btn btn-light btn-sm shadow-0 btn-floating"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <i class="fas fa-info"></i>
+                  </button>
                   <ul
                     mdbDropdownMenu
                     class="dropdown-menu"
                     aria-labelledby="dropdownMenuLink"
                   >
-                    <li><a class="dropdown-item">Generate Linelist</a></li>
+                    <li>
+                      <a
+                        class="dropdown-item"
+                        (click)="genLinelist($event, 'pending')"
+                        >Generate Linelist</a
+                      >
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -279,7 +303,9 @@
                   "
                 >
                   <h1 class="mb-0">
-                    {{ (entriesServ.pending$ | async)?.length }}
+                    {{
+                      (entriesServ.allByPending$ | async)?.eligible?.yes?.length
+                    }}
                   </h1>
                 </div>
               </div>
@@ -287,7 +313,8 @@
                 <div
                   [ngStyle]="{
                     width:
-                      (((entriesServ.pending$ | async)?.length || 0) /
+                      (((entriesServ.allByPending$ | async)?.eligible?.yes
+                        ?.length || 0) /
                         ((entriesServ.all$ | async)?.length || 1)) *
                         100 +
                       '%'
@@ -299,7 +326,8 @@
                 >
                   {{
                     r(
-                      (((entriesServ.pending$ | async)?.length || 0) /
+                      (((entriesServ.allByPending$ | async)?.eligible?.yes
+                        ?.length || 0) /
                         ((entriesServ.all$ | async)?.length || 1)) *
                         100
                     )
@@ -322,10 +350,10 @@
         <div class="col-12 col-md-6">
           <eligible-by-age></eligible-by-age>
         </div>
-        <div class="col-12 col-md-8">
+        <div class="col-12 col-md-6">
           <eligible-by-sex></eligible-by-sex>
         </div>
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6">
           <eligible-by-pmtct></eligible-by-pmtct>
         </div>
       </div>

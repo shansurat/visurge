@@ -64,33 +64,17 @@ export class DashboardComponent implements OnInit {
 
   genLinelist(e: MouseEvent, mode: string) {
     e.stopPropagation();
-    let activeFilter: ActiveFilter;
-    let activeFilters: ActiveFilter[] = [];
+    let activeFilters = {} as any;
 
-    activeFilters.push({
-      header: 'Eligibility',
-      value: 'eligible',
-    });
+    activeFilters.eligible = 'yes';
 
     if (mode == 'pmtct') {
-      activeFilters.push({
-        header: 'Pregnant/Breastfeeding',
-        value: 'yes',
-      });
+      activeFilters.pmtct = 'yes';
     } else if (mode == 'hvl-with-eac3') {
-      activeFilters.push({
-        header: 'Pending Status',
-        value: 'yes',
-      });
-      activeFilters.push({
-        header: 'High Viral Load',
-        value: 'yes',
-      });
+      activeFilters.hvl = 'yes';
+      activeFilters.eac3Completed = 'yes';
     } else if (mode == 'pending') {
-      activeFilters.push({
-        header: 'Pending Status',
-        value: 'yes',
-      });
+      activeFilters.pendingStatus = 'yes';
     }
 
     this.router.navigate([
