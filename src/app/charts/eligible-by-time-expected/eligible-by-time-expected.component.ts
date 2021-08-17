@@ -138,7 +138,6 @@ export class EligibleByTimeExpectedComponent implements OnInit {
             if (m < 0) m += 12;
             if (m >= 12) m -= 12;
 
-            console.log(m);
             this.eligibilityChartLabels.push(MONTHS[m]);
             i++;
           }

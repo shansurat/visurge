@@ -5,11 +5,12 @@
   >
     <div id="main-container" class="p-4 flex-fill d-flex flex-column">
       <div class="container-fluid mb-3">
-        <div class="card">
+        <div class="card shadow-0">
           <div class="card-header">
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center">
                 <button
+                  mdbRipple
                   type="button"
                   class="btn btn-sm btn-primary btn-floating shadow-0"
                   [ngClass]="{
@@ -36,7 +37,7 @@
                 >
                   <button
                     type="button "
-                    class="btn btn-sm btn-light btn-floating ms-3 shadow-0"
+                    class="btn btn-sm btn-light btn-floating ms-2 shadow-0"
                     (click)="
                       isAdvancedFiltersExpanded = !isAdvancedFiltersExpanded
                     "
@@ -51,7 +52,7 @@
                     ></i>
                   </button>
 
-                  <div class="h5 mb-0 ms-3">
+                  <div class="h5 mb-0 ms-2">
                     {{ advancedActiveFiltersCount | async }} Active Filter{{
                       ((advancedActiveFiltersCount | async) || 0) > 1 ? "s" : ""
                     }}
@@ -60,7 +61,7 @@
               </div>
               <div class="d-flex">
                 <mdb-form-control
-                  class="me-3"
+                  class="me-2"
                   *ngIf="!(advancedFilter | async)"
                   [@zoomInEnter]
                   [@zoomOutLeave]
@@ -74,19 +75,23 @@
                   />
                 </mdb-form-control>
                 <button
-                  class="btn btn-sm btn-success me-3 shadow-0"
+                  mdbRipple
+                  class="btn btn-sm btn-success me-2 shadow-0"
                   (click)="openExportEntriesModal()"
+                  *ngIf="(entries$ | async)?.length"
                 >
                   Export Entries
                 </button>
                 <button
-                  class="btn btn-sm btn-secondary me-3 shadow-0"
+                  mdbRipple
+                  class="btn btn-sm btn-secondary me-2 shadow-0"
                   (click)="openImportEntriesModal()"
                   *ngIf="authServ.isAdmin$ | async"
                 >
                   Import Entries
                 </button>
                 <button
+                  mdbRipple
                   class="btn btn-sm btn-primary shadow-0"
                   routerLink="/entry-form"
                 >
@@ -99,10 +104,11 @@
       </div>
       <div class="container-fluid mb-3" *ngIf="advancedFilter | async">
         <div
-          class="card flex-fill me-3 w-100"
+          class="card flex-fill me-3 w-100 shadow-0"
+          mdbScrollbar
+          [config]="scrollConfig"
           [ngStyle]="{
             'max-height': isAdvancedFiltersExpanded ? '100vh' : '61px',
-            overflow: 'auto',
             transition: 'max-height 1s ease-in-out'
           }"
         >
@@ -114,8 +120,12 @@
           </div>
         </div>
       </div>
-      <div class="container-fluid flex-fill" [ngStyle]="{ overflow: 'hidden' }">
-        <div class="card h-100">
+      <div
+        class="container-fluid"
+        [ngClass]="{ 'flex-fill': (entries$ | async)?.length }"
+        [ngStyle]="{ overflow: 'hidden' }"
+      >
+        <div class="card h-100 shadow-0">
           <div class="card-header">
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center">
@@ -143,9 +153,10 @@
                   }}
                 </h5>
               </div>
-              <div>
-                <div mdbDropdown class="btn-group dropstart me-3 shadow-0">
+              <div *ngIf="(entries$ | async)?.length" class="d-flex">
+                <div mdbDropdown class="me-2 shadow-0">
                   <button
+                    mdbRipple
                     class="btn btn-light btn-sm dropdown-toggle shadow-0"
                     type="button"
                     mdbDropdownToggle
@@ -155,15 +166,14 @@
                   </button>
                   <ul
                     mdbDropdownMenu
-                    class="dropdown-menu"
-                    [ngStyle]="{ 'max-height': '200px', overflow: 'auto' }"
+                    mdbScrollbar
+                    [config]="scrollConfig"
+                    class="dropdown-menu position-relative"
+                    style="max-height: 200px"
                   >
                     <ng-container *ngFor="let field of fields">
                       <li
-                        *ngIf="
-                          (sortHeader$ | async)?.header != field.header &&
-                          field.header != 'Actions'
-                        "
+                        *ngIf="(sortHeader$ | async)?.header != field.header"
                         (click)="sortHeader$.next(field)"
                       >
                         <a class="dropdown-item">{{ field.header }}</a>
@@ -175,8 +185,9 @@
                 <div class="btn-group btn-group-sm shadow-0" role="group">
                   <ng-container *ngFor="let dir of ['asc', 'desc']">
                     <button
+                      mdbRipple
                       type="button"
-                      class="btn btn-light"
+                      class="btn btn-light shadow-0-focus"
                       [ngClass]="{
                         active:
                           ((sortIsAscending$ | async) && dir == 'asc') ||
@@ -195,6 +206,7 @@
             class="card-body flex-fill p-0"
             [ngStyle]="{ 'max-height': ' 100%', overflow: 'auto' }"
             #boundary
+            *ngIf="(entries$ | async)?.length"
           >
             <div
               class="datatable"
@@ -205,10 +217,9 @@
               }"
             >
               <div
-                class="datatable-inner"
+                class="datatable-inner position-relative w-100 h-100"
                 mdbScrollbar
-                [config]="config"
-                style="position: relative; width: 100%; height: 100%"
+                [config]="scrollConfig"
               >
                 <table
                   class="table datatable-table"
@@ -230,49 +241,111 @@
                         (click)="sortByHeader(field)"
                         style="cursor: pointer"
                       >
-                        {{ field.header }}
+                        <div
+                          class="
+                            w-100
+                            d-flex
+                            align-items-center
+                            justify-content-between
+                            header
+                          "
+                          [ngClass]="{
+                            active: (sortHeader$ | async) == field,
+                            asc: (sortIsAscending$ | async)
+                          }"
+                        >
+                          <span class="me-3"> {{ field.header }}</span>
+
+                          <i
+                            class="fas fa-long-arrow-alt-up sort-header-icon"
+                          ></i>
+                        </div>
                       </th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody class="datatable-body">
-                    <tr *ngFor="let data of table.data" scope="row">
+                    <tr
+                      class="entry-row"
+                      *ngFor="let data of table.data"
+                      scope="row"
+                    >
                       <td>
                         {{ data?.entryDate | date: "longDate" }}
                       </td>
                       <td>
                         <ng-container
-                          *ngIf="data?.facility as facility; else noFacility"
+                          *ngIf="data?.facility as facility; else notProvided"
                         >
-                          <div
-                            class="
-                              d-flex
-                              justify-content-between
-                              align-items-center
+                          <ng-container
+                            *ngIf="
+                              facilitiesServ.getFacilityById(facility)
+                                | async as fac;
+                              else facilityDoesNotExist
                             "
                           >
-                            <div class="me-3">
-                              {{
-                                (
-                                  facilitiesServ.getFacilityByCode(facility)
-                                  | async
-                                )?.site
-                              }}
+                            <div
+                              class="
+                                d-flex
+                                justify-content-between
+                                align-items-center
+                              "
+                            >
+                              <div class="me-3">
+                                {{ fac.site }}
+                              </div>
+                              <div class="d-flex align-items-center">
+                                <div class="badge badge-primary me-2">
+                                  {{ fac.code }}
+                                </div>
+                                <button
+                                  type="button"
+                                  class="
+                                    btn btn-sm btn-light btn-floating
+                                    shadow-0
+                                    edit-facility-button
+                                  "
+                                  (click)="
+                                    openEditEntryFacilityModal(data.id, fac.uid)
+                                  "
+                                  mdbRipple
+                                  rippleColor="danger"
+                                >
+                                  <i class="fas fa-edit"></i>
+                                </button>
+                              </div>
                             </div>
-                            <div class="badge badge-primary">
-                              {{
-                                (
-                                  facilitiesServ.getFacilityByCode(facility)
-                                  | async
-                                )?.code
-                              }}
-                            </div>
-                          </div>
-                        </ng-container>
+                          </ng-container>
 
-                        <ng-template #noFacility>
-                          <div class="badge badge-danger">Not provided</div>
-                        </ng-template>
+                          <ng-template #facilityDoesNotExist>
+                            <div
+                              class="
+                                d-flex
+                                align-items-center
+                                justify-content-between
+                              "
+                            >
+                              <div
+                                class="badge badge-danger text-uppercase me-2"
+                              >
+                                Facility does not exist
+                              </div>
+                              <button
+                                type="button"
+                                class="
+                                  btn btn-sm btn-light btn-floating
+                                  shadow-0
+                                  edit-facility-button
+                                "
+                                (click)="openEditEntryFacilityModal(data.id)"
+                                mdbRipple
+                                rippleColor="danger"
+                              >
+                                <i class="fas fa-exclamation-triangle"></i>
+                              </button>
+                            </div>
+                          </ng-template>
+                        </ng-container>
                       </td>
                       <td mdbSticky [stickyBoundary]="boundary">
                         <div class="badge badge-info">
@@ -280,10 +353,21 @@
                         </div>
                       </td>
                       <td>
-                        {{ data?.ARTStartDate | date: "longDate" }}
+                        <ng-container
+                          *ngIf="
+                            data?.ARTStartDate as ARTStartDate;
+                            else notProvided
+                          "
+                        >
+                          {{ ARTStartDate | date: "longDate" }}
+                        </ng-container>
                       </td>
                       <td>
-                        {{ data?.sex | titlecase }}
+                        <ng-container
+                          *ngIf="data?.sex as sex; else notProvided"
+                        >
+                          {{ sex | titlecase }}
+                        </ng-container>
                       </td>
                       <td>
                         <ng-container *ngIf="data.birthdate; else noBirthdate">
@@ -304,58 +388,40 @@
                         </ng-container>
                       </td>
                       <td>
-                        <div
-                          class="badge me-3"
-                          [ngClass]="{
-                            'badge-primary':
-                              getRegimenByCode(data?.regimen)?.category ==
-                              'TLD',
-                            'badge-warning':
-                              getRegimenByCode(data?.regimen)?.category == 'TLE'
-                          }"
-                        >
-                          {{ data?.regimen }}
-                        </div>
-                        <span>
-                          {{ getRegimenByCode(data?.regimen)?.regimen }}
-                        </span>
-                      </td>
-                      <td>
-                        {{ data?.regimenStartTransDate | date: "longDate" }}
-                      </td>
-                      <td>
                         <ng-container
-                          *ngIf="data?.pmtct == 'yes'; else noBadge"
+                          *ngIf="data?.regimen as regimen; else notProvided"
                         >
-                          <ng-container
-                            *ngTemplateOutlet="yesBadge"
-                          ></ng-container>
-                        </ng-container>
-                      </td>
-                      <td>
-                        <ng-container
-                          *ngIf="data?.pmtctEnrollStartDate; else notApplicable"
-                        >
-                          {{ data?.pmtctEnrollStartDate | date: "longDate" }}
-                        </ng-container>
-                      </td>
-                      <td>
-                        <ng-container *ngIf="data?.hvl == 'yes'; else noBadge">
-                          <ng-container
-                            *ngTemplateOutlet="yesBadge"
-                          ></ng-container>
+                          <div
+                            class="badge me-3"
+                            [ngClass]="{
+                              'badge-primary':
+                                getRegimenByCode(regimen).category == 'TLD',
+                              'badge-warning':
+                                getRegimenByCode(regimen).category == 'TLE'
+                            }"
+                          >
+                            {{ regimen }}
+                          </div>
+                          <span>
+                            {{ getRegimenByCode(regimen).regimen }}
+                          </span>
                         </ng-container>
                       </td>
                       <td>
                         <ng-container
                           *ngIf="
-                            data?.eac3Completed as eac3Completed;
-                            else notApplicable
+                            data?.regimenStartTransDate as regStartDate;
+                            else notProvided
                           "
                         >
-                          <ng-container
-                            *ngIf="data.eac3Completed == 'yes'; else noBadge"
-                          >
+                          {{ regStartDate | date: "longDate" }}
+                        </ng-container>
+                      </td>
+                      <td>
+                        <ng-container
+                          *ngIf="data?.pmtct as pmtct; else notProvided"
+                        >
+                          <ng-container *ngIf="pmtct == 'yes'; else noBadge">
                             <ng-container
                               *ngTemplateOutlet="yesBadge"
                             ></ng-container>
@@ -365,11 +431,74 @@
                       <td>
                         <ng-container
                           *ngIf="
-                            data?.eac3CompletionDate as eac3Date;
-                            else notApplicable
+                            (data?.pmtct == 'yes' &&
+                              data?.pmtctEnrollStartDate) ||
+                              data?.pmtct == 'no';
+                            else notProvided
                           "
                         >
-                          {{ eac3Date | date: "longDate" }}
+                          <ng-container
+                            *ngIf="
+                              data?.pmtctEnrollStartDate;
+                              else notApplicable
+                            "
+                          >
+                            {{ data?.pmtctEnrollStartDate | date: "longDate" }}
+                          </ng-container>
+                        </ng-container>
+                      </td>
+                      <td>
+                        <ng-container
+                          *ngIf="data?.hvl as hvl; else notProvided"
+                        >
+                          <ng-container *ngIf="hvl == 'yes'; else noBadge">
+                            <ng-container
+                              *ngTemplateOutlet="yesBadge"
+                            ></ng-container>
+                          </ng-container>
+                        </ng-container>
+                      </td>
+                      <td>
+                        <ng-container
+                          *ngIf="
+                            (data.hvl == 'yes' && data?.eac3Completed) ||
+                              data.hvl == 'no';
+                            else notProvided
+                          "
+                        >
+                          <ng-container
+                            *ngIf="
+                              data?.eac3Completed as eac3Completed;
+                              else notApplicable
+                            "
+                          >
+                            <ng-container
+                              *ngIf="data.eac3Completed == 'yes'; else noBadge"
+                            >
+                              <ng-container
+                                *ngTemplateOutlet="yesBadge"
+                              ></ng-container>
+                            </ng-container>
+                          </ng-container>
+                        </ng-container>
+                      </td>
+                      <td>
+                        <ng-container
+                          *ngIf="
+                            (data?.eac3Completed == 'yes' &&
+                              data?.eac3CompletionDate) ||
+                              data?.eac3Completed == 'no';
+                            else notProvided
+                          "
+                        >
+                          <ng-container
+                            *ngIf="
+                              data?.eac3CompletionDate as eac3Date;
+                              else notApplicable
+                            "
+                          >
+                            {{ eac3Date | date: "longDate" }}
+                          </ng-container>
                         </ng-container>
                       </td>
                       <td>
@@ -389,6 +518,16 @@
                           "
                         >
                           {{ pendingDate | date: "longDate" }}
+                        </ng-container>
+                      </td>
+                      <td>
+                        <ng-container
+                          *ngIf="
+                            data?.nextViralLoadSampleCollectionDate as nextVLDate;
+                            else notApplicable
+                          "
+                        >
+                          {{ nextVLDate | date: "longDate" }}
                         </ng-container>
                       </td>
                       <td>
@@ -425,6 +564,7 @@
                       <td class="actions">
                         <div class="d-flex">
                           <button
+                            mdbRipple
                             type="button"
                             class="btn btn-primary btn-rounded btn-sm me-3"
                             (click)="viewVLH(data?.vlh)"
@@ -433,6 +573,7 @@
                             VLH
                           </button>
                           <button
+                            mdbRipple
                             type="button"
                             class="btn btn-primary btn-rounded btn-sm me-3"
                             (click)="viewCVH(data?.cvh)"
@@ -441,21 +582,21 @@
                             CVH
                           </button>
                           <button
+                            mdbRipple
                             type="button"
                             class="btn btn-success btn-floating btn-sm me-3"
                             (click)="generateReport(data?.uniqueARTNumber)"
-                            mdbRipple
                           >
                             <i class="fas fa-book"></i>
                           </button>
                           <button
                             type="button"
                             class="btn btn-primary btn-floating btn-sm me-3"
-                            (click)="loadEntry(data?.uniqueARTNumber)"
+                            (click)="loadEntry(data?.id)"
                             mdbRipple
                             [disabled]="
-                              data.facility !=
-                              (authServ.currentFacility$ | async)?.code
+                              (authServ.currentFacility$ | async)?.uid !=
+                              data.facility
                             "
                           >
                             <i class="fas fa-edit"></i>
@@ -464,7 +605,8 @@
                             type="button"
                             class="btn btn-danger btn-floating btn-sm"
                             mdbRipple
-                            disabled
+                            [disabled]="!(authServ.isAdmin$ | async)"
+                            (click)="deleteEntry(data.id, data.uniqueARTNumber)"
                           >
                             <i class="fas fa-trash"></i>
                           </button>
@@ -473,14 +615,6 @@
                     </tr>
                   </tbody>
                 </table>
-                <ng-container *ngIf="tableIsLoading">
-                  <div class="datatable-loader bg-light">
-                    <span class="datatable-loader-inner">
-                      <span class="datatable-progress bg-primary"></span>
-                    </span>
-                  </div>
-                  <p class="text-center text-muted my-4">Loading results...</p>
-                </ng-container>
               </div>
             </div>
           </div>
@@ -502,6 +636,11 @@
     </div>
   </div>
 </div>
+
+<!-- Templates -->
+<ng-template #notProvided>
+  <div class="badge badge-danger text-uppercase">Not provided</div>
+</ng-template>
 
 <ng-template #notApplicable>
   <div class="badge badge-warning text-uppercase">Not Applicable</div>

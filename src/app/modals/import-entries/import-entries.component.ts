@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { AngularFirestore } from '@angular/fire/firestore';
 import { FormControl } from '@angular/forms';
 import { execFile } from 'child_process';
 import { MdbModalRef, MdbModalService } from 'mdb-angular-ui-kit/modal';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { UserEntry } from 'src/app/interfaces/user-entry';
+import { FacilitiesService } from 'src/app/services/facilities.service';
 import { StatusService } from 'src/app/services/status.service';
 import * as XLSX from 'xlsx';
 import { ImportEntriesPreviewComponent } from '../import-entries-preview/import-entries-preview.component';
@@ -26,10 +28,19 @@ export class ImportEntriesComponent implements OnInit {
 
   dataNotes$ = new Subject<any>();
 
+  importLoadingInfo:
+    | {
+        imported: number;
+        total: number;
+      }
+    | undefined = undefined;
+
   constructor(
     public modalRef: MdbModalRef<ImportEntriesComponent>,
     private modalServ: MdbModalService,
-    private statuServ: StatusService
+    private statuServ: StatusService,
+    private facilitiesServ: FacilitiesService,
+    private afs: AngularFirestore
   ) {}
 
   ngOnInit(): void {
@@ -49,7 +60,24 @@ export class ImportEntriesComponent implements OnInit {
       let warnings: any[] = [];
       let dangers: any[] = [];
 
-      // infos.push(`The file contains ${data.length} potential entries.`);
+      infos.push(`The file contains ${data.length} potential entries.`);
+
+      // let _facDoesNotExist = 0;
+
+      // for (let entry of data) {
+      //   const fac = await this.facilitiesServ
+      //     .getFacilityById(entry.facility)
+      //     .toPromise();
+      //   console.log({ fac });
+      //   if (!fac) _facDoesNotExist++;
+      // }
+
+      // console.log({ _facDoesNotExist });
+
+      // if (_facDoesNotExist)
+      //   dangers.push(
+      //     `There are ${_facDoesNotExist} facility with code that does not exist.`
+      //   );
 
       this.dataNotes$.next({ infos, warnings, dangers });
     });
@@ -76,7 +104,7 @@ export class ImportEntriesComponent implements OnInit {
     let convertedData: any[] = [];
     data.forEach((entry) => {
       let convertedEntry = {
-        facilityName: entry['Facility'],
+        facility: entry['Facility'],
         entryDate: serialDateToJSDate(
           entry['Date of Assessment (dd/ mm/ yyyy)']
         ),
@@ -84,7 +112,13 @@ export class ImportEntriesComponent implements OnInit {
         ARTStartDate: serialDateToJSDate(
           entry['Date of Assessment (dd/ mm/ yyyy)']
         ),
-        age: entry['Current Age'],
+        sex: entry['Sex'] == undefined ? null : entry['Sex'],
+        phoneNumber:
+          entry['Phone Number'] == undefined ? null : entry['Phone Number'],
+        age: {
+          age: parseInt(entry['Current Age']),
+          unit: 'year',
+        },
         regimen: entry['Regimen'],
         regimenStartTransDate: serialDateToJSDate(
           entry['Regimen Start / Transition Date (dd/ mm/ yyyy)']
@@ -95,7 +129,10 @@ export class ImportEntriesComponent implements OnInit {
         ),
 
         hvl: entry['HVL (Y/N)'].toLowerCase(),
-        eac3Completed: entry['EAC-3 Completed (Y/N)'],
+        eac3Completed:
+          entry['EAC-3 Completed (Y/N)'] == 'NA'
+            ? null
+            : entry['EAC-3 Completed (Y/N)'].toLowerCase(),
         eac3CompletionDate: serialDateToJSDate(
           entry['EAC-3 Completion date (dd/ mm/ yyyy)']
         ),
@@ -107,36 +144,70 @@ export class ImportEntriesComponent implements OnInit {
             nextAppointmentDate: serialDateToJSDate(
               entry['Next appointment date (dd/ mm/ yyyy)']
             ),
-            clinicVisitComment: entry['Comments '],
+            clinicVisitComment:
+              entry['Comments '] == undefined ? null : entry['Comments '],
           },
         ],
         vlh: [
           {
-            value: entry['Most current VL Result'],
+            value:
+              entry['Most current VL Result'] == undefined
+                ? entry['Most current VL Result']
+                : null,
             dateSampleCollected: serialDateToJSDate(
               entry['Most Current VL date (dd/ mm/ yyyy)']
-            ),
-          },
-          {
-            value: entry['2nd (Last) VL Value'],
-            dateSampleCollected: serialDateToJSDate(
-              entry['2nd (Last) VL date (dd/ mm/ yyyy)']
-            ),
-          },
-          {
-            value: entry['3rd (Last) VL Results'],
-            dateSampleCollected: serialDateToJSDate(
-              entry['3rd (Last) VL date (dd/ mm/ yyyy)']
             ),
           },
         ],
       };
 
-      let eligibility = this.statuServ.getEligibilityStatus(convertedEntry);
-      let iit = this.statuServ.getIITStatus(
+      if (
+        serialDateToJSDate(entry['2nd (Last) VL date (dd/ mm/ yyyy)']) !=
+        undefined
+      ) {
+        convertedEntry.vlh.push({
+          value:
+            entry['2nd (Last) VL Value'] == undefined
+              ? null
+              : entry['2nd (Last) VL Value'],
+          dateSampleCollected: serialDateToJSDate(
+            entry['2nd (Last) VL date (dd/ mm/ yyyy)']
+          ),
+        });
+      }
+
+      if (
+        serialDateToJSDate(entry['3rd (Last) VL date (dd/ mm/ yyyy)']) !=
+        undefined
+      ) {
+        convertedEntry.vlh.push({
+          value:
+            entry['3rd (Last) VL Results'] == undefined
+              ? null
+              : entry['3rd (Last) VL Results'],
+          dateSampleCollected: serialDateToJSDate(
+            entry['3rd (Last) VL date (dd/ mm/ yyyy)']
+          ),
+        });
+      }
+
+      const nextViralLoadSampleCollectionDate =
+        this.statuServ.getNextVLDate(convertedEntry);
+      const eligibility = this.statuServ.getEligibilityStatusByNextVLDate(
+        nextViralLoadSampleCollectionDate as Date,
+        convertedEntry.hvl == 'yes',
+        convertedEntry.eac3Completed == 'yes',
+        convertedEntry.vlh
+      );
+      const iit = this.statuServ.getIITStatus(
         serialDateToJSDate(entry['Next appointment date (dd/ mm/ yyyy)'])
       );
-      convertedData.push({ ...convertedEntry, eligibility, iit });
+      convertedData.push({
+        ...convertedEntry,
+        nextViralLoadSampleCollectionDate,
+        eligibility,
+        iit,
+      });
     });
 
     return convertedData;
@@ -144,12 +215,40 @@ export class ImportEntriesComponent implements OnInit {
 
   previewEntries() {
     this.modalServ.open(ImportEntriesPreviewComponent, {
-      data: { data: this.convertedData$.getValue() },
-      modalClass: 'modal-dialog-centered modal-xl ',
+      data: { data: this.convertedData$ },
+      modalClass:
+        'modal-dialog-scrollable modal-dialog-centered modal-xl modal-container',
     });
+  }
+
+  importEntries() {
+    this.convertedData$.subscribe((entries) => {
+      this.importEntries$(entries);
+    });
+  }
+
+  async importEntries$(entries: any[]) {
+    let i = 1;
+    const l = entries.length;
+    for (let entry of entries) {
+      let id = this.afs.collection('entries').doc().ref.id;
+      let entryRef = this.afs.collection('entries').doc(id);
+      await entryRef.set({ ...entry, id }, { merge: true });
+      this.importLoadingInfo = {
+        imported: i,
+        total: l,
+      };
+      i++;
+    }
+
+    this.modalRef.close();
   }
 }
 
 function serialDateToJSDate(excelSerialDate: number | null): Date | null {
   return excelSerialDate ? new Date(Date.UTC(0, 0, excelSerialDate - 1)) : null;
+}
+
+function UANToId(UAN: string) {
+  return UAN.replace(/\//g, '').toUpperCase();
 }

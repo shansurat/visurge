@@ -1,0 +1,63 @@
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">Edit Entry Facility</h5>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modalRef.close()"
+  ></button>
+</div>
+<div class="modal-body" #container>
+  <mdb-loading [show]="loading" [container]="container">
+    <div class="loading-spinner">
+      <div class="spinner-border loading-icon" role="status"></div>
+      <span class="loading-text">Loading...</span>
+    </div>
+  </mdb-loading>
+  <div class="row g-3">
+    {{ facilitiesServ.getFacilityById(id) | async }}
+    <div class="col-12" *ngIf="facilityId == undefined">
+      <div class="note note-danger text-uppercase">
+        The existing facility does not exist. Set the facility below.
+      </div>
+    </div>
+    <div class="col-12">
+      <mdb-form-control>
+        <mdb-select
+          [filter]="true"
+          [formControl]="facilityFormControl"
+          [mdbValidate]="true"
+          class="advancedFilterSelect"
+        >
+          <mdb-option
+            class="advancedFilterOption"
+            *ngFor="let facility of facilitiesServ.facilities$ | async"
+            [value]="facility.uid"
+            [label]="facility.site"
+          >
+            <div
+              class="d-flex align-items-center justify-content-between w-100"
+            >
+              <span class="text-truncate me-3">{{ facility.site }}</span>
+              <span class="badge bg-primary">{{ facility.state }}</span>
+            </div>
+          </mdb-option>
+        </mdb-select>
+        <label mdbLabel class="form-label">Facility</label>
+      </mdb-form-control>
+    </div>
+  </div>
+</div>
+<div class="modal-footer" *ngIf="!loading">
+  <button type="button" class="btn btn-secondary" (click)="modalRef.close()">
+    Discard
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="saveFacility()"
+    [disabled]="(facilityFormControl.statusChanges | async) != 'VALID'"
+  >
+    Update Facility
+  </button>
+</div>

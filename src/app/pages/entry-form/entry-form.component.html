@@ -9,62 +9,84 @@
     <div class="py-1 bg-primary text-light small px-4 shadow-5">
       <div class="container-lg">
         <div class="d-flex align-items-center justify-content-between">
-          <div *ngIf="uniqueARTNumberFormControl.valid">
+          <div
+            *ngIf="uniqueARTNumberFormControl.valid"
+            class="d-flex align-items-center"
+          >
             <span class="fw-bold me-2"> Unique ART Number: </span
-            >{{ (authServ.currentFacility$ | async)?.state }}/{{
-              (authServ.currentFacility$ | async)?.code
-            }}/{{ uniqueARTNumber.value }}
-          </div>
-          <div>
-            <span class="fw-bold me-2"> Facility: </span
-            >{{ (authServ.currentFacility$ | async)?.site }}
+            ><span class="badge badge-info">
+              {{ (activeFacility$ | async)?.state }}/{{
+                (activeFacility$ | async)?.code
+              }}/{{ uniqueARTNumber.value }}
+            </span>
           </div>
           <div class="d-flex align-items-center">
-            <!-- PENDING STATUS -->
+            <span class="fw-bold me-2"> Facility: </span>
+            <span class="me-2">
+              {{ (activeFacility$ | async)?.site }}
+            </span>
+            <span class="badge badge-primary">{{
+              (activeFacility$ | async)?.state
+            }}</span>
+          </div>
+          <div class="d-flex align-items-center">
+            <ng-container *ngIf="error$ | async">
+              <span class="badge bg-danger">
+                {{ error$ | async | uppercase }}
+              </span>
+            </ng-container>
 
-            <span
-              class="badge badge-warning me-2"
-              *ngIf="pendingStatusFormControl.value"
-              >PENDING</span
-            >
-            <!-- ELIGIBILITY STATUS -->
-            <span
-              class="badge text-uppercase me-2"
-              [ngClass]="{
-                'badge-success': eligibilityStatus?.eligible,
-                'badge-warning':
-                  eligibilityStatus &&
-                  !eligibilityStatus?.eligible &&
-                  eligibilityStatus?.note == 'incomplete-eac',
-                'badge-danger':
-                  eligibilityStatus && !eligibilityStatus?.eligible,
-                'badge-dark': !eligibilityStatus
-              }"
-            >
-              {{
-                eligibilityStatus
-                  ? eligibilityStatus?.eligible
-                    ? "eligible"
-                    : "ineligible"
-                  : "pending"
-              }}
-            </span>
-            <span *ngIf="eligibilityStatus?.note" class="badge bg-danger me-2">
-              EAC-3 NOT COMPLETED
-            </span>
-            <!-- IIT STATUS -->
-            <span
-              class="badge text-uppercase"
-              [ngClass]="{
-                'badge-success': iit == 'active',
-                'badge-primary': iit == 'iit <= 1',
-                'badge-warning': iit == 'iit <= 3',
-                'badge-danger': iit == 'iit > 3',
-                'badge-dark': iit == 'pending' || !iit
-              }"
-            >
-              {{ (iit || "pending").replace("<=", "≤").replace("> 3", "3⁺") }}
-            </span>
+            <ng-container *ngIf="!(error$ | async)">
+              <!-- PENDING STATUS -->
+              <span
+                class="badge badge-warning me-2"
+                *ngIf="pendingStatusCheckboxFormControl.value"
+                >PENDING VL</span
+              >
+              <!-- ELIGIBILITY STATUS -->
+              <span
+                class="badge text-uppercase me-2"
+                [ngClass]="{
+                  'badge-success': eligibilityStatus?.eligible,
+                  'badge-warning':
+                    eligibilityStatus &&
+                    !eligibilityStatus?.eligible &&
+                    eligibilityStatus?.note == 'incomplete-eac',
+                  'badge-danger':
+                    eligibilityStatus && !eligibilityStatus?.eligible,
+                  'badge-dark': !eligibilityStatus
+                }"
+                *ngIf="eligibilityStatus"
+              >
+                {{
+                  eligibilityStatus
+                    ? eligibilityStatus?.eligible
+                      ? "eligible"
+                      : "ineligible"
+                    : "pending"
+                }}
+              </span>
+              <span
+                *ngIf="eligibilityStatus?.note"
+                class="badge bg-danger me-2"
+              >
+                EAC-3 NOT COMPLETED
+              </span>
+              <!-- IIT STATUS -->
+              <span
+                class="badge text-uppercase"
+                [ngClass]="{
+                  'badge-success': iit == 'active',
+                  'badge-primary': iit == 'iit <= 1',
+                  'badge-warning': iit == 'iit <= 3',
+                  'badge-danger': iit == 'iit > 3',
+                  'badge-dark': iit == 'pending' || !iit
+                }"
+                *ngIf="iit"
+              >
+                {{ (iit || "pending").replace("<=", "≤").replace("> 3", "3⁺") }}
+              </span>
+            </ng-container>
           </div>
         </div>
       </div>
@@ -107,17 +129,91 @@
                       >
                         <!-- <small class="mb-1">Unique ART Number</small> -->
                         <div class="input-group">
-                          <span
+                          <!-- <span
                             class="
                               input-group-text
                               fw-bold
                               bg-primary
                               text-light
                             "
-                            >{{ (authServ.currentFacility$ | async)?.state }}/{{
-                              (authServ.currentFacility$ | async)?.code
+                            >{{ (activeFacility$ | async)?.state }}/{{
+                              (activeFacility$ | async)?.code
                             }}/</span
-                          >
+                          > -->
+
+                          <!-- <div mdbDropdown class="dropdown">
+                            <button
+                              class="btn btn-primary"
+                              type="button"
+                              id="dropdownMenuButton"
+                              aria-expanded="false"
+                              mdbDropdownToggle
+                            >
+                              {{ (activeFacility$ | async)?.state }}/{{
+                                (activeFacility$ | async)?.code
+                              }}/
+                            </button>
+                            <ul
+                              mdbDropdownMenu
+                              class="dropdown-menu"
+                              aria-labelledby="dropdownMenuButton"
+                            >
+                              <li>
+                                <a class="dropdown-item" href="#">Action</a>
+                              </li>
+                              <li>
+                                <a class="dropdown-item" href="#"
+                                  >Another action</a
+                                >
+                              </li>
+                              <li>
+                                <a class="dropdown-item" href="#"
+                                  >Something else here</a
+                                >
+                              </li>
+                            </ul>
+                          </div> -->
+
+                          <mdb-form-control>
+                            <mdb-select
+                              id="facility"
+                              [filter]="true"
+                              [formControl]="facilityFormControl"
+                              class="advancedFilterSelect"
+                            >
+                              <mdb-option
+                                class="advancedFilterOption"
+                                *ngFor="
+                                  let facility of facilitiesServ.facilities$
+                                    | async
+                                "
+                                [value]="facility.uid"
+                                label="{{ facility.state }}/{{
+                                  facility.code
+                                }}/"
+                              >
+                                <div
+                                  class="
+                                    d-flex
+                                    align-items-center
+                                    justify-content-between
+                                    w-100
+                                  "
+                                >
+                                  <span class="text-truncate me-3">{{
+                                    facility.site
+                                  }}</span>
+                                  <span class="badge bg-primary">{{
+                                    facility.state
+                                  }}</span>
+                                </div>
+                              </mdb-option>
+                            </mdb-select>
+
+                            <label mdbLabel class="form-label" for="facility"
+                              >Facility</label
+                            >
+                          </mdb-form-control>
                           <mdb-form-control>
                             <input
                               autocomplete="off"
@@ -147,7 +243,7 @@
                               mdbLabel
                               class="form-label"
                               for="uniqueARTNumberInput"
-                              >Unique ART Number</label
+                              >UAN</label
                             >
                           </mdb-form-control>
                           <mdb-autocomplete #UANautocomplete="mdbAutocomplete">
@@ -270,7 +366,7 @@
                             <input
                               class="form-check-input mt-0"
                               type="checkbox"
-                              [formControl]="phoneNumberFormControl"
+                              [formControl]="phoneNumberCheckboxFormControl"
                               #phoneNumber
                             />
                           </div>
@@ -850,7 +946,7 @@
                                 class="form-check-input mt-0"
                                 type="checkbox"
                                 id="pendingStatus"
-                                [formControl]="pendingStatusFormControl"
+                                [formControl]="pendingStatusCheckboxFormControl"
                                 #pendingStatus
                               />
                             </div>
@@ -1057,14 +1153,14 @@
                 <div
                   class="card text-light shadow-3"
                   [ngClass]="{
-                    'bg-primary': (canShowStatus | async),
-                    'bg-danger': !(canShowStatus | async)
+                    'bg-primary': !(error$ | async),
+                    'bg-danger': (error$ | async)
                   }"
                 >
                   <div class="card-body">
                     <div
                       class="row align-items-center justify-content-between g-3"
-                      *ngIf="canShowStatus | async; else formInvalid"
+                      *ngIf="!(error$ | async); else formInvalid"
                     >
                       <div class="col-12 col-lg-6 d-flex align-items-center">
                         <h6 class="me-3 mb-0">Viral Load Eligibility Status</h6>
@@ -1129,8 +1225,7 @@
                     </div>
 
                     <ng-template #formInvalid>
-                      Fill up the necessary fields correctly to view status.
-                      {{ canShowStatus | async }}
+                      {{ error$ | async }}
                     </ng-template>
                   </div>
                 </div>
@@ -1139,7 +1234,7 @@
                 <button
                   class="btn btn-lg btn-success ms-auto w-100 h-100"
                   (click)="saveEntryForm()"
-                  [disabled]="uniqueARTNumberFormControl.invalid"
+                  [disabled]="error$ | async"
                   mdbRipple
                 >
                   <h5 class="mb-0">Save</h5>
@@ -1149,93 +1244,6 @@
           </div>
         </div>
       </form>
-    </div>
-
-    <div id="actions-container" class="p-4 bg-light" *ngIf="false">
-      <div class="container-lg">
-        <div class="row">
-          <div class="col-12">
-            <div class="row align-items-center g-3">
-              <div>
-                <div class="card">
-                  <div class="card-body">
-                    <div class="row g-3">
-                      <div class="col-6">
-                        <button
-                          class="btn btn-success btn-lg w-100 h-100"
-                          type="button"
-                          (click)="saveEntryForm()"
-                          [disabled]="
-                            uniqueARTNumberFormControl.invalid ||
-                            clinicVisitFormGroup.invalid
-                          "
-                        >
-                          Save
-                        </button>
-                      </div>
-
-                      <div class="col-3 d-flex flex-column text-center">
-                        <h2>
-                          <div
-                            class="badge text-uppercase"
-                            [ngClass]="{
-                              'badge-success': eligibilityStatus?.eligible,
-                              'badge-warning':
-                                eligibilityStatus &&
-                                !eligibilityStatus?.eligible &&
-                                eligibilityStatus?.note == 'incomplete-eac',
-                              'badge-danger':
-                                eligibilityStatus &&
-                                !eligibilityStatus?.eligible,
-                              'badge-dark': !eligibilityStatus
-                            }"
-                            [mdbTooltip]="eligibilityStatus?.note || ''"
-                          >
-                            {{
-                              eligibilityStatus
-                                ? eligibilityStatus?.eligible
-                                  ? "eligible"
-                                  : "ineligible"
-                                : "pending"
-                            }}
-                          </div>
-                        </h2>
-                        <span class="small text-uppercase"
-                          >Viral Load Eligibility Status
-                        </span>
-                      </div>
-
-                      <div class="col-3 d-flex flex-column text-center">
-                        <h2>
-                          <div
-                            class="badge text-uppercase"
-                            [ngClass]="{
-                              'badge-success': iit == 'active',
-                              'badge-primary': iit == 'iit <= 1',
-                              'badge-warning': iit == 'iit <= 3',
-                              'badge-danger': iit == 'iit > 3',
-                              'badge-dark': iit == 'pending' || !iit
-                            }"
-                          >
-                            {{
-                              (iit || "pending")
-                                .replace("<=", "≤")
-                                .replace("> 3", "3⁺")
-                            }}
-                          </div>
-                        </h2>
-                        <span class="small text-uppercase"
-                          >Clinic Status (IIT)</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <span

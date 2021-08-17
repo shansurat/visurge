@@ -19,9 +19,12 @@ import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged,
+  filter,
   map,
   mergeMap,
   pairwise,
+  take,
+  takeUntil,
 } from 'rxjs/operators';
 import { _DisposeViewRepeaterStrategy } from '@angular/cdk/collections';
 import { ActivatedRoute } from '@angular/router';
@@ -52,6 +55,7 @@ import { SaveEntryComponent } from 'src/app/modals/save-entry/save-entry.compone
 import { deepCopyObj } from 'src/app/functions/deepCopyObj';
 import { AreYouSureComponent } from 'src/app/modals/are-you-sure/are-you-sure.component';
 import { fields } from 'src/app/constants/entry-fields';
+import { Facility } from 'src/app/interfaces/facility';
 
 @Component({
   selector: 'app-entry-form',
@@ -85,12 +89,13 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
 
   // FormControls
   uniqueARTNumberFormControl!: FormControl;
+  facilityFormControl!: FormControl;
   entryFormGroup!: FormGroup;
   clinicVisitFormGroup!: FormGroup;
   birthdateKnownCheckboxFormControl = new FormControl();
   noViralLoadHasBeenDoneFormControl: FormControl = new FormControl();
-  pendingStatusFormControl: FormControl = new FormControl();
-  phoneNumberFormControl: FormControl = new FormControl();
+  pendingStatusCheckboxFormControl: FormControl = new FormControl();
+  phoneNumberCheckboxFormControl: FormControl = new FormControl();
 
   UAN$ = new BehaviorSubject('');
 
@@ -99,13 +104,16 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
   loadedEntry$: BehaviorSubject<any> = new BehaviorSubject(null);
   canShowStatus = new BehaviorSubject(true);
 
-  entryFormGroupError$: BehaviorSubject<string> = new BehaviorSubject('');
+  entryFormGroupError$: BehaviorSubject<any> = new BehaviorSubject(
+    '' as string
+  );
   clinicVisitFormGroupError$: BehaviorSubject<string> = new BehaviorSubject('');
-  error$: BehaviorSubject<string> = new BehaviorSubject('');
+  error$: BehaviorSubject<any> = new BehaviorSubject(null);
 
   miniDashboardShown!: boolean;
 
   diffDate = diffDate;
+  activeFacility$ = new BehaviorSubject({} as Facility);
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -121,7 +129,7 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
     public facilitiesServ: FacilitiesService
   ) {
     this.today.setDate(new Date().getDate() + 1);
-
+    this.facilityFormControl = new FormControl('', [Validators.required]);
     // Unique ART Number Form Control initialization
     this.uniqueARTNumberFormControl = new FormControl('', [
       Validators.required,
@@ -169,7 +177,7 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
     this.entriesAutocomplete$ = combineLatest(
       this.UAN$,
       this.entriesServ.all$,
-      this.authServ.currentFacility$
+      this.activeFacility$
     ).pipe(
       map(([UAN, all, facility]) => {
         return facility == undefined
@@ -181,15 +189,34 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
             });
       })
     );
+
+    this.authServ.isAdmin$.subscribe((val) =>
+      val
+        ? this.facilityFormControl.enable()
+        : this.facilityFormControl.disable()
+    );
   }
 
   ngOnInit(): void {
+    this.facilityFormControl.valueChanges
+      .pipe(
+        distinctUntilChanged(),
+        mergeMap((id: string) => {
+          return this.facilitiesServ.getFacilityById(id);
+        }),
+        map((facility) => {
+          this.uniqueARTNumberFormControl.reset();
+          this.activeFacility$.next(facility);
+        })
+      )
+      .subscribe();
+
     combineLatest(
       this.uniqueARTNumberFormControl.valueChanges.pipe(
         debounceTime(250),
         distinctUntilChanged()
       ),
-      this.authServ.currentFacility$
+      this.activeFacility$
     )
       .pipe(
         map(([num, facility]) =>
@@ -291,6 +318,9 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
       map((pmtct: string) => {
         if (pmtct == 'no') {
           this.pmtctDateFormControl.reset();
+          this.pmtctDateFormControl.disable();
+        } else {
+          this.pmtctDateFormControl.enable();
         }
       })
     );
@@ -317,7 +347,10 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
     const eac3CompletedListener$ = this.eac3FormControl?.valueChanges.pipe(
       distinctUntilChanged(),
       map((eac3Completed) => {
-        if (eac3Completed != 'yes') this.eac3DateFormControl.reset();
+        if (eac3Completed != 'yes') {
+          this.eac3DateFormControl.reset();
+          this.eac3DateFormControl.disable();
+        } else this.eac3DateFormControl.enable();
       })
     );
     let eac3CompletedSubscription = eac3CompletedListener$?.subscribe();
@@ -340,7 +373,7 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
     );
 
     // Pending Status checkbox listener
-    this.pendingStatusFormControl.valueChanges
+    this.pendingStatusCheckboxFormControl.valueChanges
       .pipe(
         distinctUntilChanged(),
         map((pendingStatus) => {
@@ -351,7 +384,7 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
       .subscribe();
 
     // Phone Number Listener
-    this.phoneNumberFormControl.valueChanges
+    this.phoneNumberCheckboxFormControl.valueChanges
       .pipe(
         distinctUntilChanged(),
         map((phoneNumber) => {
@@ -375,11 +408,16 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
 
     // Error Checker
 
-    combineLatest(this.entryFormGroup.valueChanges, this.vlh$)
+    combineLatest(
+      this.entryFormGroup.valueChanges,
+      this.vlh$,
+      this.birthdateKnownCheckboxFormControl.valueChanges,
+      this.phoneNumberCheckboxFormControl.valueChanges,
+      this.pendingStatusCheckboxFormControl.valueChanges,
+      this.noViralLoadHasBeenDoneFormControl.valueChanges
+    )
       .pipe(
-        map(([entry, vlh]): string => {
-          console.log({ entry, vlh });
-
+        map(([entry, vlh, bdCB, phoneCB, pendCB, nilCB]): string | null => {
           for (let [field, value] of Object.entries(entry)) {
             switch (field) {
               case 'ARTStartDate':
@@ -388,25 +426,48 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
               case 'regimenStartTransDate':
               case 'pmtct':
               case 'hvl':
-                console.log({ field, value });
                 if (!value)
                   return `${
                     fields.find((f) => f.field == field)?.header
                   } is required.`;
                 break;
-
-              default:
+              case 'pmtctEnrollStartDate':
+                if (entry.pmtct == 'yes' && !value)
+                  return `PMTCT Enrollment Start Date is required.`;
                 break;
+              case 'eac3Completed':
+                if (entry.hvl == 'yes' && !value)
+                  return `EAC-3 Completed is required.`;
+                break;
+              case 'eac3CompletionDate':
+                if (entry.eac3Completed == 'yes' && !value)
+                  return `EAC-3 Completion Date is required.`;
+                break;
+              case 'phoneNumber':
+                if (phoneCB && !value) return `Phone Number is required.`;
+                break;
+              case 'pendingStatusDate':
+                if (pendCB && !value) return `Pending Status Date is required.`;
             }
           }
 
-          return '';
+          if (bdCB) {
+            if (!entry.birthdate) return `Birthdate is required.`;
+          } else {
+            if (!entry.age.age) return `Age is required.`;
+            ``;
+            if (!entry.age.unit) return `Age unit is required.`;
+          }
+
+          if (!nilCB && !vlh.length)
+            return `A viral load entry is required, otherwise check Nil.`;
+
+          return null;
         })
       )
-      .subscribe((entryFormGroupError) => {
-        console.log({ entryFormGroupError });
-        this.entryFormGroupError$.next(entryFormGroupError);
-      });
+      .subscribe((entryFormGroupError) =>
+        this.entryFormGroupError$.next(entryFormGroupError)
+      );
 
     combineLatest(
       this.uniqueARTNumberFormControl.statusChanges.pipe(
@@ -415,12 +476,38 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
       ),
       this.entryFormGroupError$,
       this.clinicVisitFormGroupError$
-    );
+    )
+      .pipe(
+        map(([isValidUAN, entryFormGroupError, clinicVisitFormGroupError]) => {
+          if (!isValidUAN) return 'Unique ART Number is invalid.';
+          else if (entryFormGroupError) return entryFormGroupError;
+          else if (clinicVisitFormGroupError) return clinicVisitFormGroupError;
+          return null;
+        })
+      )
+      .subscribe((err: string | null) => this.error$.next(err));
 
     // Setting the UAN param
-    const activeUAN = this.activatedRoute.snapshot.paramMap.get('UAN');
-    if (activeUAN)
-      this.uniqueARTNumberFormControl.setValue(activeUAN.split('/')[2]);
+    const id = this.activatedRoute.snapshot.paramMap.get('id');
+    if (id) {
+      this.afs
+        .collection('entries')
+        .doc(id)
+        .get()
+        .subscribe((doc) => {
+          const { facility, uniqueARTNumber } = doc.data() as any;
+          this.facilityFormControl.setValue(facility);
+          this.uniqueARTNumberFormControl.setValue(
+            uniqueARTNumber.split('/')[2]
+          );
+        });
+    } else {
+      this.authServ.currentFacility$
+        .pipe(filter((fac) => fac != null))
+        .subscribe((fac: Facility) => {
+          this.facilityFormControl.setValue(fac.uid);
+        });
+    }
 
     this.isLoading = false;
   }
@@ -494,9 +581,9 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
     this.vlh$.next(_vlh);
 
     // Setting checkboxes
-    this.pendingStatusFormControl.setValue(entry.pendingStatusDate);
+    this.pendingStatusCheckboxFormControl.setValue(entry.pendingStatusDate);
     this.birthdateKnownCheckboxFormControl.setValue(entry.birthdate);
-    this.phoneNumberFormControl.setValue(entry.phoneNumber);
+    this.phoneNumberCheckboxFormControl.setValue(entry.phoneNumber);
   }
 
   get ageFormGroup(): FormGroup {
@@ -535,7 +622,6 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
   }
 
   updateEligibilityStatus() {
-    console.log(this.entryFormGroup.getRawValue());
     this.eligibilityStatus = this.statusServ.getEligibilityStatus({
       entryDate: this.entryDate,
       ...this.entryFormGroup.getRawValue(),
@@ -561,9 +647,9 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
   resetEntryForm() {
     this.entryDate = undefined;
     this.entryFormGroup.reset();
-    this.pendingStatusFormControl.reset();
+    this.pendingStatusCheckboxFormControl.reset();
     this.birthdateKnownCheckboxFormControl.reset();
-    this.phoneNumberFormControl.reset();
+    this.phoneNumberCheckboxFormControl.reset();
     this.ageFormGroup.reset();
     this.clinicVisitFormGroup.reset();
     this.cvh = [];
@@ -586,7 +672,7 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
         this.isLoading = true;
 
         const id = this.isEntryNew
-          ? UANToId(UAN)
+          ? this.afs.collection('entries').doc().ref.id
           : this.loadedEntry$.getValue().id;
         const facility = this.authServ.currentFacility$.getValue().code;
         const _entryVal = this.entryFormGroup.getRawValue();
@@ -613,9 +699,9 @@ export class EntryFormComponent implements OnInit, AfterContentChecked {
           if (data[key] == undefined) data[key] = null;
         });
 
-        let userRef = this.afs.collection('entries').doc(id);
+        let entryRef = this.afs.collection('entries').doc(id);
 
-        userRef.set(data, { merge: true }).then(() => {
+        entryRef.set(data, { merge: true }).then(() => {
           this.notifServ.open(UserUpdatedAlertComponent, {
             data: { uniqueARTNumber: UAN },
             autohide: true,

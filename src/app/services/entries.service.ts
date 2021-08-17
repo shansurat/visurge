@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, from, Observable, Subject } from 'rxjs';
 import { distinct, distinctUntilChanged, map } from 'rxjs/operators';
 import { getRegimenByCode } from '../functions/getRegimenByCode';
 import { distinctUntilChangedObj } from '../functions/observable-functions';
@@ -63,6 +63,8 @@ export class EntriesService {
   entries_formatted_count$: BehaviorSubject<any> = new BehaviorSubject(
     {} as any
   );
+
+  sanitizedEntries$: BehaviorSubject<any[]> = new BehaviorSubject([] as any[]);
 
   constructor(
     private afs: AngularFirestore,
@@ -132,7 +134,7 @@ export class EntriesService {
               vlh: vlh.map((vl) => {
                 let { dateSampleCollected, ...vlData } = vl;
                 return {
-                  dateSampleCollected: dateSampleCollected.toDate(),
+                  dateSampleCollected: dateSampleCollected?.toDate(),
                   ...vlData,
                 };
               }),
@@ -168,7 +170,6 @@ export class EntriesService {
         }, distinctUntilChangedObj())
       )
       .subscribe((entries_formatted) => {
-        console.log({ entries_formatted });
         this.entries_formatted$.next(entries_formatted);
       });
 
@@ -453,6 +454,8 @@ export class EntriesService {
       });
   }
 
+  public getEntriesC(facilities: any[]) {}
+
   public getEntriesBySex(entries: any[]): BySex {
     return {
       male: entries.filter((entry: any) => entry.sex == 'male'),
@@ -512,16 +515,12 @@ export class EntriesService {
     return this.getEntry$(UAN).pipe(map((entry: any) => entry.id));
   }
 
-  public findEntries(
-    id: string,
-    filter = '',
-    sortOrder = 'asc',
-    pageNumber = [],
-    pageSize = 3
-  ): Observable<UserEntry[]> {
-    const findEntries = this.fns.httpsCallable('findEntries');
+  public deleteEntry(id: string) {
+    return from(this.afs.collection('entries').doc(id).delete());
+  }
 
-    return findEntries('');
+  public updateEntryFacility(id: string, facility: string) {
+    return this.afs.collection('entries').doc(id).update({ facility });
   }
 }
 

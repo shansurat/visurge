@@ -68,12 +68,13 @@
           <mdb-option
             class="advancedFilterOption"
             *ngFor="let facility of facilitiesServ.facilities$ | async"
-            [value]="facility.code"
+            [value]="facility.uid"
             [label]="facility.site"
           >
-            <div class="d-flex align-items-center w-100 m-auto">
-              <span class="text-truncate">{{ facility.site }}</span>
-              <div class="flex-fill"></div>
+            <div
+              class="d-flex align-items-center justify-content-between w-100"
+            >
+              <span class="text-truncate me-3">{{ facility.site }}</span>
               <span class="badge bg-primary">{{ facility.state }}</span>
             </div>
           </mdb-option>

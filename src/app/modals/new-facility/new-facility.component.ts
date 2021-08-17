@@ -9,7 +9,6 @@ import {
 import { MdbModalRef } from 'mdb-angular-ui-kit/modal';
 import { MdbNotificationService } from 'mdb-angular-ui-kit/notification';
 import { debounceTime, map, take } from 'rxjs/operators';
-import { facilities } from 'src/app/constants/facilities';
 import { FacilitiesService } from 'src/app/services/facilities.service';
 
 @Component({

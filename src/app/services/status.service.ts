@@ -35,7 +35,6 @@ export class StatusService {
       age,
       hvl,
       pmtct,
-      pmtctEnrollStartDate,
       regimen,
       regimenStartTransDate,
       eac3Completed,
@@ -48,11 +47,6 @@ export class StatusService {
     eac3Completed = eac3Completed == 'yes';
     hvl = hvl == 'yes';
 
-    const isAdult: boolean = Object.keys(age)[0] == 'year' && age.year >= 19;
-
-    const today = new Date();
-    const artDiff = diffDate(today, ARTStartDate);
-    const regDiff = diffDate(today, regimenStartTransDate);
     const l = vlh?.length || 0;
 
     let isEligible = diffDate(new Date(), this.getNextVLDate(val) as Date) >= 0;
@@ -82,15 +76,12 @@ export class StatusService {
     const {
       ARTStartDate,
       age,
-      _pmtct,
       pmtctEnrollStartDate,
       regimenStartTransDate,
       vlh,
     } = val;
 
     const l = vlh?.length || 0;
-
-    const pmtct = _pmtct == 'yes';
 
     const mostCurrentVLDate = l ? vlh[0]?.dateSampleCollected : null;
 

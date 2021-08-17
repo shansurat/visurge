@@ -1,41 +1,32 @@
 import { formatDate } from '@angular/common';
 import {
   AfterViewInit,
-  ChangeDetectionStrategy,
   Component,
   OnInit,
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
 import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
-  fadeInLeftEnterAnimation,
-  fadeOutLeftLeaveAnimation,
-  slideInLeftEnterAnimation,
-  slideOutLeftLeaveAnimation,
   zoomInEnterAnimation,
   zoomOutLeaveAnimation,
 } from 'mdb-angular-ui-kit/animations';
 import { MdbModalService } from 'mdb-angular-ui-kit/modal';
-import {
-  MdbTableDirective,
-  MdbTablePaginationComponent,
-} from 'mdb-angular-ui-kit/table';
+import { MdbTableDirective } from 'mdb-angular-ui-kit/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { distinctUntilChanged, map, mergeMap, tap } from 'rxjs/operators';
 import { fields } from 'src/app/constants/entry-fields';
-import { diffDate } from 'src/app/functions/diffDate';
+import { scrollConfig } from 'src/app/constants/scrollConfig';
 import { ageToFirestoreAge, ageToText, getAge } from 'src/app/functions/getAge';
 import { getRegimenByCode } from 'src/app/functions/getRegimenByCode';
-import { distinctUntilChangedObj } from 'src/app/functions/observable-functions';
 import { timestampToDateForObj } from 'src/app/functions/timestampToDate';
 import { Age } from 'src/app/interfaces/age';
 import { FirestoreAge } from 'src/app/interfaces/firestore-age';
+import { AreYouSureComponent } from 'src/app/modals/are-you-sure/are-you-sure.component';
+import { EditEntryFacilityComponent } from 'src/app/modals/edit-entry-facility/edit-entry-facility.component';
 import { ExportEntriesComponent } from 'src/app/modals/export-entries/export-entries.component';
 import { ImportEntriesComponent } from 'src/app/modals/import-entries/import-entries.component';
-import { NewAdvancedActiveFilterComponent } from 'src/app/modals/new-advanced-active-filter/new-advanced-active-filter.component';
 import { ViewVlhComponent } from 'src/app/modals/view-vlh/view-vlh.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { EntriesService } from 'src/app/services/entries.service';
@@ -61,20 +52,7 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
 
   isAdvancedFiltersExpanded = false;
 
-  config = {
-    handlers: ['click-rail', 'drag-thumb', 'keyboard', 'wheel', 'touch'],
-    wheelSpeed: 1,
-    wheelPropagation: true,
-    swipeEasing: true,
-    minScrollbarLength: null,
-    maxScrollbarLength: null,
-    scrollingThreshold: 1000,
-    useBothWheelAxes: false,
-    suppressScrollX: false,
-    suppressScrollY: false,
-    scrollXMarginOffset: 0,
-    scrollYMarginOffset: 0,
-  };
+  scrollConfig = scrollConfig;
 
   getRegimenByCode = getRegimenByCode;
 
@@ -131,7 +109,6 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
             sortIsAscending,
           ]) => {
             this.tableIsLoading = true;
-            console.log({ sortHeader, sortIsAscending });
             return this.sortEntries(
               [
                 ...(mode
@@ -146,7 +123,6 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
         tap(() => (this.tableIsLoading = false))
       )
       .subscribe((entries) => {
-        console.log({ entries });
         this.entries$.next(entries);
       });
   }
@@ -197,12 +173,27 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
     exportEntriesModalRef.onClose.subscribe((val) => console.log(val));
   }
 
-  loadEntry(UAN: string) {
-    this.router.navigate(['/entry-form', { UAN }]);
+  loadEntry(id: string) {
+    this.router.navigate(['/entry-form', { id }]);
   }
 
   generateReport(UAN: string) {
     this.router.navigate(['/report', { UAN }]);
+  }
+
+  deleteEntry(id: string, UAN: string) {
+    const areYouSureModalRef = this.modalServ.open(AreYouSureComponent, {
+      modalClass: 'modal-dialog-centered',
+      data: { title: 'Delete Data Entry', context: UAN },
+      ignoreBackdropClick: true,
+      keyboard: false,
+    });
+
+    areYouSureModalRef.onClose.subscribe((yes) => {
+      if (yes) {
+        this.entriesServ.deleteEntry(id);
+      }
+    });
   }
 
   filterEntries(entries: any[], filter: string) {
@@ -231,9 +222,6 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
           case 'uniqueARTNumber':
             return entry[key].toLowerCase().includes(filter);
           case 'pendingStatus':
-            console.log(
-              (!!entry.pendingStatusDate ? 'yes' : 'no').includes(filter)
-            );
             return (!!entry.pendingStatusDate ? 'yes' : 'no').includes(filter);
           case 'eligible':
             return (entry.eligible ? 'yes' : 'no').includes(filter);
@@ -242,7 +230,7 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
           // case 'facility':
           //   return (
           //     await this.facilitiesServ
-          //       .getFacilityByCode(entry[key])
+          //       .getFacilityById(entry[key])
           //       .toPromise()
           //   ).site.includes(filter.toLowerCase());
           case 'regimen':
@@ -353,7 +341,7 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
         case 'hvl':
         case 'eac3Completed':
         case 'iit':
-          return A[field].localeCompare(B[field]);
+          return A[field]?.localeCompare(B[field]);
         case 'pendingStatus':
           if (A.pendingStatusDate && !B.pendingStatusDate) return 1;
           else if (!A.pendingStatusDate && B.pendingStatusDate) return -1;
@@ -400,12 +388,30 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
     const _cvh = (cvh as any[]).map((cv) => timestampToDateForObj(cv));
     this.viewCVHServ.viewCVH(_cvh);
   }
+
+  openEditEntryFacilityModal(id: string, facilityId?: string) {
+    let editEntryFacilityModalRef = this.modalServ.open(
+      EditEntryFacilityComponent,
+      {
+        data: { id, facilityId },
+        modalClass: 'modal-dialog-centered',
+      }
+    );
+
+    editEntryFacilityModalRef.onClose.subscribe((facility) => {
+      this.tableIsLoading = true;
+      if (facility)
+        this.entriesServ
+          .updateEntryFacility(id, facility)
+          .then(() => (this.tableIsLoading = false));
+    });
+  }
 }
 
-function isSameDay(first: Date, second: Date): boolean {
-  return (
-    first.getFullYear() === second.getFullYear() &&
-    first.getMonth() === second.getMonth() &&
-    first.getDate() === second.getDate()
-  );
-}
+// function isSameDay(first: Date, second: Date): boolean {
+//   return (
+//     first.getFullYear() === second.getFullYear() &&
+//     first.getMonth() === second.getMonth() &&
+//     first.getDate() === second.getDate()
+//   );
+// }

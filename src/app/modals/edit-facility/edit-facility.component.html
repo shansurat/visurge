@@ -1,1 +1,105 @@
-<p>edit-facility works!</p>
+<div class="modal-header">
+  <h5 class="modal-title" id="exampleModalLabel">Edit Facility</h5>
+  <button type="button" class="btn-close" (click)="modalRef.close()"></button>
+</div>
+<div class="modal-body">
+  <div class="row justify-content-center align-items-center" *ngIf="isLoading">
+    <div class="spinner-border m-auto" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div [formGroup]="editFacilityFormGroup" *ngIf="!isLoading" class="row g-3">
+    <div class="col-12">
+      <div>
+        <mdb-form-control>
+          <input
+            mdbInput
+            type="text"
+            id="site"
+            class="form-control"
+            formControlName="site"
+            [mdbValidate]="true"
+          />
+          <label mdbLabel class="form-label" for="site">Site</label>
+        </mdb-form-control>
+        <span
+          class="text-danger small my-1"
+          *ngIf="site?.invalid && site?.dirty"
+        >
+          <ng-container *ngIf="site.hasError('required')"
+            >Site name is <b>required</b>.</ng-container
+          >
+
+          <ng-container *ngIf="site.hasError('siteAlreadyExists')"
+            >Facility with the site <b>{{ site.value }}</b> already
+            <b>exists</b>.</ng-container
+          >
+        </span>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <mdb-form-control>
+        <input
+          mdbInput
+          type="text"
+          id="code"
+          class="form-control"
+          formControlName="code"
+          [mdbValidate]="true"
+        />
+        <label mdbLabel class="form-label" for="code">Code</label>
+      </mdb-form-control>
+      <span class="text-danger small my-1" *ngIf="code?.invalid && code?.dirty">
+        <ng-container *ngIf="code.hasError('required')"
+          >Facility code is <b>required</b>.</ng-container
+        >
+
+        <ng-container *ngIf="code.hasError('codeAlreadyExists')"
+          >Facility with the code <b>{{ code.value }}</b> already
+          <b>exists</b>.</ng-container
+        >
+      </span>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <mdb-form-control>
+        <input
+          mdbInput
+          type="text"
+          id="state"
+          class="form-control"
+          formControlName="state"
+          [mdbValidate]="true"
+        />
+        <label mdbLabel class="form-label" for="state">State</label>
+      </mdb-form-control>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button
+    type="button"
+    class="btn btn-light shadow-0"
+    (click)="resetForm()"
+    *ngIf="!isOldValue"
+  >
+    Reset
+  </button>
+
+  <button type="button" class="btn btn-danger" (click)="modalRef.close()">
+    Discard
+  </button>
+
+  <button
+    type="button"
+    class="btn btn-primary"
+    [disabled]="
+      (editFacilityFormGroup.statusChanges | async) != 'VALID' || isOldValue
+    "
+    (click)="updateFacility()"
+  >
+    Update Facility
+  </button>
+</div>

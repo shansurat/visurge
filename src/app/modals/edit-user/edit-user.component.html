@@ -94,7 +94,7 @@
         <mdb-select formControlName="facility" [filter]="true">
           <mdb-option
             *ngFor="let facility of facilitiesServ.facilities$ | async"
-            [value]="facility.code"
+            [value]="facility.uid"
             label="{{ facility.site }} ({{ facility.state }})"
             class="facility-mdb-option"
           >

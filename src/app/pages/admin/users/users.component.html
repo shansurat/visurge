@@ -117,7 +117,7 @@
                           <div>
                             {{
                               (
-                                facilitiesServ.getFacilityByCode(user.facility)
+                                facilitiesServ.getFacilityById(user.facility)
                                 | async
                               )?.site || ""
                             }}
@@ -125,16 +125,15 @@
                           <div class="flex-fill"></div>
                           <div
                             *ngIf="
-                              facilitiesServ.getFacilityByCode(user.facility)
+                              facilitiesServ.getFacilityById(user.facility)
                                 | async
                             "
                           >
                             <div class="badge badge-primary">
                               {{
                                 (
-                                  facilitiesServ.getFacilityByCode(
-                                    user.facility
-                                  ) | async
+                                  facilitiesServ.getFacilityById(user.facility)
+                                  | async
                                 )?.code
                               }}
                             </div>

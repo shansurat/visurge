@@ -77,7 +77,7 @@ export class AdvancedFiltersComponent implements OnInit {
         to: [''],
       }),
 
-      facility: [''],
+      facility: [[]],
       uniqueARTNumber: [''],
       sex: [''],
       pmtct: [''],

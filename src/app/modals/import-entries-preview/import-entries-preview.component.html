@@ -1,6 +1,6 @@
 <div class="modal-header">
   <h5 class="modal-title" id="exampleModalLabel">
-    Preview
+    Preview ({{ (data | async)?.length || 0 }} Entries)
     <div class="badge badge-danger ms-3">Under Development</div>
   </h5>
   <button
@@ -10,130 +10,234 @@
     (click)="modalRef.close()"
   ></button>
 </div>
-<div class="modal-body p-0">
-  <div class="datatable h-100 w-100">
-    <div class="datatable-inner position-relative" mdbScrollbar>
-      <table
-        class="table datatable-table"
-        mdbTable
-        mdbTableSort="mdbTableSort"
-        #table="mdbTable"
-        #sort="mdbTableSort"
-        [dataSource]="data"
-        [sort]="sort"
-        [pagination]="pagination"
+<div class="modal-body p-0" style="overflow: hidden">
+  <div [ngStyle]="{ 'max-height': ' 100%', overflow: 'auto' }">
+    <div
+      class="datatable import-preview"
+      [ngStyle]="{
+        overflow: 'auto',
+        'max-height': '100%',
+        height: '75vh'
+      }"
+    >
+      <div
+        class="datatable-inner position-relative h-100 w-100"
+        mdbScrollbar
+        [config]="scrollConfig"
       >
-        <thead class="datatable-header">
-          <tr>
-            <th
-              *ngFor="let header of headers"
-              [mdbTableSortHeader]="header"
-              scope="col"
-            >
-              {{ header }}
-            </th>
-          </tr>
-        </thead>
-        <tbody class="datatable-body">
-          <tr *ngFor="let data of table.data" scope="row">
-            <td>
-              {{ data.entryDate | date: "longDate" }}
-            </td>
-            <td>
-              {{ data.facilityName }}
-            </td>
-            <td>
-              {{ data.uniqueARTNumber }}
-            </td>
-            <td>
-              {{ data.ARTStartDate | date: "longDate" }}
-            </td>
-            <td>
-              <div class="badge badge-dark">Not provided</div>
-            </td>
-            <td>
-              {{ data.age }}
-            </td>
-            <td>
-              <div class="badge badge-dark">Not provided</div>
-            </td>
+        <table
+          class="table datatable-table"
+          mdbTable
+          mdbTableSort="mdbTableSort"
+          #table="mdbTable"
+          [dataSource]="(data | async) || []"
+          [fixedHeader]="true"
+          [pagination]="pagination"
+        >
+          <thead class="datatable-header">
+            <tr>
+              <th *ngFor="let header of headers" scope="col">
+                {{ header }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="datatable-body">
+            <tr *ngFor="let data of table.data" scope="row">
+              <td>
+                {{ data.entryDate | date: "longDate" }}
+              </td>
+              <td>
+                <ng-container
+                  *ngIf="data?.facility as facility; else notProvided"
+                >
+                  <ng-container
+                    *ngIf="
+                      facilitiesServ.getFacilityById(facility) | async as fac;
+                      else facilityDoesNotExist
+                    "
+                  >
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
+                      <div class="me-3">
+                        {{ fac.site }}
+                        <div class="badge badge-primary">
+                          {{ fac.code }}
+                        </div>
+                      </div>
+                    </div>
+                  </ng-container>
 
-            <td>
-              <div
-                class="badge me-3"
-                [ngClass]="{
-                  'badge-primary':
-                    getRegimenByCode(data?.regimen)?.category == 'TLD',
-                  'badge-warning':
-                    getRegimenByCode(data?.regimen)?.category == 'TLE'
-                }"
-              >
-                {{ data?.regimen }}
-              </div>
-              <span>
-                {{ getRegimenByCode(data?.regimen)?.regimen }}
-              </span>
-            </td>
-            <td>
-              {{ data?.regimenStartTransDate | date: "longDate" }}
-            </td>
-            <td>{{ data?.pmtct | titlecase }}</td>
-            <td>
-              {{
-                data?.pmtctEnrollStartDate
-                  ? (data?.pmtctEnrollStartDate | date: "longDate")
-                  : "N/A"
-              }}
-            </td>
-            <td>{{ data?.hvl | titlecase }}</td>
-            <td>
-              {{
-                data?.eac3Completed ? (data?.eac3Completed | titlecase) : "N/A"
-              }}
-            </td>
-            <td>
-              {{
-                data?.eac3CompletionDate
-                  ? (data?.eac3CompletionDate | date: "longDate")
-                  : "N/A"
-              }}
-            </td>
-            <td>
-              <div
-                class="badge text-uppercase"
-                [ngClass]="{
-                  'badge-success': data?.eligibility?.eligible,
-                  'badge-danger': !data?.eligibility?.eligible
-                }"
-              >
-                {{ data?.eligibility?.eligible ? "eligible" : "ineligible" }}
-              </div>
-            </td>
+                  <ng-template #facilityDoesNotExist>
+                    <div class="badge badge-danger text-uppercase">
+                      Facility with the code {{ facility }} does not exist.
+                    </div>
+                  </ng-template>
+                </ng-container>
+              </td>
+              <td>
+                <div class="badge badge-info">
+                  {{ data.uniqueARTNumber }}
+                </div>
+              </td>
+              <td>
+                {{ data.ARTStartDate | date: "longDate" }}
+              </td>
+              <td>
+                <ng-container *ngIf="data.sex; else notProvided">
+                  {{ data.sex }}
+                </ng-container>
+              </td>
+              <td>
+                <ng-container *ngIf="data.age.age as age; else notProvided">
+                  {{ age }} {{ data?.age.unit }}{{ age > 1 ? "s " : " " }}
+                  old
+                </ng-container>
+              </td>
+              <td>
+                <ng-container *ngIf="data.phoneNumber; else unknown">
+                  {{ data.phoneNumber }}
+                </ng-container>
+              </td>
 
-            <td>
-              <div
-                class="badge text-uppercase"
-                [ngClass]="{
-                  'badge-success': data?.iit == 'active',
-                  'badge-primary': data?.iit == 'iit <= 1',
-                  'badge-warning': data?.iit == 'iit <= 3',
-                  'badge-danger': data?.iit == 'iit > 3',
-                  'badge-dark': data?.iit == 'pending' || !data?.iit
-                }"
-              >
-                {{
-                  (data?.iit || "pending")
-                    .replace("<=", "≤")
-                    .replace("> 3", "3⁺")
-                }}
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <td>
+                <div
+                  class="badge me-3"
+                  [ngClass]="{
+                    'badge-primary':
+                      getRegimenByCode(data?.regimen)?.category == 'TLD',
+                    'badge-warning':
+                      getRegimenByCode(data?.regimen)?.category == 'TLE'
+                  }"
+                >
+                  {{ data?.regimen }}
+                </div>
+                <span>
+                  {{ getRegimenByCode(data?.regimen)?.regimen }}
+                </span>
+              </td>
+              <td>
+                {{ data?.regimenStartTransDate | date: "longDate" }}
+              </td>
+              <td>
+                <ng-container *ngIf="data.pmtct as pmtct; else notProvided">
+                  <ng-container *ngIf="pmtct == 'yes'; else noBadge"
+                    ><ng-container *ngTemplateOutlet="yesBadge"></ng-container>
+                  </ng-container>
+                </ng-container>
+              </td>
+              <td>
+                <ng-container *ngIf="data.pmtctEnrollStartDate as pmtctDate">
+                  {{ pmtctDate | date: "longDate" }}
+                </ng-container>
+                <ng-container *ngIf="!data.pmtctEnrollStartDate">
+                  <ng-container *ngIf="data.pmtct == 'yes'; else notApplicable">
+                    <ng-container
+                      *ngTemplateOutlet="notProvided"
+                    ></ng-container>
+                  </ng-container>
+                </ng-container>
+              </td>
+              <td>
+                <ng-container *ngIf="data.hvl as hvl; else notProvided">
+                  <ng-container *ngIf="hvl == 'yes'; else noBadge"
+                    ><ng-container *ngTemplateOutlet="yesBadge"></ng-container>
+                  </ng-container>
+                </ng-container>
+              </td>
+              <td>
+                <ng-container
+                  *ngIf="data.eac3Completed as eac3; else notProvided"
+                >
+                  <ng-container *ngIf="eac3 == 'yes'; else noBadge"
+                    ><ng-container *ngTemplateOutlet="yesBadge"></ng-container>
+                  </ng-container>
+                </ng-container>
+              </td>
+              <td>
+                <ng-container *ngIf="data.eac3CompletionDate as eac3Date">
+                  {{ eac3Date | date: "longDate" }}
+                </ng-container>
+                <ng-container *ngIf="!data.eac3CompletionDate">
+                  <ng-container
+                    *ngIf="data.eac3Completed == 'yes'; else notApplicable"
+                  >
+                    <ng-container
+                      *ngTemplateOutlet="notProvided"
+                    ></ng-container>
+                  </ng-container>
+                </ng-container>
+              </td>
+              <td>
+                {{ data?.nextViralLoadSampleCollectionDate | date: "longDate" }}
+              </td>
+              <td>
+                <div
+                  class="badge text-uppercase"
+                  [ngClass]="{
+                    'badge-success': data?.eligibility?.eligible,
+                    'badge-danger': !data?.eligibility?.eligible
+                  }"
+                >
+                  {{ data?.eligibility?.eligible ? "eligible" : "ineligible" }}
+                </div>
+              </td>
+
+              <td>
+                <div
+                  class="badge text-uppercase"
+                  [ngClass]="{
+                    'badge-success': data?.iit == 'active',
+                    'badge-primary': data?.iit == 'iit <= 1',
+                    'badge-warning': data?.iit == 'iit <= 3',
+                    'badge-danger': data?.iit == 'iit > 3',
+                    'badge-dark': data?.iit == 'pending' || !data?.iit
+                  }"
+                >
+                  {{
+                    (data?.iit || "pending")
+                      .replace("<=", "≤")
+                      .replace("> 3", "3⁺")
+                  }}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
+  <div
+    class="modal-footer"
+    [ngClass]="{
+      'visually-hidden': ((data | async)?.length || 0) < 25
+    }"
+  >
+    <mdb-table-pagination
+      #pagination
+      [entries]="25"
+      [entriesOptions]="[25, 50, 100, 250, 500]"
+    ></mdb-table-pagination>
+  </div>
 </div>
-<div class="modal-footer">
-  <mdb-table-pagination #pagination></mdb-table-pagination>
-</div>
+
+<!-- Templates -->
+<ng-template #notProvided>
+  <div class="badge badge-danger text-uppercase">Not provided</div>
+</ng-template>
+
+<ng-template #notApplicable>
+  <div class="badge badge-warning text-uppercase">Not Applicable</div>
+</ng-template>
+
+<ng-template #unknown>
+  <div class="badge badge-dark text-uppercase">Unknown</div>
+</ng-template>
+
+<ng-template #yesBadge>
+  <div class="badge badge-success text-uppercase">Yes</div>
+</ng-template>
+
+<ng-template #noBadge>
+  <div class="badge badge-danger text-uppercase">No</div>
+</ng-template>

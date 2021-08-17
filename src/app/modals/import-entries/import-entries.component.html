@@ -4,6 +4,7 @@
     <div class="badge badge-danger ms-3">Under Development</div>
   </h5>
   <button
+    *ngIf="importLoadingInfo == undefined"
     type="button"
     class="btn-close"
     aria-label="Close"
@@ -11,34 +12,72 @@
   ></button>
 </div>
 <div class="modal-body">
-  <div class="d-flex">
-    <input
-      type="file"
-      class="form-control form-control-lg"
-      id="entriesFile"
-      [formControl]="entriesFormControl"
-      (change)="onFileChange($event)"
-      #entriesFile
-    />
+  <div class="row g-3">
+    <ng-container *ngIf="importLoadingInfo == undefined">
+      <div>
+        <input
+          type="file"
+          class="form-control"
+          id="entriesFile"
+          [formControl]="entriesFormControl"
+          (change)="onFileChange($event)"
+          #entriesFile
+        />
+      </div>
 
-    <button
-      type="button"
-      class="btn btn-secondary btn-floating ms-3"
-      *ngIf="entriesFile.value"
-      (click)="previewEntries()"
-    >
-      <i class="fas fa-eye"></i>
-    </button>
-  </div>
+      <ng-container *ngIf="dataNotes$ | async as dn">
+        <div class="col-12" *ngFor="let note of dn.infos">
+          <div class="note note-info">
+            {{ note }}
+          </div>
+        </div>
 
-  <div class="note note-info mt-3" *ngIf="entriesFormControl.value">
-    This will contain info about the file for the user before importing; such as
-    the number of entries, number of errors in the entries file, overlapping
-    entries on the existing database, etc.
+        <div class="col-12" *ngFor="let note of dn.dangers">
+          <div class="note note-danger">
+            {{ note }}
+          </div>
+        </div>
+      </ng-container>
+    </ng-container>
+
+    <ng-container *ngIf="importLoadingInfo != undefined">
+      <div class="col-12">
+        <div class="small mb-1">
+          Importing {{ importLoadingInfo.imported }} out of
+          {{ importLoadingInfo.total }}
+        </div>
+        <div class="progress">
+          <div
+            class="progress-bar"
+            role="progressbar"
+            [ngStyle]="{
+              width:
+                (importLoadingInfo.imported * 100) / importLoadingInfo.total +
+                '%'
+            }"
+          ></div>
+        </div>
+      </div>
+    </ng-container>
   </div>
 </div>
-<div class="modal-footer">
-  <button type="button" class="btn btn-secondary" disabled>
+<div class="modal-footer" *ngIf="importLoadingInfo == undefined">
+  <button
+    type="button"
+    class="btn btn-secondary"
+    [disabled]="!(convertedData$ | async)"
+    (click)="previewEntries()"
+    mdbRipple
+  >
+    Preview
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="importEntries()"
+    [disabled]="!(convertedData$ | async)"
+    mdbRipple
+  >
     Import Entries
   </button>
 </div>

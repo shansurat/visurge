@@ -60,12 +60,6 @@ small.form-label {
   }
 }
 
-#mini-dashboard {
-  min-width: 240px;
-
-  z-index: 1;
-}
-
 h6 {
   text-transform: uppercase;
 }
@@ -75,7 +69,30 @@ h6 {
   margin-bottom: 0 !important;
 }
 
-.show_box_progress {
-  height: 4px;
+#mini-dashboard {
+  min-width: 240px;
+
+  z-index: 1;
 }
 
+.advancedFilterOption {
+  .option-text {
+    width: 100%;
+    display: flex !important;
+    align-items: center !important;
+  }
+}
+
+.advancedFilterSelect {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  .select-input {
+    text-align: end;
+  }
+
+  .select-arrow {
+    right: unset !important;
+    left: 9px;
+  }
+}

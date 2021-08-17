@@ -108,6 +108,9 @@ import firebase from 'firebase/app';
 import { ViralLoadCoverageComponent } from './pages/dashboard/viral-load-coverage/viral-load-coverage.component';
 import { ExportEntriesComponent } from './modals/export-entries/export-entries.component';
 import { ExportEntriesPreviewComponent } from './modals/export-entries/export-entries-preview/export-entries-preview.component';
+import { ChangeFacilityComponent } from './modals/change-facility/change-facility.component';
+import { EditEntryFacilityComponent } from './modals/edit-entry-facility/edit-entry-facility.component';
+import { EditEntryUanComponent } from './modals/edit-entry-uan/edit-entry-uan.component';
 
 @NgModule({
   declarations: [
@@ -166,6 +169,9 @@ import { ExportEntriesPreviewComponent } from './modals/export-entries/export-en
     ViralLoadCoverageComponent,
     ExportEntriesComponent,
     ExportEntriesPreviewComponent,
+    ChangeFacilityComponent,
+    EditEntryFacilityComponent,
+    EditEntryUanComponent,
   ],
   imports: [
     BrowserModule,

@@ -5,12 +5,20 @@
   .dropdown {
     cursor: pointer;
   }
+
+  .show_box_progress {
+    height: 20px;
+  }
 }
 
 #main-container {
   overflow-y: auto;
 }
 
-.show_box_progress {
-  height: 20px;
+.facilityFilterOption {
+  .option-text {
+    width: 100%;
+    display: flex !important;
+    align-items: center !important;
+  }
 }

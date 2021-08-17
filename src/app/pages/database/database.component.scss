@@ -18,8 +18,49 @@
   .datatable-pagination {
     padding: 0 !important;
   }
+
+  .entry-row {
+    &:hover {
+      .edit-facility-button {
+        visibility: visible;
+      }
+    }
+
+    .edit-facility-button {
+      visibility: hidden;
+    }
+  }
 }
 
 .actions {
   max-width: max-content !important;
+}
+
+.header {
+  &:hover {
+    .sort-header-icon {
+      opacity: 0.3;
+    }
+  }
+
+  &.active {
+    .sort-header-icon {
+      opacity: 1;
+    }
+    &:hover {
+      .sort-header-icon {
+        opacity: 1;
+      }
+    }
+  }
+  &.asc {
+    .sort-header-icon {
+      transform: rotateZ(180deg);
+    }
+  }
+
+  .sort-header-icon {
+    transition: all 0.25s linear;
+    opacity: 0;
+  }
 }

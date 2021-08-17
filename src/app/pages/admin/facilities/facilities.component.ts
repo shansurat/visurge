@@ -6,8 +6,8 @@ import { MdbNotificationService } from 'mdb-angular-ui-kit/notification';
 import { MdbTableDirective } from 'mdb-angular-ui-kit/table';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
-import { facilities } from 'src/app/constants/facilities';
 import { Facility } from 'src/app/interfaces/facility';
+import { AreYouSureComponent } from 'src/app/modals/are-you-sure/are-you-sure.component';
 import { EditFacilityComponent } from 'src/app/modals/edit-facility/edit-facility.component';
 import { NewFacilityComponent } from 'src/app/modals/new-facility/new-facility.component';
 import { AuthService } from 'src/app/services/auth.service';
@@ -39,11 +39,7 @@ export class FacilitiesComponent implements OnInit {
     scrollYMarginOffset: 0,
   };
 
-  facilities$: BehaviorSubject<Facility[]> = new BehaviorSubject(
-    [] as Facility[]
-  );
-
-  headers = ['#', 'Code', 'Site', 'State', ''];
+  headers = ['Code', 'Site', 'State', 'Actions'];
 
   constructor(
     private afs: AngularFirestore,
@@ -51,14 +47,7 @@ export class FacilitiesComponent implements OnInit {
     public authServ: AuthService,
     private notifServ: MdbNotificationService,
     public facilitiesServ: FacilitiesService
-  ) {
-    this.afs
-      .collection('facilities')
-      .valueChanges()
-      .pipe(
-        map((facilities) => this.facilities$.next(facilities as Facility[]))
-      );
-  }
+  ) {}
 
   ngOnInit(): void {}
 
@@ -70,21 +59,27 @@ export class FacilitiesComponent implements OnInit {
     });
   }
 
-  openFacilityUserModal(facility: Facility) {
+  openEditFacilityUserModal(existingFacility: Facility) {
     this.modalServ.open(EditFacilityComponent, {
       modalClass: 'modal-dialog-centered',
       keyboard: false,
       ignoreBackdropClick: true,
-      data: { facility },
+      data: { existingFacility },
     });
   }
 
-  deleteFacility(uid: string) {
-    this.afs
-      .collection('facilities')
-      .doc(uid)
-      .delete()
-      .then(() => {});
+  deleteFacility(uid: string, site: string) {
+    const areYouSureModalRef = this.modalServ.open(AreYouSureComponent, {
+      modalClass: 'modal-dialog-centered',
+      data: { title: 'Delete Facility', context: site },
+      ignoreBackdropClick: true,
+      keyboard: false,
+    });
+    areYouSureModalRef.onClose.subscribe((yes) => {
+      if (yes) {
+        this.afs.collection('facilities').doc(uid).delete();
+      }
+    });
   }
 
   search(event: Event): void {
@@ -96,6 +91,8 @@ export class FacilitiesComponent implements OnInit {
     // tslint:disable-next-line: prefer-const
 
     return Object.keys(data).some((key) => {
+      console.log({ key });
+
       return data[key].toLowerCase().includes(searchTerm.toLowerCase());
     });
   }

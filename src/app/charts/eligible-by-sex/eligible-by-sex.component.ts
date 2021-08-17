@@ -38,6 +38,9 @@ export class EligibleBySexComponent implements OnInit, AfterViewInit {
       legend: {
         display: false,
       },
+      tooltip: {
+        position: 'nearest',
+      },
     },
   };
 

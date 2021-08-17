@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  OnInit,
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
@@ -17,6 +18,7 @@ import { filter, map, mergeMap } from 'rxjs/operators';
 import { AuthService } from './services/auth.service';
 import { PushNotificationService } from './services/push-notification.service';
 import { LayoutService } from './services/layout.service';
+import { ComponentsService } from './services/components.service';
 
 @Component({
   selector: 'app-root',
@@ -25,7 +27,7 @@ import { LayoutService } from './services/layout.service';
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   @ViewChild('sidenav') sidenav!: MdbSidenavComponent;
   loading = false;
 
@@ -58,11 +60,11 @@ export class AppComponent {
     private router: Router,
     public authServ: AuthService,
     private pushNotifServ: PushNotificationService,
-    public layoutServ: LayoutService
+    public layoutServ: LayoutService,
+    public compsServ: ComponentsService
   ) {
     this.notifs = pushNotifServ.pushNotifs$;
     this.router.events.subscribe((event: any) => {
-      console.log(event);
       switch (true) {
         case event instanceof NavigationStart: {
           this.loading = true;
@@ -82,6 +84,18 @@ export class AppComponent {
     });
   }
 
+  ngOnInit(): void {
+    this.compsServ.zenMode$.subscribe((zenMode) => {
+      console.log({ zenMode });
+      if (this.sidenav != undefined)
+        if (zenMode) {
+          this.sidenav.hide();
+          this.sidenav.update();
+        } else {
+          this.sidenav.update();
+        }
+    });
+  }
   routeToLink(route: string) {
     return route.replace(/-/g, ' ');
   }

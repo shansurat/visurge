@@ -1,14 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { MdbModalRef } from 'mdb-angular-ui-kit/modal';
+import { BehaviorSubject } from 'rxjs';
+import { scrollConfig } from 'src/app/constants/scrollConfig';
 import { getRegimenByCode } from 'src/app/functions/getRegimenByCode';
+import { FacilitiesService } from 'src/app/services/facilities.service';
 
 @Component({
   selector: 'app-import-entries-preview',
   templateUrl: './import-entries-preview.component.html',
   styleUrls: ['./import-entries-preview.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class ImportEntriesPreviewComponent implements OnInit {
-  data!: any[];
+  data!: BehaviorSubject<any[]>;
   headers = [
     'Entry Date',
     'Facility',
@@ -24,11 +28,17 @@ export class ImportEntriesPreviewComponent implements OnInit {
     'High Viral Load',
     'EAC-3 Completed',
     'EAC-3 Completion Date',
-    'Viral Load Eligibility Status',
+    'Next VL Date',
+    'Eligibility Status',
     'IIT Status',
   ];
 
-  constructor(public modalRef: MdbModalRef<ImportEntriesPreviewComponent>) {}
+  scrollConfig = scrollConfig;
+
+  constructor(
+    public modalRef: MdbModalRef<ImportEntriesPreviewComponent>,
+    public facilitiesServ: FacilitiesService
+  ) {}
   public getRegimenByCode = getRegimenByCode;
 
   ngOnInit(): void {}

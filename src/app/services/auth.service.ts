@@ -58,7 +58,7 @@ export class AuthService {
     this.userData$
       .pipe(
         mergeMap((userData) =>
-          this.facilitiesServ.getFacilityByCode(userData?.facility)
+          this.facilitiesServ.getFacilityById(userData?.facility)
         ),
         map((facility) => this.currentFacility$.next(facility as Facility))
       )
@@ -83,14 +83,4 @@ export class AuthService {
       this.afs.collection('users').ref.where('username', '==', username).get()
     ).pipe(map((doc) => (doc.docs[0].data() as any)?.email));
   }
-
-  // accountExistence() {
-  //   return (control: FormControl) =>
-  //     this.fns
-  //       .httpsCallable('checkAccountExistence')(control.value)
-  //       .pipe(
-  //         distinctUntilChanged(),
-  //         map((res) => (res ? null : { accountDoesNotExist: true }))
-  //       );
-  // }
 }

@@ -80,7 +80,7 @@
       <!-- Main Navbar -->
       <nav
         class="navbar navbar-light bg-light"
-        *ngIf="(activeRoute | async) != 'auth'"
+        *ngIf="(activeRoute | async) != 'auth' && !compsServ.zenMode"
         style="z-index: 2"
       >
         <div class="d-flex px-2 align-items-center w-100">

@@ -15,6 +15,7 @@ export const fields = [
   { header: 'EAC-3 Completion Date', field: 'eac3CompletionDate' },
   { header: 'Pending Status', field: 'pendingStatus' },
   { header: 'Pending Status Date', field: 'pendingStatusDate' },
+  { header: 'Next VL Date', field: 'nextViralLoadSampleCollectionDate' },
   { header: 'Eligibility', field: 'eligibility' },
   { header: 'IIT Status', field: 'iit' },
 ];

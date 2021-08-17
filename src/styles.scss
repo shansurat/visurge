@@ -97,4 +97,21 @@ $grid-breakpoints: (
 
 .select-dropdown {
   width: min-content !important;
+  min-width: 100% !important;
+}
+
+.modal-container {
+  height: 92% !important;
+}
+
+.shadow-0-focus {
+  &:focus {
+    box-shadow: none !important;
+  }
+}
+
+.datatable {
+  td {
+    max-width: unset !important;
+  }
 }

@@ -5,24 +5,24 @@
   >
     <div id="main-container" class="p-4 flex-fill d-flex flex-column">
       <div class="container-lg mb-3">
-        <div class="card">
+        <div class="card shadow-0">
           <div class="card-header">
-            <div class="d-flex align-items-center">
-              <mdb-form-control>
-                <input
-                  mdbInput
-                  type="text"
-                  id="filter"
-                  class="form-control"
-                  (keyup)="search($event)"
-                />
-                <label mdbLabel class="form-label" for="filter">Filter</label>
-              </mdb-form-control>
-              <div class="flex-fill"></div>
-              <div>
+            <div class="d-flex align-items-center justify-content-between">
+              <div></div>
+              <div class="d-flex align-items-center">
+                <mdb-form-control class="me-2">
+                  <input
+                    mdbInput
+                    type="text"
+                    id="filter"
+                    class="form-control form-control-sm"
+                    (keyup)="search($event)"
+                  />
+                  <label mdbLabel class="form-label" for="filter">Filter</label>
+                </mdb-form-control>
                 <button
                   type="button"
-                  class="btn btn-primary"
+                  class="btn btn-primary btn-sm shadow-0"
                   (click)="openNewFacilityModal()"
                 >
                   Add New Facility
@@ -33,18 +33,16 @@
         </div>
       </div>
       <div class="container-lg h-100" [ngStyle]="{ overflow: 'hidden' }">
-        <div class="card h-100">
+        <div class="card h-100 shadow-0">
           <div class="card-header">
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center">
-                <h4 class="mb-0 me-3">
+                <h5 class="mb-0 me-3">
                   {{ (facilitiesServ.facilities$ | async)?.length || 0 }}
                   Facilities
-                </h4>
+                </h5>
               </div>
-              <div>
-                <mdb-table-pagination #pagination></mdb-table-pagination>
-              </div>
+              <div></div>
             </div>
           </div>
           <div
@@ -66,12 +64,7 @@
                 style="position: relative; width: 100%; height: 100%"
               >
                 <table
-                  class="
-                    table table-sm
-                    datatable-table
-                    align-middle
-                    table-striped
-                  "
+                  class="table datatable-table align-middle"
                   mdbTable
                   [fixedHeader]="true"
                   mdbTableSort
@@ -81,6 +74,8 @@
                   [pagination]="pagination"
                   [sort]="sort"
                   [filterFn]="filterFn"
+                  [sm]="true"
+                  [striped]="true"
                 >
                   <thead class="datatable-header">
                     <tr>
@@ -98,21 +93,25 @@
                       *ngFor="let facility of table.data; index as i"
                       scope="row"
                     >
-                      <th>{{ i + 1 }}</th>
                       <td>{{ facility.code }}</td>
                       <td>{{ facility.site }}</td>
-                      <td>{{ facility.state }}</td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <span class="badge badge-primary">
+                            {{ facility.state }}
+                          </span>
+                        </div>
+                      </td>
                       <td>
                         <button
                           class="btn btn-primary btn-floating btn-sm"
-                          (click)="openFacilityUserModal(facility)"
-                          disabled
+                          (click)="openEditFacilityUserModal(facility)"
                         >
                           <i class="fa fa-edit"></i>
                         </button>
                         <button
                           class="btn ms-2 btn-danger btn-floating btn-sm"
-                          (click)="deleteFacility(facility?.uid || '')"
+                          (click)="deleteFacility(facility.uid, facility.site)"
                         >
                           <i class="fa fa-trash"></i>
                         </button>
@@ -122,6 +121,23 @@
                 </table>
               </div>
             </div>
+          </div>
+          <div
+            class="card-footer"
+            [ngClass]="{
+              'visually-hidden':
+                ((facilitiesServ.facilities$ | async)?.length || 0) < 25
+            }"
+          >
+            <mdb-table-pagination
+              #pagination
+              [entries]="25"
+              [entriesOptions]="[
+                10,
+                25,
+                facilitiesServ.facilities$.getValue().length
+              ]"
+            ></mdb-table-pagination>
           </div>
         </div>
       </div>

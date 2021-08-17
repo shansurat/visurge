@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/firestore';
+import { AngularFirestore, DocumentData } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import {
   FormBuilder,
@@ -60,17 +60,13 @@ export class AuthComponent implements OnInit {
   }
 
   signIn() {
-    console.log('SUBMITTING FORM!!!');
     this.authServ
       .signIn(this.signInFormGroup.value)
       .toPromise()
-      .then(() => {
-        this.router.navigate(['dashboard']);
-      })
+      .then(() => this.router.navigate(['dashboard']))
       .catch(({ code, message }) => {
-        if (code == 'auth/wrong-password') {
+        if (code == 'auth/wrong-password')
           this.password.setErrors({ wrongPassword: true });
-        }
       });
   }
 
@@ -94,12 +90,30 @@ export class AuthComponent implements OnInit {
   }
 
   private accountCanSignIn() {
-    return (control: FormControl) =>
-      this.fns
-        .httpsCallable('accountCanSignIn')(control.value)
+    return (control: FormControl) => {
+      return this.afs
+        .collection('users', (ref) =>
+          ref.where('username', '==', control.value).limit(1)
+        )
+        .get()
         .pipe(
-          distinctUntilChanged(),
-          map((res) => (res === true ? null : { [res]: true }))
+          map((qs) => {
+            const docs = qs.docs as any[];
+            return docs.length
+              ? docs[0].data().enabled
+                ? null
+                : { accountDisabled: true }
+              : { accountDoesNotExist: true };
+          }),
+          distinctUntilChanged()
         );
+
+      // this.fns
+      //   .httpsCallable('accountCanSignIn')(control.value)
+      //   .pipe(
+      //     distinctUntilChanged(),
+      //     map((res) => (res === true ? null : { [res]: true }))
+      //   );
+    };
   }
 }

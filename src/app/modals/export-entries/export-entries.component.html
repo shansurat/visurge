@@ -15,7 +15,6 @@
     <div>
       <mdb-form-control>
         <mdb-select [multiple]="true" formControlName="headers">
-          <mdb-select-all-option>Select all</mdb-select-all-option>
           <mdb-option *ngFor="let field of fields" [value]="field">{{
             field.header
           }}</mdb-option>
@@ -33,10 +32,20 @@
   >
     Cancel
   </button>
-  <button type="button" class="btn btn-secondary" (click)="previewEntries()">
+  <button
+    type="button"
+    class="btn btn-secondary"
+    (click)="previewEntries()"
+    [disabled]="exportEntriesConfigFormGroup.invalid"
+  >
     Preview
   </button>
-  <button type="button" class="btn btn-primary" (click)="exportEntries()">
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="exportEntries()"
+    [disabled]="exportEntriesConfigFormGroup.invalid"
+  >
     Export Entries
   </button>
 </div>

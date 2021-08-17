@@ -2,6 +2,100 @@
   <div id="main-container" class="p-4 flex-fill">
     <div class="container-fluid container-xxl">
       <div class="row g-3">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                  <mdb-form-control class="me-3">
+                    <mdb-select
+                      [multiple]="true"
+                      [formControl]="statesFormControl"
+                    >
+                      <mdb-select-all-option
+                        >Select all states</mdb-select-all-option
+                      >
+
+                      <mdb-option
+                        *ngFor="let state of facilitiesServ.states$ | async"
+                        [value]="state"
+                        >{{ state }}</mdb-option
+                      >
+                    </mdb-select>
+                    <label mdbLabel class="form-label"
+                      >State{{
+                        (statesSelected$ | async)?.length || 0 > 1 ? "s" : ""
+                      }}</label
+                    >
+                  </mdb-form-control>
+
+                  <mdb-form-control class="me-3">
+                    <mdb-select
+                      [filter]="true"
+                      [multiple]="true"
+                      [formControl]="facilitiesFormControl"
+                    >
+                      <mdb-select-all-option
+                        >Select all facilities</mdb-select-all-option
+                      >
+
+                      <mdb-option
+                        class="facilityFilterOption"
+                        *ngFor="let facility of facilities$ | async"
+                        [value]="facility.uid"
+                        [label]="facility.site"
+                      >
+                        <div
+                          class="
+                            d-flex
+                            align-items-center
+                            justify-content-between
+                            w-100
+                          "
+                        >
+                          <span class="text-truncate me-3">{{
+                            facility.site
+                          }}</span>
+                          <span class="badge bg-primary">{{
+                            facility.state
+                          }}</span>
+                        </div></mdb-option
+                      >
+                    </mdb-select>
+                    <label mdbLabel class="form-label"
+                      >Facilit{{
+                        (facilitySelected$ | async) || 0 > 1 ? "ies" : "y"
+                      }}</label
+                    >
+                  </mdb-form-control>
+
+                  <div class="form-check">
+                    <input
+                      mdbCheckbox
+                      class="form-check-input"
+                      type="checkbox"
+                      value=""
+                      id="compare"
+                    />
+                    <label class="form-check-label" for="compare">
+                      Compare
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    class="btn btn-light btn-floating shadow-0"
+                    (click)="compService.setZenMode(!compService.zenMode)"
+                  >
+                    <i class="fas fa-arrows-alt"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Eligibility -->
         <div class="col-12 col-md-6 col-xl-3">
           <div class="card">
@@ -18,7 +112,7 @@
                     class="btn btn-light btn-sm shadow-0 btn-floating"
                     (click)="$event.stopPropagation()"
                   >
-                    <i class="fas fa-info"></i>
+                    <i class="fas fa-ellipsis-v"></i>
                   </button>
                   <ul
                     mdbDropdownMenu
@@ -102,7 +196,7 @@
                     class="btn btn-light btn-sm shadow-0 btn-floating"
                     (click)="$event.stopPropagation()"
                   >
-                    <i class="fas fa-info"></i>
+                    <i class="fas fa-ellipsis-v"></i>
                   </button>
                   <ul
                     mdbDropdownMenu
@@ -160,8 +254,12 @@
                 >
                   {{
                     r(
-                      (((entriesServ.pregnant$ | async)?.length || 0) /
-                        ((entriesServ.all$ | async)?.length || 1)) *
+                      (((entriesServ.allByPMTCT$ | async)?.eligible?.yes
+                        ?.length || 0) /
+                        (((entriesServ.allByPMTCT$ | async)?.eligible?.yes
+                          ?.length || 0) +
+                          ((entriesServ.allByPMTCT$ | async)?.ineligible?.yes
+                            ?.length || 0))) *
                         100
                     )
                   }}%
@@ -186,7 +284,7 @@
                     class="btn btn-light btn-sm shadow-0 btn-floating"
                     (click)="$event.stopPropagation()"
                   >
-                    <i class="fas fa-info"></i>
+                    <i class="fas fa-ellipsis-v"></i>
                   </button>
                   <ul
                     mdbDropdownMenu
@@ -266,7 +364,7 @@
                     class="btn btn-light btn-sm shadow-0 btn-floating"
                     (click)="$event.stopPropagation()"
                   >
-                    <i class="fas fa-info"></i>
+                    <i class="fas fa-ellipsis-v"></i>
                   </button>
                   <ul
                     mdbDropdownMenu
