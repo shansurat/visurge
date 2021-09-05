@@ -27,34 +27,27 @@ export class AuthService {
 
   constructor(
     public auth: AngularFireAuth,
-    private afs: AngularFirestore,
     private router: Router,
     private fns: AngularFireFunctions,
     private facilitiesServ: FacilitiesService
   ) {
-    auth.authState
-      .pipe()
-      .subscribe((authState) => this.isSignedIn$.next(!!authState?.uid));
-
-    auth.authState
-      .pipe(
-        mergeMap((authState) =>
-          this.afs.collection('users').doc(authState?.uid).get()
-        ),
-        map((doc) => !!(doc.data() as any)?.admin)
-      )
-      .subscribe((isAdmin) => this.isAdmin$.next(isAdmin));
+    auth.authState.subscribe((authState) =>
+      this.isSignedIn$.next(!!authState?.uid)
+    );
 
     this.user$ = auth.user;
 
-    this.user$
+    // Set userData$
+    auth.user
       .pipe(
-        mergeMap((user) => {
-          return this.afs.collection('users').doc(user?.uid).valueChanges();
-        })
+        mergeMap((user) => fns.httpsCallable('getUserDataByUID')(user?.uid))
       )
       .subscribe((userData) => this.userData$.next(userData as User));
 
+    // Set admin$
+    this.userData$.subscribe((userData) => this.isAdmin$.next(userData.admin));
+
+    // Set currentFacility$
     this.userData$
       .pipe(
         mergeMap((userData) =>
@@ -66,21 +59,17 @@ export class AuthService {
   }
 
   signIn({ username, password }: { username: string; password: string }) {
-    return this.getEmailByUsername(username).pipe(
-      mergeMap((email: string) => {
-        return from(this.auth.signInWithEmailAndPassword(email, password));
-      })
-    );
+    return this.fns
+      .httpsCallable('getEmailByUsername')(username)
+      .pipe(
+        mergeMap((email: string) => {
+          return from(this.auth.signInWithEmailAndPassword(email, password));
+        })
+      );
   }
   signOut() {
     this.auth.signOut().then(() => {
       this.router.navigate(['auth']);
     });
-  }
-
-  getEmailByUsername(username: string): Observable<string> {
-    return from(
-      this.afs.collection('users').ref.where('username', '==', username).get()
-    ).pipe(map((doc) => (doc.docs[0].data() as any)?.email));
   }
 }

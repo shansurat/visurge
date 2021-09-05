@@ -454,8 +454,6 @@ export class EntriesService {
       });
   }
 
-  public getEntriesC(facilities: any[]) {}
-
   public getEntriesBySex(entries: any[]): BySex {
     return {
       male: entries.filter((entry: any) => entry.sex == 'male'),

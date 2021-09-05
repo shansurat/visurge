@@ -6,6 +6,7 @@ import {
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
+import { AngularFireFunctions } from '@angular/fire/functions';
 import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -21,6 +22,7 @@ import { scrollConfig } from 'src/app/constants/scrollConfig';
 import { ageToFirestoreAge, ageToText, getAge } from 'src/app/functions/getAge';
 import { getRegimenByCode } from 'src/app/functions/getRegimenByCode';
 import { timestampToDateForObj } from 'src/app/functions/timestampToDate';
+import { ActiveFilter } from 'src/app/interfaces/active-filter';
 import { Age } from 'src/app/interfaces/age';
 import { FirestoreAge } from 'src/app/interfaces/firestore-age';
 import { AreYouSureComponent } from 'src/app/modals/are-you-sure/are-you-sure.component';
@@ -72,6 +74,11 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
     true as boolean
   );
 
+  pageSizes = [10, 25, 50, 100];
+  pageSize$: BehaviorSubject<number> = new BehaviorSubject(50);
+  pageCount$: BehaviorSubject<number> = new BehaviorSubject(1);
+  currentPage$: BehaviorSubject<number> = new BehaviorSubject(1);
+
   constructor(
     private router: Router,
     private modalServ: MdbModalService,
@@ -79,7 +86,8 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
     public entriesServ: EntriesService,
     public facilitiesServ: FacilitiesService,
     public viewCVHServ: ViewCVHService,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private fns: AngularFireFunctions
   ) {}
 
   getAge = getAge;
@@ -89,41 +97,76 @@ export class DatabaseComponent implements OnInit, AfterViewInit {
     this.filterFormControl.valueChanges
       .pipe(distinctUntilChanged())
       .subscribe((filter) => this.filter$.next(filter));
+    // combineLatest(
+    //   this.entriesServ.entries_formatted$,
+    //   this.advancedFilter,
+    //   this.filter$,
+    //   this.advancedActiveFilters$,
+    //   this.sortHeader$.pipe(distinctUntilChanged()),
+    //   this.sortIsAscending$.pipe(distinctUntilChanged())
+    // )
+    //   .pipe(
+    //     tap(() => (this.tableIsLoading = true)),
+    //     map(
+    //       ([
+    //         entries,
+    //         mode,
+    //         filter,
+    //         advancedFilters,
+    //         sortHeader,
+    //         sortIsAscending,
+    //       ]) => {
+    //         this.tableIsLoading = true;
+    //         return this.sortEntries(
+    //           [
+    //             ...(mode
+    //               ? this.filterEntries_Advanced(entries, advancedFilters)
+    //               : this.filterEntries(entries, filter)),
+    //           ],
+    //           sortHeader.field,
+    //           sortIsAscending
+    //         );
+    //       }
+    //     ),
+    //     tap(() => (this.tableIsLoading = false))
+    //   )
+    //   .subscribe((entries) => {
+    //     this.entries$.next(entries);
+    //   });
+
+    // Get Entries via firebase functions
     combineLatest(
-      this.entriesServ.entries_formatted$,
       this.advancedFilter,
       this.filter$,
       this.advancedActiveFilters$,
       this.sortHeader$.pipe(distinctUntilChanged()),
-      this.sortIsAscending$.pipe(distinctUntilChanged())
+      this.sortIsAscending$.pipe(distinctUntilChanged()),
+      combineLatest(this.pageSize$, this.currentPage$)
     )
       .pipe(
         tap(() => (this.tableIsLoading = true)),
-        map(
+        mergeMap(
           ([
-            entries,
-            mode,
+            isAdvancedFilter,
             filter,
             advancedFilters,
             sortHeader,
-            sortIsAscending,
-          ]) => {
-            this.tableIsLoading = true;
-            return this.sortEntries(
-              [
-                ...(mode
-                  ? this.filterEntries_Advanced(entries, advancedFilters)
-                  : this.filterEntries(entries, filter)),
-              ],
-              sortHeader.field,
-              sortIsAscending
-            );
-          }
-        ),
-        tap(() => (this.tableIsLoading = false))
+            asc,
+            [pageSize, currentPage],
+          ]: any[]) =>
+            this.fns.httpsCallable('getEntries')({
+              isAdvancedFilter,
+              filter: isAdvancedFilter ? advancedFilters : filter,
+              sortBy: sortHeader.field,
+              asc,
+              pageSize,
+              currentPage,
+            })
+        )
       )
       .subscribe((entries) => {
         this.entries$.next(entries);
+        this.tableIsLoading = false;
       });
   }
 

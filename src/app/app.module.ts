@@ -225,9 +225,14 @@ import { EditEntryUanComponent } from './modals/edit-entry-uan/edit-entry-uan.co
       provide: USE_FUNCTIONS_EMULATOR,
       useValue: environment.emulator ? ['localhost', 5001] : undefined,
     },
+
     {
       provide: FIRESTORE_SETTINGS,
-      useValue: { cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED },
+      useValue: {
+        cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
+        ignoreUndefinedProperties: true,
+        merge: true,
+      },
     },
   ],
   bootstrap: [AppComponent],

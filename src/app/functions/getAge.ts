@@ -1,8 +1,9 @@
 import { Age } from '../interfaces/age';
 import { FirestoreAge } from '../interfaces/firestore-age';
 
-export function getAge(birthDate: Date): Age {
-  let today = new Date();
+export function getAge(_birthDate: number): Age {
+  const birthDate = new Date(_birthDate);
+  const today = new Date();
   let y = today.getFullYear() - birthDate.getFullYear();
   let m = today.getMonth() - birthDate.getMonth();
   let d = today.getDate() - birthDate.getDate();

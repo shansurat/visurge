@@ -1,12 +1,14 @@
 import { FactoryTarget } from '@angular/compiler';
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
+import { AngularFireFunctions } from '@angular/fire/functions';
 import { FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import { distinctUntilChanged, map, take } from 'rxjs/operators';
 import { states } from 'src/app/constants/states';
 import { distinctUntilChangedObj } from 'src/app/functions/observable-functions';
+import { ActiveFilter } from 'src/app/interfaces/active-filter';
 import { Facility } from 'src/app/interfaces/facility';
 import { ComponentsService } from 'src/app/services/components.service';
 import { EntriesService } from 'src/app/services/entries.service';
@@ -50,11 +52,11 @@ export class DashboardComponent implements OnInit {
   filteredEntries$ = new BehaviorSubject([] as any[]);
 
   constructor(
-    private afs: AngularFirestore,
     public entriesServ: EntriesService,
     private router: Router,
     public facilitiesServ: FacilitiesService,
-    public compService: ComponentsService
+    public compService: ComponentsService,
+    private fns: AngularFireFunctions
   ) {
     this.statesFormControl.valueChanges
       .pipe(

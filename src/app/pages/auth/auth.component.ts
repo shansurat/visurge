@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, take } from 'rxjs/operators';
 import { AuthService } from 'src/app/services/auth.service';
+import { EntriesService } from 'src/app/services/entries.service';
 
 @Component({
   selector: 'app-auth',
@@ -30,7 +31,6 @@ export class AuthComponent implements OnInit {
     public authServ: AuthService,
     private fb: FormBuilder,
     private router: Router,
-    private afs: AngularFirestore,
     private fns: AngularFireFunctions
   ) {}
 
@@ -64,10 +64,11 @@ export class AuthComponent implements OnInit {
       .signIn(this.signInFormGroup.value)
       .toPromise()
       .then(() => this.router.navigate(['dashboard']))
-      .catch(({ code, message }) => {
-        if (code == 'auth/wrong-password')
-          this.password.setErrors({ wrongPassword: true });
-      });
+      .catch(
+        ({ code, message }) =>
+          code == 'auth/wrong-password' &&
+          this.password.setErrors({ wrongPassword: true })
+      );
   }
 
   signOut() {
@@ -91,28 +92,28 @@ export class AuthComponent implements OnInit {
 
   private accountCanSignIn() {
     return (control: FormControl) => {
-      return this.afs
-        .collection('users', (ref) =>
-          ref.where('username', '==', control.value).limit(1)
-        )
-        .get()
+      return this.fns
+        .httpsCallable('accountCanSignIn')(control.value)
         .pipe(
-          map((qs) => {
-            const docs = qs.docs as any[];
-            return docs.length
-              ? docs[0].data().enabled
-                ? null
-                : { accountDisabled: true }
-              : { accountDoesNotExist: true };
-          }),
-          distinctUntilChanged()
+          distinctUntilChanged(),
+          map((res) => (res === true ? null : { [res]: true }))
         );
 
-      // this.fns
-      //   .httpsCallable('accountCanSignIn')(control.value)
+      // this.afs
+      //   .collection('users', (ref) =>
+      //     ref.where('username', '==', control.value).limit(1)
+      //   )
+      //   .get()
       //   .pipe(
-      //     distinctUntilChanged(),
-      //     map((res) => (res === true ? null : { [res]: true }))
+      //     map((qs) => {
+      //       const docs = qs.docs as any[];
+      //       return docs.length
+      //         ? docs[0].data().enabled
+      //           ? null
+      //           : { accountDisabled: true }
+      //         : { accountDoesNotExist: true };
+      //     }),
+      //     distinctUntilChanged()
       //   );
     };
   }

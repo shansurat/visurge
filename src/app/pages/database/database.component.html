@@ -153,7 +153,7 @@
                   }}
                 </h5>
               </div>
-              <div *ngIf="(entries$ | async)?.length" class="d-flex">
+              <div class="d-flex">
                 <div mdbDropdown class="me-2 shadow-0">
                   <button
                     mdbRipple
@@ -227,7 +227,6 @@
                   [fixedHeader]="true"
                   #table="mdbTable"
                   [dataSource]="(entries$ | async) || []"
-                  [pagination]="pagination"
                   [responsive]="true"
                   [sm]="true"
                   [striped]="true"
@@ -394,16 +393,14 @@
                           <div
                             class="badge me-3"
                             [ngClass]="{
-                              'badge-primary':
-                                getRegimenByCode(regimen).category == 'TLD',
-                              'badge-warning':
-                                getRegimenByCode(regimen).category == 'TLE'
+                              'badge-primary': regimen.category == 'TLD',
+                              'badge-warning': regimen.category == 'TLE'
                             }"
                           >
-                            {{ regimen }}
+                            {{ regimen.code }}
                           </div>
                           <span>
-                            {{ getRegimenByCode(regimen).regimen }}
+                            {{ regimen.regimen }}
                           </span>
                         </ng-container>
                       </td>
@@ -619,17 +616,63 @@
             </div>
           </div>
 
-          <div
-            class="card-footer"
-            [ngClass]="{
-              'visually-hidden': ((entriesServ.all$ | async)?.length || 0) < 25
-            }"
-          >
-            <mdb-table-pagination
-              #pagination
-              [entries]="25"
-              [entriesOptions]="[25, 50, 100, 250, 500]"
-            ></mdb-table-pagination>
+          <div class="card-footer">
+            <div class="d-flex justify-content-end align-items-center">
+              <div #pageSizesDropdown mdbDropdown class="me-2 shadow-0">
+                <button
+                  mdbRipple
+                  class="btn btn-light btn-sm dropdown-toggle shadow-0"
+                  type="button"
+                  mdbDropdownToggle
+                  aria-expanded="false"
+                >
+                  {{ pageSize$ | async }} entries per page
+                </button>
+                <ul
+                  mdbDropdownMenu
+                  mdbScrollbar
+                  [config]="scrollConfig"
+                  class="dropdown-menu position-relative"
+                  style="max-height: 200px"
+                >
+                  <ng-container *ngFor="let size of pageSizes">
+                    <li
+                      *ngIf="true"
+                      (click)="pageSize$.next(size); pageSizesDropdown.hide()"
+                    >
+                      <a class="dropdown-item">{{ size }}</a>
+                    </li>
+                  </ng-container>
+                  <li>
+                    <a class="dropdown-item">
+                      {{ (entries$ | async)?.length }}
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="d-flex align-items-center">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-light shadow-0 btn-floating me-2"
+                  (click)="currentPage$.next(currentPage$.getValue() - 1)"
+                  [disabled]="(currentPage$ | async) == 1"
+                >
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="me-2">
+                  {{ currentPage$ | async }} out of {{ pageCount$ | async }}
+                </span>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-light shadow-0 btn-floating"
+                  (click)="currentPage$.next(currentPage$.getValue() + 1)"
+                  [disabled]="(currentPage$ | async) == (pageCount$ | async)"
+                >
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
